@@ -1,3 +1,7 @@
+# Hardware
+
+RAMPS-FD ver2
+
 # Marlin4Due 3D Printer Firmware
 <img align="right" src="Documentation/Logo/Marlin%20Logo%20GitHub.png" />
 
