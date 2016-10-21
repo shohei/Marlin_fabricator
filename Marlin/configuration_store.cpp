@@ -273,7 +273,7 @@ void Config_StoreSettings()  {
 
   // Save filament sizes
   for (int q = 0; q < 4; q++) {
-    if (q < EXTRUDERS) dummy = filament_size[q];
+    // if (q < EXTRUDERS) dummy = filament_size[q];
     EEPROM_WRITE_VAR(i, dummy);
   }
 
@@ -442,7 +442,7 @@ void Config_RetrieveSettings() {
 
     for (int q = 0; q < 4; q++) {
       EEPROM_READ_VAR(i, dummy);
-      if (q < EXTRUDERS) filament_size[q] = dummy;
+      // if (q < EXTRUDERS) filament_size[q] = dummy;
     }
 
     calculate_volumetric_multipliers();
@@ -566,13 +566,13 @@ void Config_ResetDefault() {
   #endif
 
   volumetric_enabled = false;
-  filament_size[0] = DEFAULT_NOMINAL_FILAMENT_DIA;
+  // filament_size[0] = DEFAULT_NOMINAL_FILAMENT_DIA;
   #if EXTRUDERS > 1
-    filament_size[1] = DEFAULT_NOMINAL_FILAMENT_DIA;
+    // filament_size[1] = DEFAULT_NOMINAL_FILAMENT_DIA;
     #if EXTRUDERS > 2
-      filament_size[2] = DEFAULT_NOMINAL_FILAMENT_DIA;
+      // filament_size[2] = DEFAULT_NOMINAL_FILAMENT_DIA;
       #if EXTRUDERS > 3
-        filament_size[3] = DEFAULT_NOMINAL_FILAMENT_DIA;
+        // filament_size[3] = DEFAULT_NOMINAL_FILAMENT_DIA;
       #endif
     #endif
   #endif
@@ -834,20 +834,20 @@ void Config_PrintSettings(bool forReplay) {
     }
 
     CONFIG_ECHO_START;
-    SERIAL_ECHOPAIR("  M200 D", filament_size[0]);
+    // SERIAL_ECHOPAIR("  M200 D", filament_size[0]);
     SERIAL_EOL;
 
     #if EXTRUDERS > 1
       CONFIG_ECHO_START;
-      SERIAL_ECHOPAIR("  M200 T1 D", filament_size[1]);
+      // SERIAL_ECHOPAIR("  M200 T1 D", filament_size[1]);
       SERIAL_EOL;
       #if EXTRUDERS > 2
         CONFIG_ECHO_START;
-        SERIAL_ECHOPAIR("  M200 T2 D", filament_size[2]);
+        // SERIAL_ECHOPAIR("  M200 T2 D", filament_size[2]);
         SERIAL_EOL;
         #if EXTRUDERS > 3
           CONFIG_ECHO_START;
-          SERIAL_ECHOPAIR("  M200 T3 D", filament_size[3]);
+          // SERIAL_ECHOPAIR("  M200 T3 D", filament_size[3]);
           SERIAL_EOL;
         #endif
       #endif

@@ -418,12 +418,12 @@ void check_axes_activity() {
   if (DISABLE_X && !axis_active[X_AXIS]) disable_x();
   if (DISABLE_Y && !axis_active[Y_AXIS]) disable_y();
   if (DISABLE_Z && !axis_active[Z_AXIS]) disable_z();
-  if (DISABLE_E && !axis_active[E_AXIS]) {
-    disable_e0();
-    disable_e1();
-    disable_e2();
-    disable_e3();
-  }
+  // if (DISABLE_E && !axis_active[E_AXIS]) {
+  //   disable_e0();
+  //   disable_e1();
+  //   disable_e2();
+  //   disable_e3();
+  // }
 
   #if HAS_FAN
     #ifdef FAN_KICKSTART_TIME
@@ -555,8 +555,8 @@ float junction_deviation = 0.1;
   #endif
 
   block->steps[E_AXIS] = labs(de);
-  block->steps[E_AXIS] *= volumetric_multiplier[extruder];
-  block->steps[E_AXIS] *= extruder_multiplier[extruder];
+  // block->steps[E_AXIS] *= volumetric_multiplier[extruder];
+  // block->steps[E_AXIS] *= extruder_multiplier[extruder];
   block->steps[E_AXIS] /= 100;
   block->step_event_count = max(block->steps[X_AXIS], max(block->steps[Y_AXIS], max(block->steps[Z_AXIS], block->steps[E_AXIS])));
 
@@ -618,66 +618,66 @@ float junction_deviation = 0.1;
 
   // Enable extruder(s)
   if (block->steps[E_AXIS]) {
-    if (DISABLE_INACTIVE_EXTRUDER) { //enable only selected extruder
+    // if (DISABLE_INACTIVE_EXTRUDER) { //enable only selected extruder
 
-      for (int i=0; i<EXTRUDERS; i++)
-        if (g_uc_extruder_last_move[i] > 0) g_uc_extruder_last_move[i]--;
+    //   for (int i=0; i<EXTRUDERS; i++)
+    //     if (g_uc_extruder_last_move[i] > 0) g_uc_extruder_last_move[i]--;
       
-      switch(extruder) {
-        case 0:
-          enable_e0();
-          g_uc_extruder_last_move[0] = BLOCK_BUFFER_SIZE * 2;
-          #if EXTRUDERS > 1
-            if (g_uc_extruder_last_move[1] == 0) disable_e1();
-            #if EXTRUDERS > 2
-              if (g_uc_extruder_last_move[2] == 0) disable_e2();
-              #if EXTRUDERS > 3
-                if (g_uc_extruder_last_move[3] == 0) disable_e3();
-              #endif
-            #endif
-          #endif
-        break;
-        #if EXTRUDERS > 1
-          case 1:
-            enable_e1();
-            g_uc_extruder_last_move[1] = BLOCK_BUFFER_SIZE * 2;
-            if (g_uc_extruder_last_move[0] == 0) disable_e0();
-            #if EXTRUDERS > 2
-              if (g_uc_extruder_last_move[2] == 0) disable_e2();
-              #if EXTRUDERS > 3
-                if (g_uc_extruder_last_move[3] == 0) disable_e3();
-              #endif
-            #endif
-          break;
-          #if EXTRUDERS > 2
-            case 2:
-              enable_e2();
-              g_uc_extruder_last_move[2] = BLOCK_BUFFER_SIZE * 2;
-              if (g_uc_extruder_last_move[0] == 0) disable_e0();
-              if (g_uc_extruder_last_move[1] == 0) disable_e1();
-              #if EXTRUDERS > 3
-                if (g_uc_extruder_last_move[3] == 0) disable_e3();
-              #endif
-            break;
-            #if EXTRUDERS > 3
-              case 3:
-                enable_e3();
-                g_uc_extruder_last_move[3] = BLOCK_BUFFER_SIZE * 2;
-                if (g_uc_extruder_last_move[0] == 0) disable_e0();
-                if (g_uc_extruder_last_move[1] == 0) disable_e1();
-                if (g_uc_extruder_last_move[2] == 0) disable_e2();
-              break;
-            #endif // EXTRUDERS > 3
-          #endif // EXTRUDERS > 2
-        #endif // EXTRUDERS > 1
-      }
-    }
-    else { // enable all
-      enable_e0();
-      enable_e1();
-      enable_e2();
-      enable_e3();
-    }
+    //   switch(extruder) {
+    //     case 0:
+    //       enable_e0();
+    //       g_uc_extruder_last_move[0] = BLOCK_BUFFER_SIZE * 2;
+    //       #if EXTRUDERS > 1
+    //         // if (g_uc_extruder_last_move[1] == 0) disable_e1();
+    //         #if EXTRUDERS > 2
+    //           // if (g_uc_extruder_last_move[2] == 0) disable_e2();
+    //           #if EXTRUDERS > 3
+    //             // if (g_uc_extruder_last_move[3] == 0) disable_e3();
+    //           #endif
+    //         #endif
+    //       #endif
+    //     break;
+    //     #if EXTRUDERS > 1
+    //       case 1:
+    //         enable_e1();
+    //         g_uc_extruder_last_move[1] = BLOCK_BUFFER_SIZE * 2;
+    //         // if (g_uc_extruder_last_move[0] == 0) disable_e0();
+    //         #if EXTRUDERS > 2
+    //           // if (g_uc_extruder_last_move[2] == 0) disable_e2();
+    //           #if EXTRUDERS > 3
+    //             // if (g_uc_extruder_last_move[3] == 0) disable_e3();
+    //           #endif
+    //         #endif
+    //       break;
+    //       #if EXTRUDERS > 2
+    //         case 2:
+    //           enable_e2();
+    //           g_uc_extruder_last_move[2] = BLOCK_BUFFER_SIZE * 2;
+    //           // if (g_uc_extruder_last_move[0] == 0) disable_e0();
+    //           // if (g_uc_extruder_last_move[1] == 0) disable_e1();
+    //           #if EXTRUDERS > 3
+    //             // if (g_uc_extruder_last_move[3] == 0) disable_e3();
+    //           #endif
+    //         break;
+    //         #if EXTRUDERS > 3
+    //           case 3:
+    //             enable_e3();
+    //             g_uc_extruder_last_move[3] = BLOCK_BUFFER_SIZE * 2;
+    //             // if (g_uc_extruder_last_move[0] == 0) disable_e0();
+    //             // if (g_uc_extruder_last_move[1] == 0) disable_e1();
+    //             // if (g_uc_extruder_last_move[2] == 0) disable_e2();
+    //           break;
+    //         #endif // EXTRUDERS > 3
+    //       #endif // EXTRUDERS > 2
+    //     #endif // EXTRUDERS > 1
+    //   }
+    // }
+    // else { // enable all
+    //   enable_e0();
+    //   enable_e1();
+    //   enable_e2();
+    //   enable_e3();
+    // }
   }
 
   if (block->steps[E_AXIS])
@@ -713,7 +713,7 @@ float junction_deviation = 0.1;
     delta_mm[Y_AXIS] = dy / axis_steps_per_unit[Y_AXIS];
     delta_mm[Z_AXIS] = dz / axis_steps_per_unit[Z_AXIS];
   #endif
-  delta_mm[E_AXIS] = (de / axis_steps_per_unit[E_AXIS]) * volumetric_multiplier[extruder] * extruder_multiplier[extruder] / 100.0;
+  // delta_mm[E_AXIS] = (de / axis_steps_per_unit[E_AXIS]) * volumetric_multiplier[extruder] * extruder_multiplier[extruder] / 100.0;
 
   if (block->steps[X_AXIS] <= dropsegments && block->steps[Y_AXIS] <= dropsegments && block->steps[Z_AXIS] <= dropsegments) {
     block->millimeters = fabs(delta_mm[E_AXIS]);

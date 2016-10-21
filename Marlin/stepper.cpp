@@ -154,7 +154,7 @@ volatile signed char count_direction[NUM_AXIS] = { 1, 1, 1, 1 };
   #define Z_APPLY_STEP(v,Q) Z_STEP_WRITE(v)
 #endif
 
-#define E_APPLY_STEP(v,Q) E_STEP_WRITE(v)
+// #define E_APPLY_STEP(v,Q) E_STEP_WRITE(v)
 
 // intRes = intIn1 * intIn2 >> 16
 #define MultiU16X8toH16(intRes, charIn1, intIn2)   intRes = ((charIn1) * (intIn2)) >> 16
@@ -466,11 +466,11 @@ void set_stepper_direction() {
   
   #ifndef ADVANCE
     if (TEST(out_bits, E_AXIS)) {
-      REV_E_DIR();
+      // REV_E_DIR();
       count_direction[E_AXIS] = -1;
     }
     else {
-      NORM_E_DIR();
+      // NORM_E_DIR();
       count_direction[E_AXIS] = 1;
     }
   #endif //!ADVANCE
@@ -594,27 +594,27 @@ HAL_STEP_TIMER_ISR {
       // Take multiple steps per interrupt (For high speed moves)
       for (int8_t i = 0; i < step_loops; i++) {
 
-        #ifdef ADVANCE
-          counter_e += current_block->steps[E_AXIS];
-          if (counter_e > 0) {
-            counter_e -= current_block->step_event_count;
-            e_steps[current_block->active_extruder] += TEST(out_bits, E_AXIS) ? -1 : 1;
-          }
-        #endif //ADVANCE
+        // #ifdef ADVANCE
+        //   counter_e += current_block->steps[E_AXIS];
+        //   if (counter_e > 0) {
+        //     counter_e -= current_block->step_event_count;
+        //     e_steps[current_block->active_extruder] += TEST(out_bits, E_AXIS) ? -1 : 1;
+        //   }
+        // #endif //ADVANCE
 
         STEP_START(x,X);
         STEP_START(y,Y);
         STEP_START(z,Z);
-        #ifndef ADVANCE
-          STEP_START(e,E);
-        #endif
+        // #ifndef ADVANCE
+        //   STEP_START(e,E);
+        // #endif
 
         STEP_END(x, X);
         STEP_END(y, Y);
         STEP_END(z, Z);
-        #ifndef ADVANCE
-          STEP_END(e, E);
-        #endif
+        // #ifndef ADVANCE
+          // STEP_END(e, E);
+        // #endif
 
         step_events_completed++;
         if (step_events_completed >= current_block->step_event_count) break;
@@ -623,9 +623,9 @@ HAL_STEP_TIMER_ISR {
       STEP_START(x,X);
       STEP_START(y,Y);
       STEP_START(z,Z);
-      #ifndef ADVANCE
-        STEP_START(e,E);
-      #endif
+      // #ifndef ADVANCE
+      //   STEP_START(e,E);
+      // #endif
       step_events_completed++;
     #endif
     // Calculate new timer value
@@ -687,14 +687,14 @@ HAL_STEP_TIMER_ISR {
       // ensure we're running at the correct step rate, even if we just came off an acceleration
       step_loops = step_loops_nominal;
     }
-    #if !defined(ENABLE_HIGH_SPEED_STEPPING)
-      STEP_END(x, X);
-      STEP_END(y, Y);
-      STEP_END(z, Z);
-      #ifndef ADVANCE
-        STEP_END(e, E);
-      #endif
-    #endif
+    // #if !defined(ENABLE_HIGH_SPEED_STEPPING)
+    //   STEP_END(x, X);
+    //   STEP_END(y, Y);
+    //   STEP_END(z, Z);
+    //   #ifndef ADVANCE
+    //     STEP_END(e, E);
+    //   #endif
+    // #endif
 
     HAL_timer_stepper_count(timer);
 
@@ -852,22 +852,22 @@ void st_init() {
       if (!Z_ENABLE_ON) Z2_ENABLE_WRITE(HIGH);
     #endif
   #endif
-  #if HAS_E0_ENABLE
-    E0_ENABLE_INIT;
-    if (!E_ENABLE_ON) E0_ENABLE_WRITE(HIGH);
-  #endif
-  #if HAS_E1_ENABLE
-    E1_ENABLE_INIT;
-    if (!E_ENABLE_ON) E1_ENABLE_WRITE(HIGH);
-  #endif
-  #if HAS_E2_ENABLE
-    E2_ENABLE_INIT;
-    if (!E_ENABLE_ON) E2_ENABLE_WRITE(HIGH);
-  #endif
-  #if HAS_E3_ENABLE
-    E3_ENABLE_INIT;
-    if (!E_ENABLE_ON) E3_ENABLE_WRITE(HIGH);
-  #endif
+  // #if HAS_E0_ENABLE
+    // E0_ENABLE_INIT;
+    // if (!E_ENABLE_ON) E0_ENABLE_WRITE(HIGH);
+  // #endif
+  // #if HAS_E1_ENABLE
+    // E1_ENABLE_INIT;
+    // if (!E_ENABLE_ON) E1_ENABLE_WRITE(HIGH);
+  // #endif
+  // #if HAS_E2_ENABLE
+    // E2_ENABLE_INIT;
+    // if (!E_ENABLE_ON) E2_ENABLE_WRITE(HIGH);
+  // #endif
+  // #if HAS_E3_ENABLE
+    // E3_ENABLE_INIT;
+    // if (!E_ENABLE_ON) E3_ENABLE_WRITE(HIGH);
+  // #endif
 
   //endstops and pullups
 
@@ -936,7 +936,7 @@ void st_init() {
     _WRITE_STEP(AXIS, _INVERT_STEP_PIN(PIN)); \
     _DISABLE(axis)
 
-  #define E_AXIS_INIT(NUM) AXIS_INIT(e## NUM, E## NUM, E)
+  // #define E_AXIS_INIT(NUM) AXIS_INIT(e## NUM, E## NUM, E)
 
   // Initialize Step Pins
   #if HAS_X_STEP
@@ -959,18 +959,18 @@ void st_init() {
     #endif
     AXIS_INIT(z, Z, Z);
   #endif
-  #if HAS_E0_STEP
-    E_AXIS_INIT(0);
-  #endif
-  #if HAS_E1_STEP
-    E_AXIS_INIT(1);
-  #endif
-  #if HAS_E2_STEP
-    E_AXIS_INIT(2);
-  #endif
-  #if HAS_E3_STEP
-    E_AXIS_INIT(3);
-  #endif
+  // #if HAS_E0_STEP
+    // E_AXIS_INIT(0);
+  // #endif
+  // #if HAS_E1_STEP
+  //   E_AXIS_INIT(1);
+  // #endif
+  // #if HAS_E2_STEP
+  //   E_AXIS_INIT(2);
+  // #endif
+  // #if HAS_E3_STEP
+  //   E_AXIS_INIT(3);
+  // #endif
 
   HAL_step_timer_start();
   ENABLE_STEPPER_DRIVER_INTERRUPT();
