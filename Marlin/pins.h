@@ -31,10 +31,10 @@
 #endif
 
 // List of pins which to ignore when asked to change by gcode, 0 and 1 are RX and TX, do not mess with those!
-#define _E0_PINS E0_STEP_PIN, E0_DIR_PIN, E0_ENABLE_PIN, HEATER_0_PIN, analogInputToDigitalPin(TEMP_0_PIN),
-#define _E1_PINS
-#define _E2_PINS
-#define _E3_PINS
+// #define _E0_PINS E0_STEP_PIN, E0_DIR_PIN, E0_ENABLE_PIN, HEATER_0_PIN, analogInputToDigitalPin(TEMP_0_PIN),
+// #define _E1_PINS
+// #define _E2_PINS
+// #define _E3_PINS
 
 #if EXTRUDERS > 1
   #undef _E1_PINS
@@ -135,10 +135,14 @@
                         X_STEP_PIN, X_DIR_PIN, X_ENABLE_PIN, X_MIN_PIN, X_MAX_PIN, \
                         Y_STEP_PIN, Y_DIR_PIN, Y_ENABLE_PIN, Y_MIN_PIN, Y_MAX_PIN, \
                         Z_STEP_PIN, Z_DIR_PIN, Z_ENABLE_PIN, Z_MIN_PIN, Z_MAX_PIN, Z_PROBE_PIN, \
+                        XX_STEP_PIN, XX_DIR_PIN, XX_ENABLE_PIN, \
+                        YY_STEP_PIN, YY_DIR_PIN, YY_ENABLE_PIN, \
+                        ZZ_STEP_PIN, ZZ_DIR_PIN, ZZ_ENABLE_PIN, \
                         PS_ON_PIN, HEATER_BED_PIN, FAN_PIN, \
-                        _E0_PINS _E1_PINS _E2_PINS _E3_PINS \
                         analogInputToDigitalPin(TEMP_BED_PIN) \
                        }
+                        // _E0_PINS _E1_PINS _E2_PINS _E3_PINS \
+
 
 #define HAS_DIGIPOTSS (DIGIPOTSS_PIN >= 0)
 

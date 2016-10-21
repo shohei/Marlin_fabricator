@@ -403,17 +403,17 @@
   /**
    * ARRAY_BY_EXTRUDERS based on EXTRUDERS
    */
-  #if EXTRUDERS > 3
-    #define ARRAY_BY_EXTRUDERS(v1, v2, v3, v4) { v1, v2, v3, v4 }
-  #elif EXTRUDERS > 2
-    #define ARRAY_BY_EXTRUDERS(v1, v2, v3, v4) { v1, v2, v3 }
-  #elif EXTRUDERS > 1
-    #define ARRAY_BY_EXTRUDERS(v1, v2, v3, v4) { v1, v2 }
-  #else
-    #define ARRAY_BY_EXTRUDERS(v1, v2, v3, v4) { v1 }
-  #endif
+  // #if EXTRUDERS > 3
+  //   #define ARRAY_BY_EXTRUDERS(v1, v2, v3, v4) { v1, v2, v3, v4 }
+  // #elif EXTRUDERS > 2
+  //   #define ARRAY_BY_EXTRUDERS(v1, v2, v3, v4) { v1, v2, v3 }
+  // #elif EXTRUDERS > 1
+  //   #define ARRAY_BY_EXTRUDERS(v1, v2, v3, v4) { v1, v2 }
+  // #else
+  //   #define ARRAY_BY_EXTRUDERS(v1, v2, v3, v4) { v1 }
+  // #endif
 
-  #define ARRAY_BY_EXTRUDERS1(v1) ARRAY_BY_EXTRUDERS(v1, v1, v1, v1)
+  // #define ARRAY_BY_EXTRUDERS1(v1) ARRAY_BY_EXTRUDERS(v1, v1, v1, v1)
 
   /**
    * Shorthand for pin tests, used wherever needed
@@ -468,30 +468,30 @@
   #define HAS_Y2_ENABLE (PIN_EXISTS(Y2_ENABLE))
   #define HAS_Z_ENABLE (PIN_EXISTS(Z_ENABLE))
   #define HAS_Z2_ENABLE (PIN_EXISTS(Z2_ENABLE))
-  #define HAS_E0_ENABLE (PIN_EXISTS(E0_ENABLE))
-  #define HAS_E1_ENABLE (PIN_EXISTS(E1_ENABLE))
-  #define HAS_E2_ENABLE (PIN_EXISTS(E2_ENABLE))
-  #define HAS_E3_ENABLE (PIN_EXISTS(E3_ENABLE))
+  // #define HAS_E0_ENABLE (PIN_EXISTS(E0_ENABLE))
+  // #define HAS_E1_ENABLE (PIN_EXISTS(E1_ENABLE))
+  // #define HAS_E2_ENABLE (PIN_EXISTS(E2_ENABLE))
+  // #define HAS_E3_ENABLE (PIN_EXISTS(E3_ENABLE))
   #define HAS_X_DIR (PIN_EXISTS(X_DIR))
   #define HAS_X2_DIR (PIN_EXISTS(X2_DIR))
   #define HAS_Y_DIR (PIN_EXISTS(Y_DIR))
   #define HAS_Y2_DIR (PIN_EXISTS(Y2_DIR))
   #define HAS_Z_DIR (PIN_EXISTS(Z_DIR))
   #define HAS_Z2_DIR (PIN_EXISTS(Z2_DIR))
-  #define HAS_E0_DIR (PIN_EXISTS(E0_DIR))
-  #define HAS_E1_DIR (PIN_EXISTS(E1_DIR))
-  #define HAS_E2_DIR (PIN_EXISTS(E2_DIR))
-  #define HAS_E3_DIR (PIN_EXISTS(E3_DIR))
+  // #define HAS_E0_DIR (PIN_EXISTS(E0_DIR))
+  // #define HAS_E1_DIR (PIN_EXISTS(E1_DIR))
+  // #define HAS_E2_DIR (PIN_EXISTS(E2_DIR))
+  // #define HAS_E3_DIR (PIN_EXISTS(E3_DIR))
   #define HAS_X_STEP (PIN_EXISTS(X_STEP))
   #define HAS_X2_STEP (PIN_EXISTS(X2_STEP))
   #define HAS_Y_STEP (PIN_EXISTS(Y_STEP))
   #define HAS_Y2_STEP (PIN_EXISTS(Y2_STEP))
   #define HAS_Z_STEP (PIN_EXISTS(Z_STEP))
   #define HAS_Z2_STEP (PIN_EXISTS(Z2_STEP))
-  #define HAS_E0_STEP (PIN_EXISTS(E0_STEP))
-  #define HAS_E1_STEP (PIN_EXISTS(E1_STEP))
-  #define HAS_E2_STEP (PIN_EXISTS(E2_STEP))
-  #define HAS_E3_STEP (PIN_EXISTS(E3_STEP))
+  // #define HAS_E0_STEP (PIN_EXISTS(E0_STEP))
+  // #define HAS_E1_STEP (PIN_EXISTS(E1_STEP))
+  // #define HAS_E2_STEP (PIN_EXISTS(E2_STEP))
+  // #define HAS_E3_STEP (PIN_EXISTS(E3_STEP))
 
   /**
    * Helper Macros for heaters and extruder fan

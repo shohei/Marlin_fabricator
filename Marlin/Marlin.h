@@ -113,6 +113,8 @@ void manage_inactivity(bool ignore_stepper_queue=false);
 #elif HAS_X_ENABLE
   #define  enable_x() X_ENABLE_WRITE( X_ENABLE_ON)
   #define disable_x() { X_ENABLE_WRITE(!X_ENABLE_ON); axis_known_position[X_AXIS] = false; }
+  #define  enable_xx() XX_ENABLE_WRITE( X_ENABLE_ON)
+  #define disable_xx() { XX_ENABLE_WRITE(!X_ENABLE_ON); axis_known_position[X_AXIS] = false; }
 #else
   #define enable_x() ;
   #define disable_x() ;
@@ -125,6 +127,8 @@ void manage_inactivity(bool ignore_stepper_queue=false);
   #else
     #define  enable_y() Y_ENABLE_WRITE( Y_ENABLE_ON)
     #define disable_y() { Y_ENABLE_WRITE(!Y_ENABLE_ON); axis_known_position[Y_AXIS] = false; }
+    #define  enable_yy() YY_ENABLE_WRITE( Y_ENABLE_ON)
+    #define disable_yy() { YY_ENABLE_WRITE(!Y_ENABLE_ON); axis_known_position[Y_AXIS] = false; }
   #endif
 #else
   #define enable_y() ;
@@ -138,6 +142,8 @@ void manage_inactivity(bool ignore_stepper_queue=false);
   #else
     #define  enable_z() Z_ENABLE_WRITE( Z_ENABLE_ON)
     #define disable_z() { Z_ENABLE_WRITE(!Z_ENABLE_ON); axis_known_position[Z_AXIS] = false; }
+    #define  enable_zz() ZZ_ENABLE_WRITE( Z_ENABLE_ON)
+    #define disable_zz() { ZZ_ENABLE_WRITE(!Z_ENABLE_ON); axis_known_position[Z_AXIS] = false; }
   #endif
 #else
   #define enable_z() ;
@@ -187,7 +193,7 @@ void manage_inactivity(bool ignore_stepper_queue=false);
  * A_AXIS and B_AXIS are used by COREXY printers
  * X_HEAD and Y_HEAD is used for systems that don't have a 1:1 relationship between X_AXIS and X Head movement, like CoreXY bots.
  */
-enum AxisEnum {X_AXIS=0, A_AXIS=0, Y_AXIS=1, B_AXIS=1, Z_AXIS=2, C_AXIS=2, E_AXIS=3, X_HEAD=4, Y_HEAD=5, Z_HEAD=5};
+enum AxisEnum {X_AXIS=0, A_AXIS=0, XX_AXIS=0, Y_AXIS=1, B_AXIS=1, YY_AXIS=1, Z_AXIS=2, C_AXIS=2, ZZ_AXIS=2, E_AXIS=3, X_HEAD=4, Y_HEAD=5, Z_HEAD=5};
 
 enum EndstopEnum {X_MIN=0, Y_MIN=1, Z_MIN=2, Z_PROBE=3, X_MAX=4, Y_MAX=5, Z_MAX=6, Z2_MIN=7, Z2_MAX=8};
 

@@ -55,7 +55,7 @@ static unsigned int cleaning_buffer_counter;
 #endif
 
 // Counter variables for the Bresenham line tracer
-static long counter_x, counter_y, counter_z, counter_e;
+static long counter_x, counter_y, counter_z, counter_xx, counter_yy, counter_zz, counter_e;
 volatile static unsigned long step_events_completed; // The number of step events executed in the current block
 
 #ifdef ADVANCE
@@ -100,59 +100,65 @@ volatile signed char count_direction[NUM_AXIS] = { 1, 1, 1, 1 };
 //================================ functions ================================
 //===========================================================================
 
-#ifdef DUAL_X_CARRIAGE
-  #define X_APPLY_DIR(v,ALWAYS) \
-    if (extruder_duplication_enabled || ALWAYS) { \
-      X_DIR_WRITE(v); \
-      X2_DIR_WRITE(v); \
-    } \
-    else { \
-      if (current_block->active_extruder) X2_DIR_WRITE(v); else X_DIR_WRITE(v); \
-    }
-  #define X_APPLY_STEP(v,ALWAYS) \
-    if (extruder_duplication_enabled || ALWAYS) { \
-      X_STEP_WRITE(v); \
-      X2_STEP_WRITE(v); \
-    } \
-    else { \
-      if (current_block->active_extruder != 0) X2_STEP_WRITE(v); else X_STEP_WRITE(v); \
-    }
-#else
+// #ifdef DUAL_X_CARRIAGE
+//   #define X_APPLY_DIR(v,ALWAYS) \
+//     if (extruder_duplication_enabled || ALWAYS) { \
+//       X_DIR_WRITE(v); \
+//       X2_DIR_WRITE(v); \
+//     } \
+//     else { \
+//       if (current_block->active_extruder) X2_DIR_WRITE(v); else X_DIR_WRITE(v); \
+//     }
+//   #define X_APPLY_STEP(v,ALWAYS) \
+//     if (extruder_duplication_enabled || ALWAYS) { \
+//       X_STEP_WRITE(v); \
+//       X2_STEP_WRITE(v); \
+//     } \
+//     else { \
+//       if (current_block->active_extruder != 0) X2_STEP_WRITE(v); else X_STEP_WRITE(v); \
+//     }
+// #else
   #define X_APPLY_DIR(v,Q) X_DIR_WRITE(v)
   #define X_APPLY_STEP(v,Q) X_STEP_WRITE(v)
-#endif
+  #define XX_APPLY_DIR(v,Q) XX_DIR_WRITE(v)
+  #define XX_APPLY_STEP(v,Q) XX_STEP_WRITE(v)
+// #endif
 
-#ifdef Y_DUAL_STEPPER_DRIVERS
-  #define Y_APPLY_DIR(v,Q) { Y_DIR_WRITE(v); Y2_DIR_WRITE((v) != INVERT_Y2_VS_Y_DIR); }
-  #define Y_APPLY_STEP(v,Q) { Y_STEP_WRITE(v); Y2_STEP_WRITE(v); }
-#else
+// #ifdef Y_DUAL_STEPPER_DRIVERS
+//   #define Y_APPLY_DIR(v,Q) { Y_DIR_WRITE(v); Y2_DIR_WRITE((v) != INVERT_Y2_VS_Y_DIR); }
+//   #define Y_APPLY_STEP(v,Q) { Y_STEP_WRITE(v); Y2_STEP_WRITE(v); }
+// #else
   #define Y_APPLY_DIR(v,Q) Y_DIR_WRITE(v)
   #define Y_APPLY_STEP(v,Q) Y_STEP_WRITE(v)
-#endif
+  #define YY_APPLY_DIR(v,Q) YY_DIR_WRITE(v)
+  #define YY_APPLY_STEP(v,Q) YY_STEP_WRITE(v)
+// #endif
 
-#ifdef Z_DUAL_STEPPER_DRIVERS
-  #define Z_APPLY_DIR(v,Q) { Z_DIR_WRITE(v); Z2_DIR_WRITE(v); }
-  #ifdef Z_DUAL_ENDSTOPS
-    #define Z_APPLY_STEP(v,Q) \
-    if (performing_homing) { \
-      if (Z_HOME_DIR > 0) {\
-        if (!(TEST(old_endstop_bits, Z_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
-        if (!(TEST(old_endstop_bits, Z2_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
-      } else {\
-        if (!(TEST(old_endstop_bits, Z_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
-        if (!(TEST(old_endstop_bits, Z2_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
-      } \
-    } else { \
-      Z_STEP_WRITE(v); \
-      Z2_STEP_WRITE(v); \
-    }
-  #else
-    #define Z_APPLY_STEP(v,Q) { Z_STEP_WRITE(v); Z2_STEP_WRITE(v); }
-  #endif
-#else
+// #ifdef Z_DUAL_STEPPER_DRIVERS
+//   #define Z_APPLY_DIR(v,Q) { Z_DIR_WRITE(v); Z2_DIR_WRITE(v); }
+//   #ifdef Z_DUAL_ENDSTOPS
+//     #define Z_APPLY_STEP(v,Q) \
+//     if (performing_homing) { \
+//       if (Z_HOME_DIR > 0) {\
+//         if (!(TEST(old_endstop_bits, Z_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
+//         if (!(TEST(old_endstop_bits, Z2_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
+//       } else {\
+//         if (!(TEST(old_endstop_bits, Z_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
+//         if (!(TEST(old_endstop_bits, Z2_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
+//       } \
+//     } else { \
+//       Z_STEP_WRITE(v); \
+//       Z2_STEP_WRITE(v); \
+//     }
+//   #else
+  //   #define Z_APPLY_STEP(v,Q) { Z_STEP_WRITE(v); Z2_STEP_WRITE(v); }
+  // #endif
+// #else
   #define Z_APPLY_DIR(v,Q) Z_DIR_WRITE(v)
   #define Z_APPLY_STEP(v,Q) Z_STEP_WRITE(v)
-#endif
+  #define ZZ_APPLY_DIR(v,Q) ZZ_DIR_WRITE(v)
+  #define ZZ_APPLY_STEP(v,Q) ZZ_STEP_WRITE(v)
+// #endif
 
 // #define E_APPLY_STEP(v,Q) E_STEP_WRITE(v)
 
@@ -439,28 +445,34 @@ void set_stepper_direction() {
 
   if (TEST(out_bits, X_AXIS)) { // A_AXIS
     X_APPLY_DIR(INVERT_X_DIR, 0);
+    XX_APPLY_DIR(INVERT_X_DIR, 0);
     count_direction[X_AXIS] = -1;
   }
   else {
     X_APPLY_DIR(!INVERT_X_DIR, 0);
+    XX_APPLY_DIR(!INVERT_X_DIR, 0);
     count_direction[X_AXIS] = 1;
   }
 
   if (TEST(out_bits, Y_AXIS)) { // B_AXIS
     Y_APPLY_DIR(INVERT_Y_DIR, 0);
+    YY_APPLY_DIR(INVERT_Y_DIR, 0);
     count_direction[Y_AXIS] = -1;
   }
   else {
     Y_APPLY_DIR(!INVERT_Y_DIR, 0);
+    YY_APPLY_DIR(!INVERT_Y_DIR, 0);
     count_direction[Y_AXIS] = 1;
   }
   
   if (TEST(out_bits, Z_AXIS)) { // C_AXIS
     Z_APPLY_DIR(INVERT_Z_DIR, 0);
+    ZZ_APPLY_DIR(INVERT_Z_DIR, 0);
     count_direction[Z_AXIS] = -1;
   }
   else {
     Z_APPLY_DIR(!INVERT_Z_DIR, 0);
+    ZZ_APPLY_DIR(!INVERT_Z_DIR, 0);
     count_direction[Z_AXIS] = 1;
   }
   
@@ -552,7 +564,9 @@ HAL_STEP_TIMER_ISR {
       current_block->busy = true;
       trapezoid_generator_reset();
       counter_x = -(current_block->step_event_count >> 1);
+      counter_xx = -(current_block->step_event_count >> 1);
       counter_y = counter_z = counter_e = counter_x;
+      counter_yy = counter_zz = counter_e = counter_x;
       step_events_completed = 0;
 
       #ifdef Z_LATE_ENABLE
@@ -588,6 +602,10 @@ HAL_STEP_TIMER_ISR {
 		_COUNTER(axis) -= current_block->step_event_count; \
 		count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; }
 
+  #define STEP_START2(axis, AXIS) \
+    if (_COUNTER(axis) > 0) { \ 
+    _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0); }
+
 	#define STEP_END(axis, AXIS) _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS),0)
 
     #if defined(ENABLE_HIGH_SPEED_STEPPING)
@@ -605,6 +623,9 @@ HAL_STEP_TIMER_ISR {
         STEP_START(x,X);
         STEP_START(y,Y);
         STEP_START(z,Z);
+        STEP_START2(x,XX);
+        STEP_START2(y,YY);
+        STEP_START2(z,Z);
         // #ifndef ADVANCE
         //   STEP_START(e,E);
         // #endif
@@ -612,6 +633,9 @@ HAL_STEP_TIMER_ISR {
         STEP_END(x, X);
         STEP_END(y, Y);
         STEP_END(z, Z);
+        STEP_END(x, XX);
+        STEP_END(y, YY);
+        STEP_END(z, ZZ);
         // #ifndef ADVANCE
           // STEP_END(e, E);
         // #endif
@@ -623,6 +647,9 @@ HAL_STEP_TIMER_ISR {
       STEP_START(x,X);
       STEP_START(y,Y);
       STEP_START(z,Z);
+      STEP_START2(x,XX);
+      STEP_START2(y,YY);
+      STEP_START2(z,ZZ);
       // #ifndef ADVANCE
       //   STEP_START(e,E);
       // #endif
@@ -687,14 +714,17 @@ HAL_STEP_TIMER_ISR {
       // ensure we're running at the correct step rate, even if we just came off an acceleration
       step_loops = step_loops_nominal;
     }
-    // #if !defined(ENABLE_HIGH_SPEED_STEPPING)
-    //   STEP_END(x, X);
-    //   STEP_END(y, Y);
-    //   STEP_END(z, Z);
+    #if !defined(ENABLE_HIGH_SPEED_STEPPING)
+      STEP_END(x, X);
+      STEP_END(y, Y);
+      STEP_END(z, Z);
+      STEP_END(x, XX);
+      STEP_END(y, YY);
+      STEP_END(z, ZZ);
     //   #ifndef ADVANCE
     //     STEP_END(e, E);
     //   #endif
-    // #endif
+    #endif
 
     HAL_timer_stepper_count(timer);
 
@@ -795,18 +825,20 @@ void st_init() {
   // Initialize Dir Pins
   #if HAS_X_DIR
     X_DIR_INIT;
+    XX_DIR_INIT;
   #endif
   #if HAS_X2_DIR
     X2_DIR_INIT;
   #endif
   #if HAS_Y_DIR
     Y_DIR_INIT;
+    YY_DIR_INIT;
     #if defined(Y_DUAL_STEPPER_DRIVERS) && HAS_Y2_DIR
       Y2_DIR_INIT;
     #endif
   #endif
   #if HAS_Z_DIR
-    Z_DIR_INIT;
+    ZZ_DIR_INIT;
     #if defined(Z_DUAL_STEPPER_DRIVERS) && HAS_Z2_DIR
       Z2_DIR_INIT;
     #endif
@@ -828,7 +860,9 @@ void st_init() {
 
   #if HAS_X_ENABLE
     X_ENABLE_INIT;
+    XX_ENABLE_INIT;
     if (!X_ENABLE_ON) X_ENABLE_WRITE(HIGH);
+    if (!X_ENABLE_ON) XX_ENABLE_WRITE(HIGH);
   #endif
   #if HAS_X2_ENABLE
     X2_ENABLE_INIT;
@@ -836,7 +870,9 @@ void st_init() {
   #endif
   #if HAS_Y_ENABLE
     Y_ENABLE_INIT;
+    YY_ENABLE_INIT;
     if (!Y_ENABLE_ON) Y_ENABLE_WRITE(HIGH);
+    if (!Y_ENABLE_ON) YY_ENABLE_WRITE(HIGH);
 
   #if defined(Y_DUAL_STEPPER_DRIVERS) && HAS_Y2_ENABLE
     Y2_ENABLE_INIT;
@@ -845,7 +881,9 @@ void st_init() {
   #endif
   #if HAS_Z_ENABLE
     Z_ENABLE_INIT;
+    ZZ_ENABLE_INIT;
     if (!Z_ENABLE_ON) Z_ENABLE_WRITE(HIGH);
+    if (!Z_ENABLE_ON) ZZ_ENABLE_WRITE(HIGH);
 
     #if defined(Z_DUAL_STEPPER_DRIVERS) && HAS_Z2_ENABLE
       Z2_ENABLE_INIT;
@@ -941,6 +979,7 @@ void st_init() {
   // Initialize Step Pins
   #if HAS_X_STEP
     AXIS_INIT(x, X, X);
+    AXIS_INIT(xx, XX, XX);
   #endif
   #if HAS_X2_STEP
     AXIS_INIT(x, X2, X);
@@ -951,6 +990,7 @@ void st_init() {
       Y2_STEP_WRITE(INVERT_Y_STEP_PIN);
     #endif
     AXIS_INIT(y, Y, Y);
+    AXIS_INIT(yy, YY, YY);
   #endif
   #if HAS_Z_STEP
     #if defined(Z_DUAL_STEPPER_DRIVERS) && HAS_Z2_STEP
@@ -958,6 +998,7 @@ void st_init() {
       Z2_STEP_WRITE(INVERT_Z_STEP_PIN);
     #endif
     AXIS_INIT(z, Z, Z);
+    AXIS_INIT(zz, ZZ, ZZ);
   #endif
   // #if HAS_E0_STEP
     // E_AXIS_INIT(0);
@@ -1087,18 +1128,30 @@ void quickStop() {
           X_DIR_WRITE(INVERT_X_DIR^z_direction);
           Y_DIR_WRITE(INVERT_Y_DIR^z_direction);
           Z_DIR_WRITE(INVERT_Z_DIR^z_direction);
+          XX_DIR_WRITE(INVERT_XX_DIR^z_direction);
+          YY_DIR_WRITE(INVERT_YY_DIR^z_direction);
+          ZZ_DIR_WRITE(INVERT_ZZ_DIR^z_direction);
           //perform step 
           X_STEP_WRITE(!INVERT_X_STEP_PIN);
           Y_STEP_WRITE(!INVERT_Y_STEP_PIN);
           Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
+          XX_STEP_WRITE(!INVERT_XX_STEP_PIN);
+          YY_STEP_WRITE(!INVERT_YY_STEP_PIN);
+          ZZ_STEP_WRITE(!INVERT_ZZ_STEP_PIN);
           _delay_us(1U);
           X_STEP_WRITE(INVERT_X_STEP_PIN); 
           Y_STEP_WRITE(INVERT_Y_STEP_PIN); 
           Z_STEP_WRITE(INVERT_Z_STEP_PIN);
+          XX_STEP_WRITE(INVERT_XX_STEP_PIN); 
+          YY_STEP_WRITE(INVERT_YY_STEP_PIN); 
+          ZZ_STEP_WRITE(INVERT_ZZ_STEP_PIN);
           //get old pin state back.
           X_DIR_WRITE(old_x_dir_pin);
           Y_DIR_WRITE(old_y_dir_pin);
           Z_DIR_WRITE(old_z_dir_pin);
+          XX_DIR_WRITE(old_x_dir_pin);
+          YY_DIR_WRITE(old_y_dir_pin);
+          ZZ_DIR_WRITE(old_z_dir_pin);
 
         #endif
 

@@ -595,8 +595,8 @@ void manage_heater() {
 
   #ifdef HEATER_0_USES_MAX6675
     float ct = current_temperature[0];
-    if (ct > min(HEATER_0_MAXTEMP, 1023)) max_temp_error(0);
-    if (ct < max(HEATER_0_MINTEMP, 0.01)) min_temp_error(0);
+    // if (ct > min(HEATER_0_MAXTEMP, 1023)) max_temp_error(0);
+    // if (ct < max(HEATER_0_MINTEMP, 0.01)) min_temp_error(0);
   #endif
 
   #if defined(THERMAL_PROTECTION_HOTENDS) || !defined(PIDTEMPBED) || HAS_AUTO_FAN
