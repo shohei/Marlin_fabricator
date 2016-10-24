@@ -5733,6 +5733,16 @@ void process_next_command() {
           break;
       #endif // DUAL_X_CARRIAGE
 
+      case 720:
+        OUT_WRITE(36,1);
+        SERIAL_ECHOLNPGM("WRITE 36 HIGH");
+        break;    
+
+      case 721:
+        OUT_WRITE(36,0);
+        SERIAL_ECHOLNPGM("WRITE 36 LOW");
+        break;    
+
       case 907: // M907 Set digital trimpot motor current using axis codes.
         gcode_M907();
         break;
@@ -6002,10 +6012,11 @@ void mesh_plan_buffer_line(float x, float y, float z, const float e, float feed_
     float seconds = 6000 * cartesian_mm / feedrate / feedrate_multiplier;
     int steps = max(1, int(delta_segments_per_second * seconds));
 
-    // SERIAL_ECHOPGM("mm="); SERIAL_ECHO(cartesian_mm);
-    // SERIAL_ECHOPGM(" seconds="); SERIAL_ECHO(seconds);
-    // SERIAL_ECHOPGM(" steps="); SERIAL_ECHOLN(steps);
+    SERIAL_ECHOPGM("mm="); SERIAL_ECHO(cartesian_mm);
+    SERIAL_ECHOPGM(" seconds="); SERIAL_ECHO(seconds);
+    SERIAL_ECHOPGM(" steps="); SERIAL_ECHOLN(steps);
 
+    float fraction_time = seconds/steps;
     for (int s = 1; s <= steps; s++) {
 
       float fraction = float(s) / float(steps);
@@ -6026,7 +6037,8 @@ void mesh_plan_buffer_line(float x, float y, float z, const float e, float feed_
       //SERIAL_ECHOPGM("delta[Y_AXIS]="); SERIAL_ECHOLN(delta[Y_AXIS]);
       //SERIAL_ECHOPGM("delta[Z_AXIS]="); SERIAL_ECHOLN(delta[Z_AXIS]);
 
-      plan_buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], target[E_AXIS], feedrate/60*feedrate_multiplier/100.0, active_extruder);
+      // plan_buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], target[E_AXIS], feedrate/60*feedrate_multiplier/100.0, active_extruder);
+      plan_buffer_line2(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], target[E_AXIS], feedrate/60*feedrate_multiplier/100.0, active_extruder, fraction_time);
     }
     return true;
   }
@@ -6419,6 +6431,9 @@ void enable_all_steppers() {
   enable_x();
   enable_y();
   enable_z();
+  enable_xx();
+  enable_yy();
+  enable_zz();
   // enable_e0();
   // enable_e1();
   // enable_e2();
@@ -6429,6 +6444,9 @@ void disable_all_steppers() {
   disable_x();
   disable_y();
   disable_z();
+  disable_xx();
+  disable_yy();
+  disable_zz();
   // disable_e0();
   // disable_e1();
   // disable_e2();
@@ -6474,12 +6492,15 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
       && !ignore_stepper_queue && !blocks_queued()) {
     #if DISABLE_X == true
       disable_x();
+      disable_xx();
     #endif
     #if DISABLE_Y == true
       disable_y();
+      disable_yy();
     #endif
     #if DISABLE_Z == true
       disable_z();
+      disable_zz();
     #endif
     // #if DISABLE_E == true
       // disable_e0();

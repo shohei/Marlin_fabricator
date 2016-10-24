@@ -118,6 +118,8 @@ void manage_inactivity(bool ignore_stepper_queue=false);
 #else
   #define enable_x() ;
   #define disable_x() ;
+  #define enable_xx() ;
+  #define disable_xx() ;
 #endif
 
 #if HAS_Y_ENABLE
@@ -133,6 +135,8 @@ void manage_inactivity(bool ignore_stepper_queue=false);
 #else
   #define enable_y() ;
   #define disable_y() ;
+  #define enable_yy() ;
+  #define disable_yy() ;
 #endif
 
 #if HAS_Z_ENABLE
@@ -148,6 +152,8 @@ void manage_inactivity(bool ignore_stepper_queue=false);
 #else
   #define enable_z() ;
   #define disable_z() ;
+  #define enable_zz() ;
+  #define disable_zz() ;
 #endif
 
 // #if HAS_E0_ENABLE

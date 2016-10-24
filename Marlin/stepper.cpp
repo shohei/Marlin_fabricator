@@ -445,34 +445,34 @@ void set_stepper_direction() {
 
   if (TEST(out_bits, X_AXIS)) { // A_AXIS
     X_APPLY_DIR(INVERT_X_DIR, 0);
-    XX_APPLY_DIR(INVERT_X_DIR, 0);
+    XX_DIR_WRITE(INVERT_X_DIR);
     count_direction[X_AXIS] = -1;
   }
   else {
     X_APPLY_DIR(!INVERT_X_DIR, 0);
-    XX_APPLY_DIR(!INVERT_X_DIR, 0);
+    XX_DIR_WRITE(!INVERT_X_DIR);
     count_direction[X_AXIS] = 1;
   }
 
   if (TEST(out_bits, Y_AXIS)) { // B_AXIS
     Y_APPLY_DIR(INVERT_Y_DIR, 0);
-    YY_APPLY_DIR(INVERT_Y_DIR, 0);
+    YY_DIR_WRITE(INVERT_Y_DIR);
     count_direction[Y_AXIS] = -1;
   }
   else {
     Y_APPLY_DIR(!INVERT_Y_DIR, 0);
-    YY_APPLY_DIR(!INVERT_Y_DIR, 0);
+    YY_DIR_WRITE(!INVERT_Y_DIR);
     count_direction[Y_AXIS] = 1;
   }
   
   if (TEST(out_bits, Z_AXIS)) { // C_AXIS
     Z_APPLY_DIR(INVERT_Z_DIR, 0);
-    ZZ_APPLY_DIR(INVERT_Z_DIR, 0);
+    ZZ_DIR_WRITE(INVERT_Z_DIR);
     count_direction[Z_AXIS] = -1;
   }
   else {
     Z_APPLY_DIR(!INVERT_Z_DIR, 0);
-    ZZ_APPLY_DIR(!INVERT_Z_DIR, 0);
+    ZZ_DIR_WRITE(!INVERT_Z_DIR);
     count_direction[Z_AXIS] = 1;
   }
   
@@ -564,9 +564,8 @@ HAL_STEP_TIMER_ISR {
       current_block->busy = true;
       trapezoid_generator_reset();
       counter_x = -(current_block->step_event_count >> 1);
-      counter_xx = -(current_block->step_event_count >> 1);
-      counter_y = counter_z = counter_e = counter_x;
-      counter_yy = counter_zz = counter_e = counter_x;
+      counter_xx = counter_x;
+      counter_y = counter_z = counter_yy = counter_zz = counter_e = counter_x;
       step_events_completed = 0;
 
       #ifdef Z_LATE_ENABLE
@@ -602,10 +601,6 @@ HAL_STEP_TIMER_ISR {
 		_COUNTER(axis) -= current_block->step_event_count; \
 		count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; }
 
-  #define STEP_START2(axis, AXIS) \
-    if (_COUNTER(axis) > 0) { \ 
-    _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0); }
-
 	#define STEP_END(axis, AXIS) _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS),0)
 
     #if defined(ENABLE_HIGH_SPEED_STEPPING)
@@ -625,7 +620,7 @@ HAL_STEP_TIMER_ISR {
         STEP_START(z,Z);
         STEP_START2(x,XX);
         STEP_START2(y,YY);
-        STEP_START2(z,Z);
+        STEP_START2(z,ZZ);
         // #ifndef ADVANCE
         //   STEP_START(e,E);
         // #endif
@@ -644,12 +639,12 @@ HAL_STEP_TIMER_ISR {
         if (step_events_completed >= current_block->step_event_count) break;
       }
     #else
-      STEP_START(x,X);
       STEP_START(y,Y);
+      STEP_START(x,X);
       STEP_START(z,Z);
-      STEP_START2(x,XX);
-      STEP_START2(y,YY);
-      STEP_START2(z,ZZ);
+      OUT_WRITE(XX_STEP_PIN,1);
+      OUT_WRITE(YY_STEP_PIN,1);
+      OUT_WRITE(ZZ_STEP_PIN,1);
       // #ifndef ADVANCE
       //   STEP_START(e,E);
       // #endif
@@ -718,9 +713,9 @@ HAL_STEP_TIMER_ISR {
       STEP_END(x, X);
       STEP_END(y, Y);
       STEP_END(z, Z);
-      STEP_END(x, XX);
-      STEP_END(y, YY);
-      STEP_END(z, ZZ);
+      OUT_WRITE(XX_STEP_PIN,0);
+      OUT_WRITE(YY_STEP_PIN,0);
+      OUT_WRITE(ZZ_STEP_PIN,0);
     //   #ifndef ADVANCE
     //     STEP_END(e, E);
     //   #endif
@@ -838,6 +833,7 @@ void st_init() {
     #endif
   #endif
   #if HAS_Z_DIR
+    Z_DIR_INIT;
     ZZ_DIR_INIT;
     #if defined(Z_DUAL_STEPPER_DRIVERS) && HAS_Z2_DIR
       Z2_DIR_INIT;
@@ -1077,91 +1073,91 @@ void quickStop() {
   ENABLE_STEPPER_DRIVER_INTERRUPT();
 }
 
-#ifdef BABYSTEPPING
+// #ifdef BABYSTEPPING
 
-  // MUST ONLY BE CALLED BY AN ISR,
-  // No other ISR should ever interrupt this!
-  void babystep(const uint8_t axis, const bool direction) {
+//   // MUST ONLY BE CALLED BY AN ISR,
+//   // No other ISR should ever interrupt this!
+//   void babystep(const uint8_t axis, const bool direction) {
 
-    #define _ENABLE(axis) enable_## axis()
-    #define _READ_DIR(AXIS) AXIS ##_DIR_READ
-    #define _INVERT_DIR(AXIS) INVERT_## AXIS ##_DIR
-    #define _APPLY_DIR(AXIS, INVERT) AXIS ##_APPLY_DIR(INVERT, true)
+//     #define _ENABLE(axis) enable_## axis()
+//     #define _READ_DIR(AXIS) AXIS ##_DIR_READ
+//     #define _INVERT_DIR(AXIS) INVERT_## AXIS ##_DIR
+//     #define _APPLY_DIR(AXIS, INVERT) AXIS ##_APPLY_DIR(INVERT, true)
 
-    #define BABYSTEP_AXIS(axis, AXIS, INVERT) { \
-        _ENABLE(axis); \
-        uint8_t old_pin = _READ_DIR(AXIS); \
-        _APPLY_DIR(AXIS, _INVERT_DIR(AXIS)^direction^INVERT); \
-        _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS), true); \
-        delayMicroseconds(2); \
-        _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS), true); \
-        _APPLY_DIR(AXIS, old_pin); \
-      }
+//     #define BABYSTEP_AXIS(axis, AXIS, INVERT) { \
+//         _ENABLE(axis); \
+//         uint8_t old_pin = _READ_DIR(AXIS); \
+//         _APPLY_DIR(AXIS, _INVERT_DIR(AXIS)^direction^INVERT); \
+//         _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS), true); \
+//         delayMicroseconds(2); \
+//         _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS), true); \
+//         _APPLY_DIR(AXIS, old_pin); \
+//       }
 
-    switch(axis) {
+//     switch(axis) {
 
-      case X_AXIS:
-        BABYSTEP_AXIS(x, X, false);
-        break;
+//       case X_AXIS:
+//         BABYSTEP_AXIS(x, X, false);
+//         break;
 
-      case Y_AXIS:
-        BABYSTEP_AXIS(y, Y, false);
-        break;
+//       case Y_AXIS:
+//         BABYSTEP_AXIS(y, Y, false);
+//         break;
  
-      case Z_AXIS: {
+//       case Z_AXIS: {
 
-        #ifndef DELTA
+//         #ifndef DELTA
 
-          BABYSTEP_AXIS(z, Z, BABYSTEP_INVERT_Z);
+//           BABYSTEP_AXIS(z, Z, BABYSTEP_INVERT_Z);
 
-        #else // DELTA
+//         #else // DELTA
 
-          bool z_direction = direction ^ BABYSTEP_INVERT_Z;
+//           bool z_direction = direction ^ BABYSTEP_INVERT_Z;
 
-          enable_x();
-          enable_y();
-          enable_z();
-          uint8_t old_x_dir_pin = X_DIR_READ,
-                  old_y_dir_pin = Y_DIR_READ,
-                  old_z_dir_pin = Z_DIR_READ;
-          //setup new step
-          X_DIR_WRITE(INVERT_X_DIR^z_direction);
-          Y_DIR_WRITE(INVERT_Y_DIR^z_direction);
-          Z_DIR_WRITE(INVERT_Z_DIR^z_direction);
-          XX_DIR_WRITE(INVERT_XX_DIR^z_direction);
-          YY_DIR_WRITE(INVERT_YY_DIR^z_direction);
-          ZZ_DIR_WRITE(INVERT_ZZ_DIR^z_direction);
-          //perform step 
-          X_STEP_WRITE(!INVERT_X_STEP_PIN);
-          Y_STEP_WRITE(!INVERT_Y_STEP_PIN);
-          Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
-          XX_STEP_WRITE(!INVERT_XX_STEP_PIN);
-          YY_STEP_WRITE(!INVERT_YY_STEP_PIN);
-          ZZ_STEP_WRITE(!INVERT_ZZ_STEP_PIN);
-          _delay_us(1U);
-          X_STEP_WRITE(INVERT_X_STEP_PIN); 
-          Y_STEP_WRITE(INVERT_Y_STEP_PIN); 
-          Z_STEP_WRITE(INVERT_Z_STEP_PIN);
-          XX_STEP_WRITE(INVERT_XX_STEP_PIN); 
-          YY_STEP_WRITE(INVERT_YY_STEP_PIN); 
-          ZZ_STEP_WRITE(INVERT_ZZ_STEP_PIN);
-          //get old pin state back.
-          X_DIR_WRITE(old_x_dir_pin);
-          Y_DIR_WRITE(old_y_dir_pin);
-          Z_DIR_WRITE(old_z_dir_pin);
-          XX_DIR_WRITE(old_x_dir_pin);
-          YY_DIR_WRITE(old_y_dir_pin);
-          ZZ_DIR_WRITE(old_z_dir_pin);
+//           enable_x();
+//           enable_y();
+//           enable_z();
+//           uint8_t old_x_dir_pin = X_DIR_READ,
+//                   old_y_dir_pin = Y_DIR_READ,
+//                   old_z_dir_pin = Z_DIR_READ;
+//           //setup new step
+//           X_DIR_WRITE(INVERT_X_DIR^z_direction);
+//           Y_DIR_WRITE(INVERT_Y_DIR^z_direction);
+//           Z_DIR_WRITE(INVERT_Z_DIR^z_direction);
+//           XX_DIR_WRITE(INVERT_XX_DIR^z_direction);
+//           YY_DIR_WRITE(INVERT_YY_DIR^z_direction);
+//           ZZ_DIR_WRITE(INVERT_ZZ_DIR^z_direction);
+//           //perform step 
+//           X_STEP_WRITE(!INVERT_X_STEP_PIN);
+//           Y_STEP_WRITE(!INVERT_Y_STEP_PIN);
+//           Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
+//           XX_STEP_WRITE(!INVERT_XX_STEP_PIN);
+//           YY_STEP_WRITE(!INVERT_YY_STEP_PIN);
+//           ZZ_STEP_WRITE(!INVERT_ZZ_STEP_PIN);
+//           _delay_us(1U);
+//           X_STEP_WRITE(INVERT_X_STEP_PIN); 
+//           Y_STEP_WRITE(INVERT_Y_STEP_PIN); 
+//           Z_STEP_WRITE(INVERT_Z_STEP_PIN);
+//           XX_STEP_WRITE(INVERT_XX_STEP_PIN); 
+//           YY_STEP_WRITE(INVERT_YY_STEP_PIN); 
+//           ZZ_STEP_WRITE(INVERT_ZZ_STEP_PIN);
+//           //get old pin state back.
+//           X_DIR_WRITE(old_x_dir_pin);
+//           Y_DIR_WRITE(old_y_dir_pin);
+//           Z_DIR_WRITE(old_z_dir_pin);
+//           XX_DIR_WRITE(old_x_dir_pin);
+//           YY_DIR_WRITE(old_y_dir_pin);
+//           ZZ_DIR_WRITE(old_z_dir_pin);
 
-        #endif
+//         #endif
 
-      } break;
+//       } break;
  
-      default: break;
-    }
-  }
+//       default: break;
+//     }
+//   }
 
-#endif //BABYSTEPPING
+// #endif //BABYSTEPPING
 
 // From Arduino DigitalPotControl example
 void digitalPotWrite(int address, int value) {
