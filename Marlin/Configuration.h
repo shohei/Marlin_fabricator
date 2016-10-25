@@ -105,22 +105,22 @@ Here are some standard links for getting your machine calibrated:
 // NOTE NB all values for DELTA_* values MUST be floating point, so always have a decimal point in them
 
 // Center-to-center distance of the holes in the diagonal push rods.
-#define DELTA_DIAGONAL_ROD 430.4 // mm
+#define DELTA_DIAGONAL_ROD 263.52 // mm
 
 // Horizontal offset from middle of printer to smooth rod center.
-#define DELTA_SMOOTH_ROD_OFFSET 441.5 // mm
+#define DELTA_SMOOTH_ROD_OFFSET 231 // mm
 
 // Horizontal offset of the universal joints on the end effector.
-#define DELTA_EFFECTOR_OFFSET 219.3 // mm
+#define DELTA_EFFECTOR_OFFSET 52// mm
 
 // Horizontal offset of the universal joints on the carriages.
-#define DELTA_CARRIAGE_OFFSET 69.3 // mm
+#define DELTA_CARRIAGE_OFFSET 50.89 // mm
 
 // Horizontal distance bridged by diagonal push rods when effector is centered.
 #define DELTA_RADIUS (DELTA_SMOOTH_ROD_OFFSET-DELTA_EFFECTOR_OFFSET-DELTA_CARRIAGE_OFFSET)
 
 // Print surface diameter/2 minus unreachable space (avoid collisions with vertical towers).
-#define DELTA_PRINTABLE_RADIUS 150
+#define DELTA_PRINTABLE_RADIUS 120
 
 
 //===========================================================================
@@ -367,13 +367,21 @@ your extruder heater takes 2 minutes to hit the target on heating.
 #endif
 
 // Mechanical endstop with COM to ground and NC to Signal uses "false" here (most common setup).
-const bool X_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
-const bool Y_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
-const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
-const bool X_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
-const bool Y_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
-const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+// const bool X_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+// const bool Y_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+// const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+// const bool X_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+// const bool Y_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+// const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
 const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+
+// const bool X_MIN_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+// const bool Y_MIN_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+// const bool Z_MIN_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+const bool X_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+const bool Y_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+
 //#define DISABLE_MAX_ENDSTOPS
 //#define DISABLE_MIN_ENDSTOPS
 
@@ -415,9 +423,16 @@ const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic 
 #define INVERT_X_DIR true// DELTA does not invert
 #define INVERT_Y_DIR true
 #define INVERT_Z_DIR true
-#define INVERT_XX_DIR true// DELTA does not invert
+#define INVERT_XX_DIR true // DELTA does not invert
 #define INVERT_YY_DIR true
 #define INVERT_ZZ_DIR true
+
+// #define INVERT_X_DIR false// DELTA does not invert
+// #define INVERT_Y_DIR false
+// #define INVERT_Z_DIR false
+// #define INVERT_XX_DIR false// DELTA does not invert
+// #define INVERT_YY_DIR false
+// #define INVERT_ZZ_DIR false
 
 // @section extruder
 
@@ -612,7 +627,8 @@ const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic 
   #define MANUAL_X_HOME_POS 0
   #define MANUAL_Y_HOME_POS 0
   // #define MANUAL_Z_HOME_POS 250 // For delta: Distance between nozzle and print surface after homing.
-  #define MANUAL_Z_HOME_POS 372.3//// For delta: Distance between nozzle and print surface after homing.
+  // #define MANUAL_Z_HOME_POS 372.3//// For delta: Distance between nozzle and print surface after homing.
+  #define MANUAL_Z_HOME_POS 200//// For delta: Distance between nozzle and print surface after homing.
 #endif
 
 // @section movement
@@ -626,8 +642,8 @@ const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic 
 // default settings
 
 #define XYZ_FULL_STEPS_PER_ROTATION 200
-#define XYZ_MICROSTEPS 8 
-// #define XYZ_MICROSTEPS 16
+// #define XYZ_MICROSTEPS 8 
+#define XYZ_MICROSTEPS 16
 #define XYZ_BELT_PITCH 1
 #define XYZ_PULLEY_TEETH 12
 #define XYZ_STEPS ((XYZ_FULL_STEPS_PER_ROTATION) * (XYZ_MICROSTEPS) / double(XYZ_BELT_PITCH) / double(XYZ_PULLEY_TEETH))
