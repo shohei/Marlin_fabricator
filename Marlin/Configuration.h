@@ -381,6 +381,9 @@ const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic 
 const bool X_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
 const bool Y_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
 const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+const bool XX_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+const bool YY_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+const bool ZZ_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
 
 //#define DISABLE_MAX_ENDSTOPS
 //#define DISABLE_MIN_ENDSTOPS
@@ -637,7 +640,7 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
  * MOVEMENT SETTINGS
  */
 
-#define HOMING_FEEDRATE {50*60, 50*60, 4*60, 0}  // set the homing speeds (mm/min)
+#define HOMING_FEEDRATE {50*60, 50*60, 40*60, 0}  // set the homing speeds (mm/min)
 
 // default settings
 
@@ -645,18 +648,19 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 // #define XYZ_MICROSTEPS 8 
 #define XYZ_MICROSTEPS 16
 #define XYZ_BELT_PITCH 1
-#define XYZ_PULLEY_TEETH 12
+// #define XYZ_PULLEY_TEETH 12
+#define XYZ_PULLEY_TEETH 6
 #define XYZ_STEPS ((XYZ_FULL_STEPS_PER_ROTATION) * (XYZ_MICROSTEPS) / double(XYZ_BELT_PITCH) / double(XYZ_PULLEY_TEETH))
 
 // default settings
 // delta speeds must be the same on xyz
 #define DEFAULT_AXIS_STEPS_PER_UNIT   {XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, 1.1}  // default steps per unit for Kossel (GT2, 20 tooth)
-#define DEFAULT_MAX_FEEDRATE          {2000, 2000, 2000, 2000}    // (mm/sec)
+#define DEFAULT_MAX_FEEDRATE          {3000, 3000, 3000, 2000}    // (mm/sec)
 #define DEFAULT_MAX_ACCELERATION      {900,900,900,100}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
 
-#define DEFAULT_ACCELERATION          300    // X, Y, Z and E acceleration in mm/s^2 for printing moves
-#define DEFAULT_RETRACT_ACCELERATION  300   // E acceleration in mm/s^2 for retracts
-#define DEFAULT_TRAVEL_ACCELERATION   300    // X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
+#define DEFAULT_ACCELERATION          3000    // X, Y, Z and E acceleration in mm/s^2 for printing moves
+#define DEFAULT_RETRACT_ACCELERATION  3000   // E acceleration in mm/s^2 for retracts
+#define DEFAULT_TRAVEL_ACCELERATION   3000    // X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
 
 // The speed change that does not require acceleration (i.e. the software might assume it can be done instantaneously)
 #define DEFAULT_XYJERK                5.0    // (mm/sec)

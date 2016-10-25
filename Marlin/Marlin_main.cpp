@@ -270,6 +270,7 @@ bool cancel_heatup = false;
 const char errormagic[] PROGMEM = "Error:";
 const char echomagic[] PROGMEM = "echo:";
 const char axis_codes[NUM_AXIS] = {'X', 'Y', 'Z', 'E'};
+// const char axis_codes[NUM_AXIS] = {'X', 'Y', 'Z', 'E', 'A', 'B', 'C'};
 
 static bool relative_mode = false;  //Determines Absolute or Relative Coordinates
 static char serial_char;
@@ -631,6 +632,9 @@ void setup() {
   MYSERIAL.begin(BAUDRATE);
   SERIAL_PROTOCOLLNPGM("start");
   SERIAL_ECHO_START;
+
+  Preference *pref = Preference::getInstance();
+  pref->counter = 0;
 
   // Check startup - does nothing if bootloader sets MCUSR to 0
   byte mcu = MCUSR;
@@ -1129,6 +1133,7 @@ inline void line_to_z(float zPosition) {
 inline void line_to_destination(float mm_m) {
   plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], mm_m/60, active_extruder);
 }
+
 inline void line_to_destination() {
   line_to_destination(feedrate);
 }
@@ -1658,8 +1663,8 @@ static void homeaxis(AxisEnum axis) {
   #define HOMEAXIS_DO(LETTER) \
     ((LETTER##_MAX_PIN > -1 && LETTER##_HOME_DIR==1))
 
-  // if (axis == X_AXIS ? HOMEAXIS_DO(X) : axis == Y_AXIS ? HOMEAXIS_DO(Y) : axis == Z_AXIS ? HOMEAXIS_DO(Z) : 0) {
   if (axis == X_AXIS ? HOMEAXIS_DO(X) : axis == Y_AXIS ? HOMEAXIS_DO(Y) : axis == Z_AXIS ? HOMEAXIS_DO(Z) : 0) {
+  // if (axis == X_AXIS ? HOMEAXIS_DO(X) : axis == Y_AXIS ? HOMEAXIS_DO(Y) : axis == Z_AXIS ? HOMEAXIS_DO(Z) : axis == XX_AXIS ? HOMEAXIS_DO(XX) : axis == YY_AXIS ? HOMEAXIS_DO(YY) : axis == ZZ_AXIS ? HOMEAXIS_DO(ZZ) : 0) {
 
     int axis_home_dir =
       #ifdef DUAL_X_CARRIAGE
@@ -2029,10 +2034,12 @@ inline void gcode_G28() {
 
     // Pretend the current position is 0,0,0
     for (int i = X_AXIS; i <= Z_AXIS; i++) current_position[i] = 0;
+    // for (int i = X_AXIS; i <= ZZ_AXIS; i++) current_position[i] = 0;
     sync_plan_position();
 
     // Move all carriages up together until the first endstop is hit.
     for (int i = X_AXIS; i <= Z_AXIS; i++) destination[i] = 3 * Z_MAX_LENGTH;
+    // for (int i = X_AXIS; i <= ZZ_AXIS; i++) destination[i] = 3 * Z_MAX_LENGTH;
     feedrate = 1.732 * homing_feedrate[X_AXIS];
     line_to_destination();
     st_synchronize();
@@ -2040,11 +2047,15 @@ inline void gcode_G28() {
 
     // Destination reached
     for (int i = X_AXIS; i <= Z_AXIS; i++) current_position[i] = destination[i];
+    // for (int i = X_AXIS; i <= ZZ_AXIS; i++) current_position[i] = destination[i];
 
     // take care of back off and rehome now we are all at the top
     HOMEAXIS(X);
+    // HOMEAXIS(XX);
     HOMEAXIS(Y);
+    // HOMEAXIS(YY);
     HOMEAXIS(Z);
+    // HOMEAXIS(ZZ);
 
     sync_plan_position_delta();
 
@@ -6022,7 +6033,10 @@ void mesh_plan_buffer_line(float x, float y, float z, const float e, float feed_
     SERIAL_ECHOPGM(" seconds="); SERIAL_ECHO(seconds);
     SERIAL_ECHOPGM(" steps="); SERIAL_ECHOLN(steps);
 
+    Preference *pref = Preference::getInstance();
+    SERIAL_ECHOPGM("BEFORE pref->counter: ");SERIAL_ECHOLN(pref->counter);
     float fraction_time = seconds/steps;
+    SERIAL_ECHOPGM("fraction_time: ");SERIAL_ECHOLN(fraction_time);
     for (int s = 1; s <= steps; s++) {
 
       float fraction = float(s) / float(steps);
@@ -6046,6 +6060,7 @@ void mesh_plan_buffer_line(float x, float y, float z, const float e, float feed_
       // plan_buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], target[E_AXIS], feedrate/60*feedrate_multiplier/100.0, active_extruder);
       plan_buffer_line2(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], target[E_AXIS], feedrate/60*feedrate_multiplier/100.0, active_extruder, fraction_time);
     }
+    SERIAL_ECHOPGM("AFTER pref->counter: ");SERIAL_ECHOLN(pref->counter);
     return true;
   }
 

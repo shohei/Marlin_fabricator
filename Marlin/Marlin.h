@@ -18,6 +18,7 @@
 #include "Configuration.h"
 #include "pins.h"
 #include "fsr_sensor.h"
+#include "Preference.h"
 
 #ifndef SANITYCHECK_H
   #error Your Configuration.h and Configuration_adv.h files are outdated!
@@ -191,7 +192,9 @@ void manage_inactivity(bool ignore_stepper_queue=false);
 /**
  * The axis order in all axis related arrays is X, Y, Z, E
  */
+//DO NOT CHANGE NUM_AXIS. OTHERWISE IT HANGS IN THE plan_buffer_line.
 #define NUM_AXIS 4
+// #define NUM_AXIS 7
 
 /**
  * Axis indices as enumerated constants
@@ -199,9 +202,11 @@ void manage_inactivity(bool ignore_stepper_queue=false);
  * A_AXIS and B_AXIS are used by COREXY printers
  * X_HEAD and Y_HEAD is used for systems that don't have a 1:1 relationship between X_AXIS and X Head movement, like CoreXY bots.
  */
-enum AxisEnum {X_AXIS=0, A_AXIS=0, XX_AXIS=0, Y_AXIS=1, B_AXIS=1, YY_AXIS=1, Z_AXIS=2, C_AXIS=2, ZZ_AXIS=2, E_AXIS=3, X_HEAD=4, Y_HEAD=5, Z_HEAD=5};
+enum AxisEnum {X_AXIS=0, A_AXIS=0, XX_AXIS=0, Y_AXIS=1, B_AXIS=1, YY_AXIS=1, Z_AXIS=2, C_AXIS=2, ZZ_AXIS=2, E_AXIS=3, X_HEAD=4, Y_HEAD=5, Z_HEAD=6};
+// enum AxisEnum {X_AXIS=0, A_AXIS=0, Y_AXIS=1, B_AXIS=1, Z_AXIS=2, C_AXIS=2, E_AXIS=3, XX_AXIS=4, X_HEAD=4, YY_AXIS=5, Y_HEAD=5, ZZ_AXIS=6, Z_HEAD=6};
 
-enum EndstopEnum {X_MIN=0, Y_MIN=1, Z_MIN=2, Z_PROBE=3, X_MAX=4, Y_MAX=5, Z_MAX=6, Z2_MIN=7, Z2_MAX=8};
+// enum EndstopEnum {X_MIN=0, Y_MIN=1, Z_MIN=2, Z_PROBE=3, X_MAX=4, Y_MAX=5, Z_MAX=6, Z2_MIN=7, Z2_MAX=8};
+enum EndstopEnum {XX_MAX=0, YY_MAX=1, ZZ_MAX=2, Z_PROBE=3, X_MAX=4, Y_MAX=5, Z_MAX=6, Z2_MIN=7, Z2_MAX=8};
 
 void enable_all_steppers();
 void disable_all_steppers();

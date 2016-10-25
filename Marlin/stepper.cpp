@@ -71,7 +71,7 @@ static char step_loops;
 static unsigned long OCR1A_nominal;
 static unsigned short step_loops_nominal;
 
-volatile long endstops_trigsteps[3] = { 0 };
+volatile long endstops_trigsteps[6] = { 0 };
 volatile long endstops_stepsTotal, endstops_stepsDone;
 static volatile char endstop_hit_bits = 0; // use X_MIN, Y_MIN, Z_MIN and Z_PROBE as BIT value
 
@@ -176,18 +176,18 @@ void checkHitEndstops() {
   if (endstop_hit_bits) {
     SERIAL_ECHO_START;
     SERIAL_ECHOPGM(MSG_ENDSTOPS_HIT);
-    if (endstop_hit_bits & BIT(X_MIN)) {
-      SERIAL_ECHOPAIR(" X:", (float)endstops_trigsteps[X_AXIS] / axis_steps_per_unit[X_AXIS]);
-      LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "X");
-    }
-    if (endstop_hit_bits & BIT(Y_MIN)) {
-      SERIAL_ECHOPAIR(" Y:", (float)endstops_trigsteps[Y_AXIS] / axis_steps_per_unit[Y_AXIS]);
-      LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "Y");
-    }
-    if (endstop_hit_bits & BIT(Z_MIN)) {
-      SERIAL_ECHOPAIR(" Z:", (float)endstops_trigsteps[Z_AXIS] / axis_steps_per_unit[Z_AXIS]);
-      LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "Z");
-    }
+    // if (endstop_hit_bits & BIT(X_MIN)) {
+    //   SERIAL_ECHOPAIR(" X:", (float)endstops_trigsteps[X_AXIS] / axis_steps_per_unit[X_AXIS]);
+    //   LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "X");
+    // }
+    // if (endstop_hit_bits & BIT(Y_MIN)) {
+    //   SERIAL_ECHOPAIR(" Y:", (float)endstops_trigsteps[Y_AXIS] / axis_steps_per_unit[Y_AXIS]);
+    //   LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "Y");
+    // }
+    // if (endstop_hit_bits & BIT(Z_MIN)) {
+    //   SERIAL_ECHOPAIR(" Z:", (float)endstops_trigsteps[Z_AXIS] / axis_steps_per_unit[Z_AXIS]);
+    //   LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "Z");
+    // }
     #ifdef Z_PROBE_ENDSTOP
     if (endstop_hit_bits & BIT(Z_PROBE)) {
       SERIAL_ECHOPAIR(" Z_PROBE:", (float)endstops_trigsteps[Z_AXIS] / axis_steps_per_unit[Z_AXIS]);
@@ -224,7 +224,7 @@ inline void update_endstops() {
   #define _ENDSTOP_PIN(AXIS, MINMAX) AXIS ##_## MINMAX ##_PIN
   #define _ENDSTOP_INVERTING(AXIS, MINMAX) AXIS ##_## MINMAX ##_ENDSTOP_INVERTING
   #define _AXIS(AXIS) AXIS ##_AXIS
-  #define _ENDSTOP_HIT(AXIS) endstop_hit_bits |= BIT(_ENDSTOP(AXIS, MIN))
+  // #define _ENDSTOP_HIT(AXIS) endstop_hit_bits |= BIT(_ENDSTOP(AXIS, MIN))
   #define _ENDSTOP(AXIS, MINMAX) AXIS ##_## MINMAX
 
   // SET_ENDSTOP_BIT: set the current endstop bits for an endstop to its status
@@ -234,11 +234,13 @@ inline void update_endstops() {
   // TEST_ENDSTOP: test the old and the current status of an endstop
   #define TEST_ENDSTOP(ENDSTOP) (TEST(current_endstop_bits, ENDSTOP) && TEST(old_endstop_bits, ENDSTOP))
 
+
+  // _ENDSTOP_HIT(AXIS); \
+
   #define UPDATE_ENDSTOP(AXIS,MINMAX) \
     SET_ENDSTOP_BIT(AXIS, MINMAX); \
     if (TEST_ENDSTOP(_ENDSTOP(AXIS, MINMAX))  && (current_block->steps[_AXIS(AXIS)] > 0)) { \
       endstops_trigsteps[_AXIS(AXIS)] = count_position[_AXIS(AXIS)]; \
-      _ENDSTOP_HIT(AXIS); \
       step_events_completed = current_block->step_event_count; \
     }
 
@@ -262,7 +264,7 @@ inline void update_endstops() {
         #endif
           {
             #if HAS_X_MIN
-              UPDATE_ENDSTOP(X, MIN);
+              // UPDATE_ENDSTOP(X, MIN);
             #endif
           }
       }
@@ -274,6 +276,7 @@ inline void update_endstops() {
           {
             #if HAS_X_MAX
               UPDATE_ENDSTOP(X, MAX);
+              UPDATE_ENDSTOP(XX, MAX);
             #endif
           }
       }
@@ -291,12 +294,13 @@ inline void update_endstops() {
   #endif
       { // -direction
         #if HAS_Y_MIN
-          UPDATE_ENDSTOP(Y, MIN);
+          // UPDATE_ENDSTOP(Y, MIN);
         #endif
       }
       else { // +direction
         #if HAS_Y_MAX
           UPDATE_ENDSTOP(Y, MAX);
+          UPDATE_ENDSTOP(YY, MAX);
         #endif
       }
   #if defined(COREXY)
@@ -331,8 +335,7 @@ inline void update_endstops() {
                 step_events_completed = current_block->step_event_count;
             }
           #else // !Z_DUAL_ENDSTOPS
-
-            UPDATE_ENDSTOP(Z, MIN);
+            // UPDATE_ENDSTOP(Z, MIN);
           #endif // !Z_DUAL_ENDSTOPS
         #endif // Z_MIN_PIN
 
@@ -369,7 +372,7 @@ inline void update_endstops() {
 
           #else // !Z_DUAL_ENDSTOPS
 
-            UPDATE_ENDSTOP(Z, MAX);
+            UPDATE_ENDSTOP(ZZ, MAX);
 
           #endif // !Z_DUAL_ENDSTOPS
         #endif // Z_MAX_PIN
