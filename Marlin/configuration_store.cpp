@@ -494,6 +494,7 @@ void Config_ResetDefault() {
   max_z_jerk = DEFAULT_ZJERK;
   max_e_jerk = DEFAULT_EJERK;
   home_offset[X_AXIS] = home_offset[Y_AXIS] = home_offset[Z_AXIS] = 0;
+  home_offset[XX_AXIS] = home_offset[YY_AXIS] = home_offset[ZZ_AXIS] = 0;
 
   #ifdef MESH_BED_LEVELING
     mbl.active = 0;

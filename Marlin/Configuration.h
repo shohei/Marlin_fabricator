@@ -463,11 +463,18 @@ const bool ZZ_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic 
 
 // Travel limits after homing (units are in mm)
 #define X_MIN_POS -DELTA_PRINTABLE_RADIUS
+#define XX_MIN_POS -DELTA_PRINTABLE_RADIUS
 #define Y_MIN_POS -DELTA_PRINTABLE_RADIUS
+#define YY_MIN_POS -DELTA_PRINTABLE_RADIUS
 #define Z_MIN_POS 0
+#define ZZ_MIN_POS 0
+
 #define X_MAX_POS DELTA_PRINTABLE_RADIUS
+#define XX_MAX_POS DELTA_PRINTABLE_RADIUS
 #define Y_MAX_POS DELTA_PRINTABLE_RADIUS
+#define YY_MAX_POS DELTA_PRINTABLE_RADIUS
 #define Z_MAX_POS MANUAL_Z_HOME_POS
+#define ZZ_MAX_POS MANUAL_Z_HOME_POS
 
 //===========================================================================
 //============================= Filament Runout Sensor ======================
@@ -629,9 +636,15 @@ const bool ZZ_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic 
 #ifdef MANUAL_HOME_POSITIONS
   #define MANUAL_X_HOME_POS 0
   #define MANUAL_Y_HOME_POS 0
+  #define MANUAL_XX_HOME_POS 0
+  #define MANUAL_YY_HOME_POS 0
   // #define MANUAL_Z_HOME_POS 250 // For delta: Distance between nozzle and print surface after homing.
   // #define MANUAL_Z_HOME_POS 372.3//// For delta: Distance between nozzle and print surface after homing.
+  // #define MANUAL_Z_HOME_POS 200//// For delta: Distance between nozzle and print surface after homing.
+  // #define MANUAL_Z_HOME_POS 53//// For delta: Distance between nozzle and print surface after homing.
+  // #define MANUAL_ZZ_HOME_POS 53//// For delta: Distance between nozzle and print surface after homing.
   #define MANUAL_Z_HOME_POS 200//// For delta: Distance between nozzle and print surface after homing.
+  #define MANUAL_ZZ_HOME_POS MANUAL_Z_HOME_POS//// For delta: Distance between nozzle and print surface after homing.
 #endif
 
 // @section movement
@@ -654,13 +667,14 @@ const bool ZZ_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic 
 
 // default settings
 // delta speeds must be the same on xyz
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, 1.1}  // default steps per unit for Kossel (GT2, 20 tooth)
+// #define DEFAULT_AXIS_STEPS_PER_UNIT   {XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, 1.1}  // default steps per unit for Kossel (GT2, 20 tooth)
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, 1.1}  // default steps per unit for Kossel (GT2, 20 tooth)
 #define DEFAULT_MAX_FEEDRATE          {3000, 3000, 3000, 2000}    // (mm/sec)
 #define DEFAULT_MAX_ACCELERATION      {900,900,900,100}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
 
-#define DEFAULT_ACCELERATION          3000    // X, Y, Z and E acceleration in mm/s^2 for printing moves
-#define DEFAULT_RETRACT_ACCELERATION  3000   // E acceleration in mm/s^2 for retracts
-#define DEFAULT_TRAVEL_ACCELERATION   3000    // X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
+#define DEFAULT_ACCELERATION          300    // X, Y, Z and E acceleration in mm/s^2 for printing moves
+#define DEFAULT_RETRACT_ACCELERATION  300   // E acceleration in mm/s^2 for retracts
+#define DEFAULT_TRAVEL_ACCELERATION   300    // X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
 
 // The speed change that does not require acceleration (i.e. the software might assume it can be done instantaneously)
 #define DEFAULT_XYJERK                5.0    // (mm/sec)

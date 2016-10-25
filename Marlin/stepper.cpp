@@ -221,26 +221,37 @@ inline void update_endstops() {
   #endif
       current_endstop_bits = 0;
 
-  #define _ENDSTOP_PIN(AXIS, MINMAX) AXIS ##_## MINMAX ##_PIN
-  #define _ENDSTOP_INVERTING(AXIS, MINMAX) AXIS ##_## MINMAX ##_ENDSTOP_INVERTING
+  // #define _ENDSTOP_PIN(AXIS, MINMAX) AXIS ##_## MINMAX ##_PIN
+  // #define _ENDSTOP_INVERTING(AXIS, MINMAX) AXIS ##_## MINMAX ##_ENDSTOP_INVERTING
+  #define _ENDSTOP_PIN(AXIS, MAX) AXIS ##_## MAX ##_PIN
+  #define _ENDSTOP_INVERTING(AXIS, MAX) AXIS ##_## MAX ##_ENDSTOP_INVERTING
   #define _AXIS(AXIS) AXIS ##_AXIS
-  // #define _ENDSTOP_HIT(AXIS) endstop_hit_bits |= BIT(_ENDSTOP(AXIS, MIN))
-  #define _ENDSTOP(AXIS, MINMAX) AXIS ##_## MINMAX
+  #define _ENDSTOP_HIT(AXIS) endstop_hit_bits |= BIT(_ENDSTOP(AXIS, MIN))
+  // #define _ENDSTOP_HIT(AXIS) endstop_hit_bits |= BIT(_ENDSTOP(AXIS, MAX))
+  // #define _ENDSTOP(AXIS, MINMAX) AXIS ##_## MINMAX
+  #define _ENDSTOP(AXIS, MAX) AXIS ##_## MAX
 
   // SET_ENDSTOP_BIT: set the current endstop bits for an endstop to its status
-  #define SET_ENDSTOP_BIT(AXIS, MINMAX) SET_BIT(current_endstop_bits, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != _ENDSTOP_INVERTING(AXIS, MINMAX)))
+  // #define SET_ENDSTOP_BIT(AXIS, MINMAX) SET_BIT(current_endstop_bits, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != _ENDSTOP_INVERTING(AXIS, MINMAX)))
+  #define SET_ENDSTOP_BIT(AXIS, MAX) SET_BIT(current_endstop_bits, _ENDSTOP(AXIS, MAX), (READ(_ENDSTOP_PIN(AXIS, MAX)) != _ENDSTOP_INVERTING(AXIS, MAX)))
   // COPY_BIT: copy the value of COPY_BIT to BIT in bits
   #define COPY_BIT(bits, COPY_BIT, BIT) SET_BIT(bits, BIT, TEST(bits, COPY_BIT))
   // TEST_ENDSTOP: test the old and the current status of an endstop
   #define TEST_ENDSTOP(ENDSTOP) (TEST(current_endstop_bits, ENDSTOP) && TEST(old_endstop_bits, ENDSTOP))
 
+  // #define UPDATE_ENDSTOP(AXIS,MINMAX) \
+  //   SET_ENDSTOP_BIT(AXIS, MINMAX); \
+  //   if (TEST_ENDSTOP(_ENDSTOP(AXIS, MINMAX))  && (current_block->steps[_AXIS(AXIS)] > 0)) { \
+  //     endstops_trigsteps[_AXIS(AXIS)] = count_position[_AXIS(AXIS)]; \
+  //     _ENDSTOP_HIT(AXIS); \
+  //     step_events_completed = current_block->step_event_count; \
+  //   }
 
-  // _ENDSTOP_HIT(AXIS); \
-
-  #define UPDATE_ENDSTOP(AXIS,MINMAX) \
-    SET_ENDSTOP_BIT(AXIS, MINMAX); \
-    if (TEST_ENDSTOP(_ENDSTOP(AXIS, MINMAX))  && (current_block->steps[_AXIS(AXIS)] > 0)) { \
+  #define UPDATE_ENDSTOP(AXIS,MAX) \
+    SET_ENDSTOP_BIT(AXIS, MAX); \
+    if (TEST_ENDSTOP(_ENDSTOP(AXIS, MAX))  && (current_block->steps[_AXIS(AXIS)] > 0)) { \
       endstops_trigsteps[_AXIS(AXIS)] = count_position[_AXIS(AXIS)]; \
+      _ENDSTOP_HIT(AXIS); \
       step_events_completed = current_block->step_event_count; \
     }
 
@@ -908,54 +919,60 @@ void st_init() {
 
   //endstops and pullups
 
-  #if HAS_X_MIN
-    SET_INPUT(X_MIN_PIN);
-    #ifdef ENDSTOPPULLUP_XMIN
-      PULLUP(X_MIN_PIN,HIGH);
-    #endif
-  #endif
+  // #if HAS_X_MIN
+  //   SET_INPUT(X_MIN_PIN);
+  //   #ifdef ENDSTOPPULLUP_XMIN
+  //     PULLUP(X_MIN_PIN,HIGH);
+  //   #endif
+  // #endif
 
-  #if HAS_Y_MIN
-    SET_INPUT(Y_MIN_PIN);
-    #ifdef ENDSTOPPULLUP_YMIN
-      PULLUP(Y_MIN_PIN,HIGH);
-    #endif
-  #endif
+  // #if HAS_Y_MIN
+  //   SET_INPUT(Y_MIN_PIN);
+  //   #ifdef ENDSTOPPULLUP_YMIN
+  //     PULLUP(Y_MIN_PIN,HIGH);
+  //   #endif
+  // #endif
 
-  #if HAS_Z_MIN
-    SET_INPUT(Z_MIN_PIN);
-    #ifdef ENDSTOPPULLUP_ZMIN
-      PULLUP(Z_MIN_PIN,HIGH);
-    #endif
-  #endif
+  // #if HAS_Z_MIN
+  //   SET_INPUT(Z_MIN_PIN);
+  //   #ifdef ENDSTOPPULLUP_ZMIN
+  //     PULLUP(Z_MIN_PIN,HIGH);
+  //   #endif
+  // #endif
 
   #if HAS_X_MAX
     SET_INPUT(X_MAX_PIN);
+    SET_INPUT(XX_MAX_PIN);
     #ifdef ENDSTOPPULLUP_XMAX
       PULLUP(X_MAX_PIN,HIGH);
+      PULLUP(XX_MAX_PIN,HIGH);
     #endif
   #endif
 
   #if HAS_Y_MAX
     SET_INPUT(Y_MAX_PIN);
+    SET_INPUT(YY_MAX_PIN);
     #ifdef ENDSTOPPULLUP_YMAX
       PULLUP(Y_MAX_PIN,HIGH);
+      PULLUP(YY_MAX_PIN,HIGH);
     #endif
   #endif
 
   #if HAS_Z_MAX
     SET_INPUT(Z_MAX_PIN);
+    SET_INPUT(ZZ_MAX_PIN);
     #ifdef ENDSTOPPULLUP_ZMAX
       PULLUP(Z_MAX_PIN,HIGH);
+      PULLUP(ZZ_MAX_PIN,HIGH);
     #endif
   #endif
 
-  #if HAS_Z2_MAX
-    SET_INPUT(Z2_MAX_PIN);
-    #ifdef ENDSTOPPULLUP_ZMAX
-      PULLUP(Z2_MAX_PIN,HIGH);
-    #endif
-  #endif
+  // #if HAS_Z2_MAX
+  //   SET_INPUT(Z2_MAX_PIN);
+  //   #ifdef ENDSTOPPULLUP_ZMAX
+  //     PULLUP(Z2_MAX_PIN,HIGH);
+  //   #endif
+  // #endif
 
   #if (defined(Z_PROBE_PIN) && Z_PROBE_PIN >= 0) && defined(Z_PROBE_ENDSTOP) // Check for Z_PROBE_ENDSTOP so we don't pull a pin high unless it's to be used.
     SET_INPUT(Z_PROBE_PIN);
@@ -1043,6 +1060,18 @@ void st_set_position(const long &x, const long &y, const long &z, const long &e)
   count_position[X_AXIS] = x;
   count_position[Y_AXIS] = y;
   count_position[Z_AXIS] = z;
+  count_position[E_AXIS] = e;
+  CRITICAL_SECTION_END;
+}
+
+void st_set_position2(const long &x, const long &y, const long &z, const long &xx, const long &yy, const long &zz, const long &e) {
+  CRITICAL_SECTION_START;
+  count_position[X_AXIS] = x;
+  count_position[Y_AXIS] = y;
+  count_position[Z_AXIS] = z;
+  count_position[XX_AXIS] = xx;
+  count_position[YY_AXIS] = yy;
+  count_position[ZZ_AXIS] = zz;
   count_position[E_AXIS] = e;
   CRITICAL_SECTION_END;
 }

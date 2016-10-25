@@ -254,6 +254,9 @@
   #define X_MAX_LENGTH (X_MAX_POS - X_MIN_POS)
   #define Y_MAX_LENGTH (Y_MAX_POS - Y_MIN_POS)
   #define Z_MAX_LENGTH (Z_MAX_POS - Z_MIN_POS)
+  #define XX_MAX_LENGTH X_MAX_LENGTH
+  #define YY_MAX_LENGTH Y_MAX_LENGTH
+  #define ZZ_MAX_LENGTH Z_MAX_LENGTH
 
   /**
    * SCARA
@@ -270,6 +273,9 @@
     #define X_HOME_POS MANUAL_X_HOME_POS
     #define Y_HOME_POS MANUAL_Y_HOME_POS
     #define Z_HOME_POS MANUAL_Z_HOME_POS
+    #define XX_HOME_POS MANUAL_XX_HOME_POS
+    #define YY_HOME_POS MANUAL_YY_HOME_POS
+    #define ZZ_HOME_POS MANUAL_ZZ_HOME_POS
   #else //!MANUAL_HOME_POSITIONS – Use home switch positions based on homing direction and travel limits
     #ifdef BED_CENTER_AT_0_0
       #define X_HOME_POS X_MAX_LENGTH * X_HOME_DIR * 0.5
@@ -277,8 +283,11 @@
     #else
       #define X_HOME_POS (X_HOME_DIR < 0 ? X_MIN_POS : X_MAX_POS)
       #define Y_HOME_POS (Y_HOME_DIR < 0 ? Y_MIN_POS : Y_MAX_POS)
+      #define XX_HOME_POS (XX_HOME_DIR < 0 ? XX_MIN_POS : XX_MAX_POS)
+      #define YY_HOME_POS (YY_HOME_DIR < 0 ? YY_MIN_POS : YY_MAX_POS)
     #endif
     #define Z_HOME_POS (Z_HOME_DIR < 0 ? Z_MIN_POS : Z_MAX_POS)
+    #define ZZ_HOME_POS (ZZ_HOME_DIR < 0 ? ZZ_MIN_POS : ZZ_MAX_POS)
   #endif //!MANUAL_HOME_POSITIONS
 
   /**
