@@ -239,8 +239,9 @@ bool Running = true;
 uint8_t marlin_debug_flags = DEBUG_INFO|DEBUG_ERRORS;
 
 static float feedrate = 1500.0, saved_feedrate;
-float current_position[NUM_AXIS] = { 0.0 };
-static float destination[NUM_AXIS] = { 0.0 };
+float current_position[4] = { 0.0 };
+// static float destination[NUM_AXIS] = { 0.0 };
+static float destination[4] = { 0.0 };
 // bool axis_known_position[3] = { false };
 bool axis_known_position[6] = { false };
 
@@ -1158,7 +1159,6 @@ static void set_axis_is_at_home(AxisEnum axis) {
 
     #if defined(ENABLE_AUTO_BED_LEVELING) && Z_HOME_DIR < 0
       if (axis == Z_AXIS) current_position[Z_AXIS] -= zprobe_zoffset;
-      if (axis == ZZ_AXIS) current_position[ZZ_AXIS] -= zprobe_zoffset;
     #endif
   }
 }
@@ -1188,24 +1188,24 @@ inline void line_to_destination(float mm_m) {
 inline void line_to_destination() {
   line_to_destination(feedrate);
 }
-inline void line_to_destination4(float mm_m) {
-  plan_buffer_line4(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[XX_AXIS], destination[YY_AXIS], destination[ZZ_AXIS], destination[E_AXIS], mm_m/60, active_extruder);
-}
-inline void line_to_destination4() {
-  line_to_destination4(feedrate);
-}
-inline void line_to_destination3(float mm_m, float fraction_time) {
-  plan_buffer_line3(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[XX_AXIS], destination[YY_AXIS], destination[ZZ_AXIS], destination[E_AXIS], mm_m/60, active_extruder, fraction_time);
-}
-inline void line_to_destination3(float fraction_time) {
-  line_to_destination3(feedrate, fraction_time);
-}
+// inline void line_to_destination4(float mm_m) {
+//   plan_buffer_line4(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[XX_AXIS], destination[YY_AXIS], destination[ZZ_AXIS], destination[E_AXIS], mm_m/60, active_extruder);
+// }
+// inline void line_to_destination4() {
+//   line_to_destination4(feedrate);
+// }
+// inline void line_to_destination3(float mm_m, float fraction_time) {
+//   plan_buffer_line3(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[XX_AXIS], destination[YY_AXIS], destination[ZZ_AXIS], destination[E_AXIS], mm_m/60, active_extruder, fraction_time);
+// }
+// inline void line_to_destination3(float fraction_time) {
+//   line_to_destination3(feedrate, fraction_time);
+// }
 inline void sync_plan_position() {
   plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
 }
-inline void sync_plan_position2() {
-  plan_set_position2(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[XX_AXIS], current_position[YY_AXIS], current_position[ZZ_AXIS], current_position[E_AXIS]);
-}
+// inline void sync_plan_position2() {
+//   plan_set_position2(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[XX_AXIS], current_position[YY_AXIS], current_position[ZZ_AXIS], current_position[E_AXIS]);
+// }
 #if defined(DELTA) || defined(SCARA)
   inline void sync_plan_position_delta() {
     calculate_delta(current_position);
@@ -1217,7 +1217,7 @@ inline void sync_plan_position2() {
   }
 #endif
   inline void set_current_to_destination() { memcpy(current_position, destination, sizeof(current_position)); }
-  inline void set_current_to_destination2() { memcpy(current_position, destination, sizeof(current_position)); }
+  // inline void set_current_to_destination2() { memcpy(current_position, destination, sizeof(current_position)); }
   inline void set_destination_to_current() { memcpy(destination, current_position, sizeof(destination)); }
 
   static void setup_for_endstop_move() {
@@ -1745,16 +1745,16 @@ inline void sync_plan_position2() {
 
     // Set the axis position as setup for the move
       current_position[axis] = 0;
-      if(axis==X_AXIS){
-        current_position[XX_AXIS] = 0;
-      }
-      if(axis==Y_AXIS){
-        current_position[YY_AXIS] = 0;
-      }
-      if(axis==Z_AXIS){
-        current_position[ZZ_AXIS] = 0;
-      }
-      sync_plan_position2();
+      // if(axis==X_AXIS){
+      //   current_position[XX_AXIS] = 0;
+      // }
+      // if(axis==Y_AXIS){
+      //   current_position[YY_AXIS] = 0;
+      // }
+      // if(axis==Z_AXIS){
+      //   current_position[ZZ_AXIS] = 0;
+      // }
+      sync_plan_position();
 
     #ifdef Z_PROBE_SLED
       // Get Probe
@@ -1809,22 +1809,22 @@ SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
     float seconds = 6000 * destination[axis] / homing_feedrate[Z_AXIS] / feedrate_multiplier;
     SERIAL_ECHOPGM("do homeaxis seconds[sec]: ");SERIAL_ECHOLN(seconds);
     SERIAL_ECHOLNPGM("GOTO: MAX_HEIGHT * 1.5");
-    line_to_destination3(feedrate,seconds); 
+    line_to_destination(); 
     // line_to_destination4(feedrate);
     st_synchronize();
 
     // Set the axis position as setup for the move
     current_position[axis] = 0;
-    if(axis==X_AXIS){
-      current_position[XX_AXIS] = 0;
-    }
-    if(axis==Y_AXIS){
-      current_position[ZZ_AXIS] = 0;
-    }
-    if(axis==Z_AXIS){
-      current_position[ZZ_AXIS] = 0;
-    }
-    sync_plan_position2();
+    // if(axis==X_AXIS){
+    //   current_position[XX_AXIS] = 0;
+    // }
+    // if(axis==Y_AXIS){
+    //   current_position[ZZ_AXIS] = 0;
+    // }
+    // if(axis==Z_AXIS){
+    //   current_position[ZZ_AXIS] = 0;
+    // }
+    sync_plan_position();
 
     enable_endstops(false); // Disable endstops while moving away
 
@@ -1842,7 +1842,7 @@ SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
 
     seconds = 6000 * destination[axis] / feedrate / feedrate_multiplier;
     SERIAL_ECHOLNPGM("GOTO: -HOME_BUMP HEIGHT");
-    line_to_destination3(feedrate,seconds);
+    line_to_destination();
     // line_to_destination2();
     // line_to_destination3(feedrate,seconds);
     // line_to_destination2();
@@ -1875,7 +1875,7 @@ SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
 
     seconds = 6000 * destination[axis] / feedrate / feedrate_multiplier;
     SERIAL_ECHOLNPGM("GOTO: 2 * HOME_BUMP with SLOW SPEED");
-    line_to_destination3(feedrate,seconds);
+    line_to_destination();
     // line_to_destination2();
     st_synchronize();
 
@@ -1908,7 +1908,7 @@ SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
       // retrace by the amount specified in endstop_adj
       if (endstop_adj[axis] * axis_home_dir < 0) {
         enable_endstops(false); // Disable endstops while moving away
-        sync_plan_position2();
+        sync_plan_position();
         destination[axis] = endstop_adj[axis];
         if(axis==X_AXIS){
           destination[XX_AXIS] = endstop_adj[axis];
@@ -1921,7 +1921,7 @@ SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
         }
 
         float seconds = 6000 * destination[axis] / feedrate / feedrate_multiplier;
-        line_to_destination3(feedrate,seconds);
+        line_to_destination();
         // line_to_destination2();
         // line_to_destination();
         st_synchronize();
@@ -1941,18 +1941,18 @@ SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
           set_axis_is_at_home(ZZ_AXIS);
         }
 
-    sync_plan_position2();
+    sync_plan_position();
 
     destination[axis] = current_position[axis];
-        if(axis==X_AXIS){
-          destination[XX_AXIS] = current_position[axis];
-        }
-        if(axis==Y_AXIS){
-          destination[YY_AXIS] = current_position[axis];
-        }
-        if(axis==Z_AXIS){
-          destination[ZZ_AXIS] = current_position[axis];
-        }
+        // if(axis==X_AXIS){
+        //   destination[XX_AXIS] = current_position[axis];
+        // }
+        // if(axis==Y_AXIS){
+        //   destination[YY_AXIS] = current_position[axis];
+        // }
+        // if(axis==Z_AXIS){
+        //   destination[ZZ_AXIS] = current_position[axis];
+        // }
         
     feedrate = 0.0;
     endstops_hit_on_purpose(); // clear endstop hit flags
@@ -2014,7 +2014,7 @@ SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
       // home_dir(axis);
 
     // Set the axis position as setup for the move
-      for(int i=X_AXIS;i<=ZZ_AXIS;i++) current_position[axis] = 0;
+      for(int i=X_AXIS;i<=Z_AXIS;i++) current_position[axis] = 0;
       // current_position[axis] = 0;
       // if(axis==X_AXIS){
       //   current_position[XX_AXIS] = 0;
@@ -2025,7 +2025,7 @@ SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
       // if(axis==Z_AXIS){
       //   current_position[ZZ_AXIS] = 0;
       // }
-      sync_plan_position2();
+      sync_plan_position();
 
     // #ifdef Z_PROBE_SLED
     //   // Get Probe
@@ -2079,11 +2079,11 @@ SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
     float seconds = 6000 * destination[axis] / feedrate / feedrate_multiplier;
     SERIAL_ECHOPGM("seconds[sec]: ");SERIAL_ECHOLN(seconds);
 
-    line_to_destination3(feedrate,seconds);
+    line_to_destination();
     st_synchronize();
 
     // Set the axis position as setup for the move
-      for(int i=0;i<ZZ_AXIS;i++) current_position[axis] = 0;
+      for(int i=0;i<Z_AXIS;i++) current_position[axis] = 0;
     // if(axis==X_AXIS){
     //   current_position[XX_AXIS] = 0;
     // }
@@ -2093,7 +2093,7 @@ SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
     // if(axis==Z_AXIS){
     //   current_position[ZZ_AXIS] = 0;
     // }
-    sync_plan_position2();
+    sync_plan_position();
 
     enable_endstops(false); // Disable endstops while moving away
 
@@ -2110,7 +2110,7 @@ SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
     // }
 
     seconds = 6000 * destination[axis] / feedrate / feedrate_multiplier;
-    line_to_destination3(feedrate,seconds);
+    line_to_destination();
     // line_to_destination2();
     st_synchronize();
     enable_endstops(true); // Enable endstops for next homing move
@@ -2147,7 +2147,7 @@ SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
     // }
 
     seconds = 6000 * destination[axis] / feedrate / feedrate_multiplier;
-    line_to_destination3(feedrate,seconds);
+    line_to_destination();
     // line_to_destination2();
     st_synchronize();
 
@@ -2180,7 +2180,7 @@ SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
       // retrace by the amount specified in endstop_adj
       if (endstop_adj[axis] * axis_home_dir < 0) {
         enable_endstops(false); // Disable endstops while moving away
-        sync_plan_position2();
+        sync_plan_position();
        for(int i=X_AXIS;i<=ZZ_AXIS;i++) destination[i] = endstop_adj[i];
         // if(axis==X_AXIS){
         //   destination[XX_AXIS] = endstop_adj[axis];
@@ -2194,7 +2194,7 @@ SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
 
         SERIAL_ECHOLNPGM("Is it reaching??");
         float seconds = 6000 * destination[axis] / feedrate / feedrate_multiplier;
-        line_to_destination3(feedrate,seconds);
+        line_to_destination();
         // line_to_destination2();
         // line_to_destination();
         st_synchronize();
@@ -2220,10 +2220,10 @@ SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
         //   set_axis_is_at_home(ZZ_AXIS);
         // }
 
-    sync_plan_position2();
+    sync_plan_position();
 
 
-    for(int i=X_AXIS;i<=ZZ_AXIS;i++) destination[i] = current_position[i];
+    for(int i=X_AXIS;i<=Z_AXIS;i++) destination[i] = current_position[i];
         // if(axis==X_AXIS){
         //   destination[XX_AXIS] = current_position[axis];
         // }
@@ -2501,10 +2501,10 @@ inline void gcode_G28() {
     // all axis have to home at the same time
 
     // Pretend the current position is 0,0,0
-    for (int i = X_AXIS; i <= ZZ_AXIS; i++) current_position[i] = 0;
+    for (int i = X_AXIS; i <= Z_AXIS; i++) current_position[i] = 0;
     // for (int i = X_AXIS; i <= ZZ_AXIS; i++) current_position[i] = 0;
     // sync_plan_position();
-    sync_plan_position2();
+    sync_plan_position();
 
     // Move all carriages up together until the first endstop is hit.
     for (int i = X_AXIS; i <= ZZ_AXIS; i++) destination[i] = 3 * Z_MAX_LENGTH;
@@ -2520,7 +2520,7 @@ inline void gcode_G28() {
     endstops_hit_on_purpose(); // clear endstop hit flags
 
     // Destination reached
-    for (int i = X_AXIS; i <= ZZ_AXIS; i++) current_position[i] = destination[i];
+    for (int i = X_AXIS; i <= Z_AXIS; i++) current_position[i] = destination[i];
     // for (int i = X_AXIS; i <= ZZ_AXIS; i++) current_position[i] = destination[i];
 
     // take care of back off and rehome now we are all at the top
@@ -6574,18 +6574,19 @@ void mesh_plan_buffer_line(float x, float y, float z, const float e, float feed_
 #if defined(DELTA) || defined(SCARA)
 
   inline bool prepare_move_delta(float target[NUM_AXIS]) {
-    float difference[NUM_AXIS];
-    for (int8_t i=0; i < NUM_AXIS; i++) difference[i] = target[i] - current_position[i];
+    //target is destination, actually
+    float difference[4];
+    for (int8_t i=0; i < 3; i++) difference[i] = target[i] - current_position[i];
 
     float cartesian_mm = sqrt(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
-    if (cartesian_mm < 0.000001) cartesian_mm = abs(difference[E_AXIS]);
-    if (cartesian_mm < 0.000001) return false;
-    float seconds = 6000 * cartesian_mm / feedrate / feedrate_multiplier;
+    // if (cartesian_mm < 0.000001) cartesian_mm = abs(difference[E_AXIS]);
+    // if (cartesian_mm < 0.000001) return false;
+    float seconds = cartesian_mm / (feedrate/60.0) / (feedrate_multiplier / 100.0);
     int steps = max(1, int(delta_segments_per_second * seconds));
 
-    SERIAL_ECHOPGM("mm="); SERIAL_ECHO(cartesian_mm);
+    // SERIAL_ECHOPGM("mm="); SERIAL_ECHO(cartesian_mm);
     SERIAL_ECHOPGM(" seconds="); SERIAL_ECHO(seconds);
-    SERIAL_ECHOPGM(" steps="); SERIAL_ECHOLN(steps);
+    // SERIAL_ECHOPGM(" steps="); SERIAL_ECHOLN(steps);
 
     Preference *pref = Preference::getInstance();
     SERIAL_ECHOPGM("BEFORE pref->counter"); SERIAL_ECHOLN(pref->counter);

@@ -2243,9 +2243,9 @@ float junction_deviation = 0.1;
     if (dx < 0) db |= BIT(X_AXIS);
     if (dy < 0) db |= BIT(Y_AXIS); 
     if (dz < 0) db |= BIT(Z_AXIS);
-    // if (dx < 0) db |= BIT(XX_AXIS);//??: TODO
-    // if (dy < 0) db |= BIT(YY_AXIS); 
-    // if (dz < 0) db |= BIT(ZZ_AXIS);
+    if (dxx < 0) db |= BIT(XX_AXIS);//??: TODO
+    if (dyy < 0) db |= BIT(YY_AXIS); 
+    if (dzz < 0) db |= BIT(ZZ_AXIS);
   #endif
   if (de < 0) db |= BIT(E_AXIS); 
   block->direction_bits = db;
@@ -2440,7 +2440,7 @@ float junction_deviation = 0.1;
   // block->nominal_rate = ceil(block->step_event_count / fraction_time); // (step/sec) Always > 0
 
   Preference *pref = Preference::getInstance();
-  if(pref->counter%20==0){
+  if(pref->counter%100==0){
     SERIAL_ECHOPGM("target[X_AXIS]"); SERIAL_ECHOLN(target[X_AXIS]);
     SERIAL_ECHOPGM("target[XX_AXIS]"); SERIAL_ECHOLN(target[XX_AXIS]);
     SERIAL_ECHOPGM("position[X_AXIS]"); SERIAL_ECHOLN(position[X_AXIS]);

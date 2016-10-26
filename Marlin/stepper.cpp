@@ -76,7 +76,8 @@ volatile long endstops_stepsTotal, endstops_stepsDone;
 static volatile char endstop_hit_bits = 0; // use X_MIN, Y_MIN, Z_MIN and Z_PROBE as BIT value
 
 #ifndef Z_DUAL_ENDSTOPS
-  static byte
+  // static byte
+  static uint16_t
 #else
   static uint16_t
 #endif
@@ -217,7 +218,8 @@ inline void update_endstops() {
   #ifdef Z_DUAL_ENDSTOPS
     uint16_t
   #else
-    byte
+    // byte
+    uint16_t
   #endif
       current_endstop_bits = 0;
 
@@ -230,10 +232,9 @@ inline void update_endstops() {
   // #define _ENDSTOP_HIT(AXIS) endstop_hit_bits |= BIT(_ENDSTOP(AXIS, MAX))
   // #define _ENDSTOP(AXIS, MINMAX) AXIS ##_## MINMAX
   #define _ENDSTOP(AXIS, MAX) AXIS ##_## MAX
-
   // SET_ENDSTOP_BIT: set the current endstop bits for an endstop to its status
   // #define SET_ENDSTOP_BIT(AXIS, MINMAX) SET_BIT(current_endstop_bits, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != _ENDSTOP_INVERTING(AXIS, MINMAX)))
-  #define SET_ENDSTOP_BIT(AXIS, MINMAX) SET_BIT(current_endstop_bits, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != _ENDSTOP_INVERTING(AXIS, MINMAX)))
+  #define SET_ENDSTOP_BIT(AXIS, MINMAX) SET_BIT(current_endstop_bits, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != _ENDSTOP_INVERTING(AXIS, MINMAX))) 
   // COPY_BIT: copy the value of COPY_BIT to BIT in bits
   #define COPY_BIT(bits, COPY_BIT, BIT) SET_BIT(bits, BIT, TEST(bits, COPY_BIT))
   // TEST_ENDSTOP: test the old and the current status of an endstop
@@ -247,16 +248,8 @@ inline void update_endstops() {
   //     step_events_completed = current_block->step_event_count; \
   //   }
 
-  // #define UPDATE_ENDSTOP(AXIS,MAX) \
-  //   SET_ENDSTOP_BIT(AXIS, MAX); \
-  //   if (TEST_ENDSTOP(_ENDSTOP(AXIS, MAX))  && (current_block->steps[_AXIS(AXIS)] > 0)) { \
-  //     endstops_trigsteps[_AXIS(AXIS)] = count_position[_AXIS(AXIS)]; \
-  //     _ENDSTOP_HIT(AXIS); \
-  //     step_events_completed = current_block->step_event_count; \
-  //   }
-
   #define UPDATE_ENDSTOP(AXIS,MAX) \
-    SET_ENDSTOP_BIT(AXIS, MAX); \
+    // SET_ENDSTOP_BIT(AXIS, MAX); \
     if (TEST_ENDSTOP(_ENDSTOP(AXIS, MAX))  && (current_block->steps[_AXIS(AXIS)] > 0)) { \
       endstops_trigsteps[_AXIS(AXIS)] = count_position[_AXIS(AXIS)]; \
       _ENDSTOP_HIT(AXIS); \
@@ -958,6 +951,7 @@ void st_init() {
   // #endif
 
   #if HAS_X_MAX
+    SERIAL_ECHOLNPGM("set input X_MAX and XX_MAX pin");
     SET_INPUT(X_MAX_PIN);
     SET_INPUT(XX_MAX_PIN);
     #ifdef ENDSTOPPULLUP_XMAX
@@ -969,6 +963,7 @@ void st_init() {
   #if HAS_Y_MAX
     SET_INPUT(Y_MAX_PIN);
     SET_INPUT(YY_MAX_PIN);
+    SERIAL_ECHOLNPGM("set input Y_MAX and YY_MAX pin");
     #ifdef ENDSTOPPULLUP_YMAX
       PULLUP(Y_MAX_PIN,HIGH);
       PULLUP(YY_MAX_PIN,HIGH);
@@ -976,6 +971,7 @@ void st_init() {
   #endif
 
   #if HAS_Z_MAX
+    SERIAL_ECHOLNPGM("set input Z_MAX and ZZ_MAX pin");
     SET_INPUT(Z_MAX_PIN);
     SET_INPUT(ZZ_MAX_PIN);
     #ifdef ENDSTOPPULLUP_ZMAX
