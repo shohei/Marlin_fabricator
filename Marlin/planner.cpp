@@ -1815,7 +1815,8 @@ float junction_deviation = 0.1;
     delta_mm[YY_AXIS] = dyy / axis_steps_per_unit[YY_AXIS];
     delta_mm[ZZ_AXIS] = dzz / axis_steps_per_unit[ZZ_AXIS];
   #endif
-  // delta_mm[E_AXIS] = (de / axis_steps_per_unit[E_AXIS]) * volumetric_multiplier[extruder] * extruder_multiplier[extruder] / 100.0;
+  // delta_mm[E_AXIS] = (de / axis_steps_per_unit[E_AXIS]); * volumetric_multiplier[extruder] * extruder_multiplier[extruder] / 100.0;
+  delta_mm[E_AXIS] = (de / axis_steps_per_unit[E_AXIS]);// this is dummy and irrelevant
 
   if (block->steps[X_AXIS] <= dropsegments && block->steps[Y_AXIS] <= dropsegments && block->steps[Z_AXIS] <= dropsegments) {
     block->millimeters = fabs(delta_mm[E_AXIS]);
@@ -1834,7 +1835,8 @@ float junction_deviation = 0.1;
   float inverse_millimeters = 1.0 / block->millimeters;  // Inverse millimeters to remove multiple divides 
 
   // Calculate speed in mm/second for each axis. No divide by zero due to previous checks.
-  float inverse_second = feed_rate * inverse_millimeters;
+  // float inverse_second = feed_rate * inverse_millimeters;
+  float inverse_second = 1.0 / fraction_time;
 
   int moves_queued = movesplanned();
 
@@ -1860,8 +1862,8 @@ float junction_deviation = 0.1;
   #endif
 
   block->nominal_speed = block->millimeters * inverse_second; // (mm/sec) Always > 0
-  // block->nominal_rate = ceil(block->step_event_count * inverse_second); // (step/sec) Always > 0
-  block->nominal_rate = ceil(block->step_event_count / fraction_time); // (step/sec) Always > 0
+  block->nominal_rate = ceil(block->step_event_count * inverse_second); // (step/sec) Always > 0
+  // block->nominal_rate = ceil(block->step_event_count / fraction_time); // (step/sec) Always > 0
 
   Preference *pref = Preference::getInstance();
   if(pref->counter%20==0){
@@ -1877,6 +1879,7 @@ float junction_deviation = 0.1;
     SERIAL_ECHOPGM("steps[YY_AXIS]: "); SERIAL_ECHOLN(block->steps[YY_AXIS]);
     SERIAL_ECHOPGM("steps[ZZ_AXIS]: "); SERIAL_ECHOLN(block->steps[ZZ_AXIS]);
     SERIAL_ECHOPGM("steps[E_AXIS]: "); SERIAL_ECHOLN(block->steps[E_AXIS]);
+    SERIAL_ECHOPGM("block->nominal_speed: "); SERIAL_ECHOLN(block->nominal_speed);
     SERIAL_ECHOPGM("block->nominal_rate: "); SERIAL_ECHOLN(block->nominal_rate);
   }
   pref->counter = pref->counter + 1;

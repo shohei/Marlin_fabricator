@@ -1798,6 +1798,7 @@ inline void sync_plan_position2() {
     }
     feedrate = homing_feedrate[axis];
 
+
 SERIAL_ECHOPGM("destination[X_AXIS] "); SERIAL_ECHOLN( destination[X_AXIS]);
 SERIAL_ECHOPGM("destination[Y_AXIS] "); SERIAL_ECHOLN( destination[Y_AXIS]);
 SERIAL_ECHOPGM("destination[Z_AXIS] "); SERIAL_ECHOLN(destination[Z_AXIS]);
@@ -1805,11 +1806,10 @@ SERIAL_ECHOPGM("destination[XX_AXIS]"); SERIAL_ECHOLN(  destination[XX_AXIS]);
 SERIAL_ECHOPGM("destination[YY_AXIS]"); SERIAL_ECHOLN(  destination[YY_AXIS]);
 SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
 
-    float seconds = 6000 * destination[axis] / feedrate / feedrate_multiplier;
-    SERIAL_ECHOPGM("seconds[sec]: ");SERIAL_ECHOLN(seconds);
-
+    float seconds = 6000 * destination[axis] / homing_feedrate[Z_AXIS] / feedrate_multiplier;
+    SERIAL_ECHOPGM("do homeaxis seconds[sec]: ");SERIAL_ECHOLN(seconds);
     SERIAL_ECHOLNPGM("GOTO: MAX_HEIGHT * 1.5");
-    line_to_destination3(feedrate,seconds);
+    line_to_destination3(feedrate,seconds); 
     // line_to_destination4(feedrate);
     st_synchronize();
 
