@@ -93,8 +93,10 @@ static volatile char endstop_hit_bits = 0; // use X_MIN, Y_MIN, Z_MIN and Z_PROB
 
 static bool check_endstops = true;
 
-volatile long count_position[NUM_AXIS] = { 0 };
-volatile signed char count_direction[NUM_AXIS] = { 1, 1, 1, 1 };
+// volatile long count_position[NUM_AXIS] = { 0 };
+volatile long count_position[6] = { 0 };
+// volatile signed char count_direction[NUM_AXIS] = { 1, 1, 1, 1 };
+volatile signed char count_direction[6] = { 1, 1, 1, 1 , 1 ,1};
 
 
 //===========================================================================
@@ -249,10 +251,14 @@ inline void update_endstops() {
   //   }
 
   #define UPDATE_ENDSTOP(AXIS,MAX) \
-    // SET_ENDSTOP_BIT(AXIS, MAX); \
+    SET_ENDSTOP_BIT(AXIS, MAX); \
     if (TEST_ENDSTOP(_ENDSTOP(AXIS, MAX))  && (current_block->steps[_AXIS(AXIS)] > 0)) { \
+      SERIAL_ECHOPGM("hit endstop "); SERIAL_ECHOLN(_AXIS(AXIS)); \
+      SERIAL_ECHOPGM("count_position[axis]"); SERIAL_ECHOLN(count_position[_AXIS(AXIS)] ); \
       endstops_trigsteps[_AXIS(AXIS)] = count_position[_AXIS(AXIS)]; \
+      SERIAL_ECHOPGM("endstops_trigsteps[axis]"); SERIAL_ECHOLN(endstops_trigsteps[_AXIS(AXIS)] ); \
       _ENDSTOP_HIT(AXIS); \
+      SERIAL_ECHOPGM("current_block->step_event_count"); SERIAL_ECHOLN(current_block->step_event_count); \
       step_events_completed = current_block->step_event_count; \
     }
   // #ifdef COREXY
@@ -621,42 +627,42 @@ HAL_STEP_TIMER_ISR {
 
 	#define STEP_END(axis, AXIS) _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS),0)
 
-    #if defined(ENABLE_HIGH_SPEED_STEPPING)
-      // Take multiple steps per interrupt (For high speed moves)
-      for (int8_t i = 0; i < step_loops; i++) {
+    // #if defined(ENABLE_HIGH_SPEED_STEPPING)
+    //   // Take multiple steps per interrupt (For high speed moves)
+    //   for (int8_t i = 0; i < step_loops; i++) {
 
-        // #ifdef ADVANCE
-        //   counter_e += current_block->steps[E_AXIS];
-        //   if (counter_e > 0) {
-        //     counter_e -= current_block->step_event_count;
-        //     e_steps[current_block->active_extruder] += TEST(out_bits, E_AXIS) ? -1 : 1;
-        //   }
-        // #endif //ADVANCE
+    //     // #ifdef ADVANCE
+    //     //   counter_e += current_block->steps[E_AXIS];
+    //     //   if (counter_e > 0) {
+    //     //     counter_e -= current_block->step_event_count;
+    //     //     e_steps[current_block->active_extruder] += TEST(out_bits, E_AXIS) ? -1 : 1;
+    //     //   }
+    //     // #endif //ADVANCE
 
-        STEP_START(x,X);
-        STEP_START(y,Y);
-        STEP_START(z,Z);
-        STEP_START2(x,XX);
-        STEP_START2(y,YY);
-        STEP_START2(z,ZZ);
-        // #ifndef ADVANCE
-        //   STEP_START(e,E);
-        // #endif
+    //     STEP_START(x,X);
+    //     STEP_START(y,Y);
+    //     STEP_START(z,Z);
+    //     STEP_START2(x,XX);
+    //     STEP_START2(y,YY);
+    //     STEP_START2(z,ZZ);
+    //     // #ifndef ADVANCE
+    //     //   STEP_START(e,E);
+    //     // #endif
 
-        STEP_END(x, X);
-        STEP_END(y, Y);
-        STEP_END(z, Z);
-        STEP_END(x, XX);
-        STEP_END(y, YY);
-        STEP_END(z, ZZ);
-        // #ifndef ADVANCE
-          // STEP_END(e, E);
-        // #endif
+    //     STEP_END(x, X);
+    //     STEP_END(y, Y);
+    //     STEP_END(z, Z);
+    //     STEP_END(x, XX);
+    //     STEP_END(y, YY);
+    //     STEP_END(z, ZZ);
+    //     // #ifndef ADVANCE
+    //       // STEP_END(e, E);
+    //     // #endif
 
-        step_events_completed++;
-        if (step_events_completed >= current_block->step_event_count) break;
-      }
-    #else
+    //     step_events_completed++;
+    //     if (step_events_completed >= current_block->step_event_count) break;
+    //   }
+    // #else
       STEP_START(y,Y);
       STEP_START(x,X);
       STEP_START(z,Z);
@@ -670,7 +676,7 @@ HAL_STEP_TIMER_ISR {
       //   STEP_START(e,E);
       // #endif
       step_events_completed++;
-    #endif
+    // #endif
     // Calculate new timer value
     unsigned long timer;
     unsigned long step_rate;

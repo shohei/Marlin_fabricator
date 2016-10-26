@@ -2507,15 +2507,10 @@ inline void gcode_G28() {
     sync_plan_position();
 
     // Move all carriages up together until the first endstop is hit.
-    for (int i = X_AXIS; i <= ZZ_AXIS; i++) destination[i] = 3 * Z_MAX_LENGTH;
+    for (int i = X_AXIS; i <= Z_AXIS; i++) destination[i] = 3 * Z_MAX_LENGTH;
     // for (int i = X_AXIS; i <= ZZ_AXIS; i++) destination[i] = 3 * Z_MAX_LENGTH;
     feedrate = 1.732 * homing_feedrate[X_AXIS];
-    // feedrate = 0.05*homing_feedrate[X_AXIS];
-  //ここが動いてるかどうか調べる。
-    float seconds = 6000 * destination[X_AXIS] / feedrate / feedrate_multiplier;
-    SERIAL_ECHOPGM("seconds: ");SERIAL_ECHOLN(seconds);
     line_to_destination();
-    // line_to_destination3(feedrate,seconds);
     st_synchronize();
     endstops_hit_on_purpose(); // clear endstop hit flags
 
@@ -2527,12 +2522,17 @@ inline void gcode_G28() {
 
     // SERIAL_ECHOLNPGM("HOMEAXIS_DELTA(Z)");
     // HOMEAXIS_DELTA(Z);
-    SERIAL_ECHOLNPGM("HOMEAXIS(X)");
-    HOMEAXIS(X);
-    SERIAL_ECHOLNPGM("HOMEAXIS(Y)");
-    HOMEAXIS(Y);
-    SERIAL_ECHOLNPGM("HOMEAXIS(Z)");
-    HOMEAXIS(Z);
+    // SERIAL_ECHOLNPGM("HOMEAXIS(X)");
+    // HOMEAXIS(X);
+    // SERIAL_ECHOLNPGM("HOMEAXIS(Y)");
+    // HOMEAXIS(Y);
+    // SERIAL_ECHOLNPGM("HOMEAXIS(Z)");
+    // HOMEAXIS(Z);
+    for (int i = X_AXIS; i <= Z_AXIS; i++) destination[i] = current_position[i] - home_bump_mm(Z_AXIS);
+    line_to_destination();
+    st_synchronize();
+    endstops_hit_on_purpose(); // clear endstop hit flags
+    for (int i = X_AXIS; i <= Z_AXIS; i++) current_position[i] = destination[i];
 
     sync_plan_position_delta2();
 

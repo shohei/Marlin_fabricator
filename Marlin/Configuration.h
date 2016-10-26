@@ -374,16 +374,22 @@ your extruder heater takes 2 minutes to hit the target on heating.
 // const bool Y_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
 // const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
 const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+const bool X_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+const bool Y_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+const bool XX_MAX_ENDSTOP_INVERTING =true; // set to true to invert the logic of the endstop.
+const bool YY_MAX_ENDSTOP_INVERTING =true; // set to true to invert the logic of the endstop.
+const bool ZZ_MAX_ENDSTOP_INVERTING =true; // set to true to invert the logic of the endstop.
 
 // const bool X_MIN_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
 // const bool Y_MIN_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
 // const bool Z_MIN_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
-const bool X_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
-const bool Y_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
-const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
-const bool XX_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
-const bool YY_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
-const bool ZZ_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+// const bool X_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+// const bool Y_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+// const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+// const bool XX_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+// const bool YY_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+// const bool ZZ_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
 
 //#define DISABLE_MAX_ENDSTOPS
 //#define DISABLE_MIN_ENDSTOPS
@@ -653,7 +659,8 @@ const bool ZZ_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic 
  * MOVEMENT SETTINGS
  */
 
-#define HOMING_FEEDRATE {50*60, 50*60, 40*60, 0}  // set the homing speeds (mm/min)
+// #define HOMING_FEEDRATE {50*60, 50*60, 40*60, 0}  // set the homing speeds (mm/min)
+#define HOMING_FEEDRATE {50*60, 50*60, 100*60, 0}  // set the homing speeds (mm/min)
 
 // default settings
 
