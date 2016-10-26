@@ -2036,6 +2036,7 @@ inline void gcode_G28() {
     for (int i = X_AXIS; i <= Z_AXIS; i++) current_position[i] = destination[i];
 
     // take care of back off and rehome now we are all at the top
+
     HOMEAXIS(X);
     HOMEAXIS(Y);
     HOMEAXIS(Z);
