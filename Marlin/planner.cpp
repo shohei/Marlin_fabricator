@@ -2184,18 +2184,18 @@ float junction_deviation = 0.1;
   block->busy = false;
 
   // Number of steps for each axis
-  #ifdef COREXY
-    // corexy planning
-    // these equations follow the form of the dA and dB equations on http://www.corexy.com/theory.html
-    block->steps[A_AXIS] = labs(dx + dy);
-    block->steps[B_AXIS] = labs(dx - dy);
-    block->steps[Z_AXIS] = labs(dz);
-  #elif defined(COREXZ)
-    // corexz planning
-    block->steps[A_AXIS] = labs(dx + dz);
-    block->steps[Y_AXIS] = labs(dy);
-    block->steps[C_AXIS] = labs(dx - dz);
-  #else
+  // #ifdef COREXY
+  //   // corexy planning
+  //   // these equations follow the form of the dA and dB equations on http://www.corexy.com/theory.html
+  //   block->steps[A_AXIS] = labs(dx + dy);
+  //   block->steps[B_AXIS] = labs(dx - dy);
+  //   block->steps[Z_AXIS] = labs(dz);
+  // #elif defined(COREXZ)
+  //   // corexz planning
+  //   block->steps[A_AXIS] = labs(dx + dz);
+  //   block->steps[Y_AXIS] = labs(dy);
+  //   block->steps[C_AXIS] = labs(dx - dz);
+  // #else
     // default non-h-bot planning
     block->steps[X_AXIS] = labs(dx);
     block->steps[Y_AXIS] = labs(dy);
@@ -2203,7 +2203,7 @@ float junction_deviation = 0.1;
     block->steps[XX_AXIS] = labs(dxx);
     block->steps[YY_AXIS] = labs(dyy);
     block->steps[ZZ_AXIS] = labs(dzz);
-  #endif
+  // #endif
 
   block->steps[E_AXIS] = labs(de);
   // block->steps[E_AXIS] *= volumetric_multiplier[extruder];
@@ -2211,6 +2211,7 @@ float junction_deviation = 0.1;
   block->steps[E_AXIS] /= 100;
   // block->step_event_count = max(block->steps[X_AXIS], max(block->steps[Y_AXIS], max(block->steps[Z_AXIS], block->steps[E_AXIS])));
   block->step_event_count = max(block->steps[X_AXIS], max(block->steps[Y_AXIS], max(block->steps[Z_AXIS], max(block->steps[XX_AXIS], max(block->steps[YY_AXIS], max(block->steps[ZZ_AXIS], block->steps[E_AXIS]))))));
+  // SERIAL_ECHOPGM("block->step_event_count: "); SERIAL_ECHOLN(block->step_event_count);
 
   // Bail if this is a zero-length block
   if (block->step_event_count <= dropsegments) return;
