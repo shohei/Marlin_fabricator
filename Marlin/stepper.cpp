@@ -95,7 +95,7 @@ static bool check_endstops = true;
 
 volatile long count_position[NUM_AXIS] = { 0 };
 // volatile long count_position[6] = { 0 };
-volatile signed char count_direction[NUM_AXIS] = { 1, 1, 1, 1, 1,1,1 };
+volatile signed char count_direction[NUM_AXIS] = { 1, 1, 1, 1, 1, 1, 1 };
 // volatile signed char count_direction[6] = { 1, 1, 1, 1 , 1 ,1};
 
 
@@ -192,16 +192,16 @@ void checkHitEndstops() {
       LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "Z");
     }
     if (endstop_hit_bits & BIT(XX_MIN)) {
-      SERIAL_ECHOPAIR(" X:", (float)endstops_trigsteps[X_AXIS] / axis_steps_per_unit[X_AXIS]);
-      LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "X");
+      SERIAL_ECHOPAIR(" XX:", (float)endstops_trigsteps[XX_AXIS] / axis_steps_per_unit[XX_AXIS]);
+      LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "XX");
     }
     if (endstop_hit_bits & BIT(YY_MIN)) {
-      SERIAL_ECHOPAIR(" Y:", (float)endstops_trigsteps[Y_AXIS] / axis_steps_per_unit[Y_AXIS]);
-      LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "Y");
+      SERIAL_ECHOPAIR(" YY:", (float)endstops_trigsteps[YY_AXIS] / axis_steps_per_unit[YY_AXIS]);
+      LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "YY");
     }
     if (endstop_hit_bits & BIT(ZZ_MIN)) {
-      SERIAL_ECHOPAIR(" Z:", (float)endstops_trigsteps[Z_AXIS] / axis_steps_per_unit[Z_AXIS]);
-      LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "Z");
+      SERIAL_ECHOPAIR(" ZZ:", (float)endstops_trigsteps[ZZ_AXIS] / axis_steps_per_unit[ZZ_AXIS]);
+      LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "ZZ");
     }
     #ifdef Z_PROBE_ENDSTOP
     if (endstop_hit_bits & BIT(Z_PROBE)) {
@@ -262,11 +262,9 @@ inline void update_endstops() {
   //     step_events_completed = current_block->step_event_count; \
   //   }
 
-
   #define UPDATE_ENDSTOP(AXIS,MAX) \
     SET_ENDSTOP_BIT(AXIS, MAX); \
     if (TEST_ENDSTOP(_ENDSTOP(AXIS, MAX))  && (current_block->steps[_AXIS(AXIS)] > 0)) { \
-      SERIAL_ECHOPGM("endstop hit "); SERIAL_ECHOLN(_AXIS(AXIS)); \
       endstops_trigsteps[_AXIS(AXIS)] = count_position[_AXIS(AXIS)]; \
       _ENDSTOP_HIT(AXIS); \
       step_events_completed = current_block->step_event_count; \
@@ -304,14 +302,57 @@ inline void update_endstops() {
             #if HAS_X_MAX
         //comment out
               UPDATE_ENDSTOP(X, MAX);
-              UPDATE_ENDSTOP(XX, MAX);
             #endif
           }
       }
   // #if defined(COREXY) || defined(COREXZ)
   //   }
   // #endif
-
+      if (TEST(out_bits, XX_AXIS))  
+      { // -direction
+          {
+            #if HAS_XX_MIN
+              // UPDATE_ENDSTOP(XX, MIN);
+            #endif
+          }
+      }
+      else { // +direction
+          {
+            #if HAS_XX_MAX
+              UPDATE_ENDSTOP(XX, MAX);
+            #endif
+          }
+      }
+      if (TEST(out_bits, YY_AXIS))  
+      { // -direction
+          {
+            #if HAS_YY_MIN
+              // UPDATE_ENDSTOP(YY, MIN);
+            #endif
+          }
+      }
+      else { // +direction
+          {
+            #if HAS_YY_MAX
+              UPDATE_ENDSTOP(YY, MAX);
+            #endif
+          }
+      }
+      if (TEST(out_bits, ZZ_AXIS))  
+      { // -direction
+          {
+            #if HAS_ZZ_MIN
+              // UPDATE_ENDSTOP(ZZ, MIN);
+            #endif
+          }
+      }
+      else { // +direction
+          {
+            #if HAS_ZZ_MAX
+              UPDATE_ENDSTOP(ZZ, MAX);
+            #endif
+          }
+      }
   // #ifdef COREXY
   //   // Head direction in -Y axis for CoreXY bots.
   //   // If DeltaX == DeltaY, the movement is only in X axis
@@ -329,7 +370,6 @@ inline void update_endstops() {
         #if HAS_Y_MAX
         //comment out
           UPDATE_ENDSTOP(Y, MAX);
-          UPDATE_ENDSTOP(YY, MAX);
         #endif
       }
   // #if defined(COREXY)
@@ -403,7 +443,6 @@ inline void update_endstops() {
 
         //comment out
             UPDATE_ENDSTOP(Z, MAX);
-            UPDATE_ENDSTOP(ZZ, MAX);
 
           // #endif // !Z_DUAL_ENDSTOPS
         #endif // Z_MAX_PIN
@@ -479,35 +518,56 @@ void set_stepper_direction() {
 
   if (TEST(out_bits, X_AXIS)) { // A_AXIS
     X_APPLY_DIR(INVERT_X_DIR, 0);
-    XX_DIR_WRITE(INVERT_X_DIR);
     count_direction[X_AXIS] = -1;
   }
   else {
     X_APPLY_DIR(!INVERT_X_DIR, 0);
-    XX_DIR_WRITE(!INVERT_X_DIR);
     count_direction[X_AXIS] = 1;
+  }
+
+  if (TEST(out_bits, XX_AXIS)) { // A_AXIS
+    XX_APPLY_DIR(INVERT_XX_DIR, 0);
+    count_direction[XX_AXIS] = -1;
+  }
+  else {
+    XX_APPLY_DIR(!INVERT_XX_DIR, 0);
+    count_direction[XX_AXIS] = 1;
   }
 
   if (TEST(out_bits, Y_AXIS)) { // B_AXIS
     Y_APPLY_DIR(INVERT_Y_DIR, 0);
-    YY_DIR_WRITE(INVERT_Y_DIR);
     count_direction[Y_AXIS] = -1;
   }
   else {
     Y_APPLY_DIR(!INVERT_Y_DIR, 0);
-    YY_DIR_WRITE(!INVERT_Y_DIR);
     count_direction[Y_AXIS] = 1;
+  }
+
+  if (TEST(out_bits, YY_AXIS)) { // B_AXIS
+    YY_APPLY_DIR(INVERT_YY_DIR, 0);
+    count_direction[YY_AXIS] = -1;
+  }
+  else {
+    YY_APPLY_DIR(!INVERT_YY_DIR, 0);
+    count_direction[YY_AXIS] = 1;
   }
   
   if (TEST(out_bits, Z_AXIS)) { // C_AXIS
     Z_APPLY_DIR(INVERT_Z_DIR, 0);
-    ZZ_DIR_WRITE(INVERT_Z_DIR);
     count_direction[Z_AXIS] = -1;
   }
   else {
     Z_APPLY_DIR(!INVERT_Z_DIR, 0);
-    ZZ_DIR_WRITE(!INVERT_Z_DIR);
     count_direction[Z_AXIS] = 1;
+  }
+
+  if (TEST(out_bits, ZZ_AXIS)) { // C_AXIS
+    ZZ_APPLY_DIR(INVERT_ZZ_DIR, 0);
+    count_direction[ZZ_AXIS] = -1;
+  }
+  else {
+    ZZ_APPLY_DIR(!INVERT_ZZ_DIR, 0);
+    count_direction[ZZ_AXIS] = 1;
   }
   
   #ifndef ADVANCE
@@ -598,8 +658,7 @@ HAL_STEP_TIMER_ISR {
       current_block->busy = true;
       trapezoid_generator_reset();
       counter_x = -(current_block->step_event_count >> 1);
-      counter_xx = counter_x;
-      counter_y = counter_z = counter_yy = counter_zz = counter_e = counter_x;
+      counter_xx = counter_y = counter_z = counter_yy = counter_zz = counter_e = counter_x;
       step_events_completed = 0;
 
       #ifdef Z_LATE_ENABLE
@@ -673,12 +732,18 @@ HAL_STEP_TIMER_ISR {
     //     if (step_events_completed >= current_block->step_event_count) break;
     //   }
     // #else
-      STEP_START(y,Y);
       STEP_START(x,X);
+      STEP_START(y,Y);
       STEP_START(z,Z);
-      OUT_WRITE(XX_STEP_PIN,1);
-      OUT_WRITE(YY_STEP_PIN,1);
-      OUT_WRITE(ZZ_STEP_PIN,1);
+      SET_OUTPUT(XX_STEP_PIN);
+      SET_OUTPUT(YY_STEP_PIN);
+      SET_OUTPUT(ZZ_STEP_PIN);
+      STEP_START(xx,XX);
+      STEP_START(yy,YY);
+      STEP_START(zz,ZZ);
+      // OUT_WRITE(XX_STEP_PIN,1);
+      // OUT_WRITE(YY_STEP_PIN,1);
+      // OUT_WRITE(ZZ_STEP_PIN,1);
       // WRITE(XX_STEP_PIN,1);
       // WRITE(YY_STEP_PIN,1);
       // WRITE(ZZ_STEP_PIN,1);
@@ -750,9 +815,15 @@ HAL_STEP_TIMER_ISR {
       STEP_END(x, X);
       STEP_END(y, Y);
       STEP_END(z, Z);
-      OUT_WRITE(XX_STEP_PIN,0);
-      OUT_WRITE(YY_STEP_PIN,0);
-      OUT_WRITE(ZZ_STEP_PIN,0);
+      SET_OUTPUT(XX_STEP_PIN);
+      SET_OUTPUT(YY_STEP_PIN);
+      SET_OUTPUT(ZZ_STEP_PIN);
+      STEP_END(xx, XX);
+      STEP_END(yy, YY);
+      STEP_END(zz, ZZ);
+      // OUT_WRITE(XX_STEP_PIN,0);
+      // OUT_WRITE(YY_STEP_PIN,0);
+      // OUT_WRITE(ZZ_STEP_PIN,0);
       // WRITE(XX_STEP_PIN,0);
       // WRITE(YY_STEP_PIN,0);
       // WRITE(ZZ_STEP_PIN,0);
@@ -1078,7 +1149,6 @@ void st_init() {
   
   set_stepper_direction(); // Init directions to out_bits = 0
 
-
   //Arduion Due don't have DDR registers. Moreover, they are 'parallel input & output' pins.
   //D36,D43,D32
   //PC4, PA20, PD10
@@ -1101,7 +1171,6 @@ void st_init() {
   // } else {
   //   SERIAL_ECHOLNPGM("ZZ is input");
   // }
-
 
 }
 

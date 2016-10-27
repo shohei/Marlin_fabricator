@@ -1575,9 +1575,7 @@ float junction_deviation = 0.1;
 
   // If the buffer is full: good! That means we are well ahead of the robot. 
   // Rest here until there is room in the buffer.
-  SERIAL_ECHOLNPGM("check if we are ahead or not");
   while (block_buffer_tail == next_buffer_head) idle();
-  SERIAL_ECHOLNPGM("Felt delay? Then, we are ahead of the robot");
 
   #ifdef MESH_BED_LEVELING
     if (mbl.active) z += mbl.get_z(x, y);
@@ -1852,7 +1850,8 @@ float junction_deviation = 0.1;
       #elif defined(COREXZ)
         square(delta_mm[X_HEAD]) + square(delta_mm[Y_AXIS]) + square(delta_mm[Z_HEAD])
       #else
-        square(delta_mm[X_AXIS]) + square(delta_mm[Y_AXIS]) + square(delta_mm[Z_AXIS])
+        (square(delta_mm[X_AXIS]) + square(delta_mm[Y_AXIS]) + square(delta_mm[Z_AXIS])
+         + square(delta_mm[XX_AXIS]) + square(delta_mm[YY_AXIS]) + square(delta_mm[Z_AXIS]))*0.5
       #endif
     );
   }
@@ -2081,7 +2080,7 @@ float junction_deviation = 0.1;
           dyy = current_speed[YY_AXIS] - previous_speed[YY_AXIS],
           dzz = fabs(csz - previous_speed[ZZ_AXIS]),
           de = fabs(cse - previous_speed[E_AXIS]),
-          jerk = sqrt(dx * dx + dy * dy);
+          jerk = sqrt(dx * dx + dy * dy) + sqrt(dxx*dxx+dyy*dyy); //??????????
 
     //    if ((fabs(previous_speed[X_AXIS]) > 0.0001) || (fabs(previous_speed[Y_AXIS]) > 0.0001)) {
     vmax_junction = block->nominal_speed;
