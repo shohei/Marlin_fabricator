@@ -373,7 +373,7 @@ void plan_init() {
 
     while (block_index != block_buffer_head) {
       block_t *block = &block_buffer[block_index];
-      if (block->steps[X_AXIS] || block->steps[Y_AXIS] || block->steps[Z_AXIS]) {
+      if (block->steps[X_AXIS] || block->steps[Y_AXIS] || block->steps[Z_AXIS] || block->steps[XX_AXIS] || block->steps[YY_AXIS] || block->steps[ZZ_AXIS]) {
         float se = (float)block->steps[E_AXIS] / block->step_event_count * block->nominal_speed; // mm/sec;
         if (se > high) high = se;
       }
@@ -404,11 +404,11 @@ void check_axes_activity() {
   if (blocks_queued()) {
     uint8_t block_index = block_buffer_tail;
     tail_fan_speed = block_buffer[block_index].fan_speed;
-    #ifdef BARICUDA
-      block = &block_buffer[block_index];
-      tail_valve_pressure = block->valve_pressure;
-      tail_e_to_p_pressure = block->e_to_p_pressure;
-    #endif
+    // #ifdef BARICUDA
+    //   block = &block_buffer[block_index];
+    //   tail_valve_pressure = block->valve_pressure;
+    //   tail_e_to_p_pressure = block->e_to_p_pressure;
+    // #endif
     while (block_index != block_buffer_head) {
       block = &block_buffer[block_index];
       for (int i=0; i<NUM_AXIS; i++) if (block->steps[i]) axis_active[i]++;
@@ -418,6 +418,9 @@ void check_axes_activity() {
   if (DISABLE_X && !axis_active[X_AXIS]) disable_x();
   if (DISABLE_Y && !axis_active[Y_AXIS]) disable_y();
   if (DISABLE_Z && !axis_active[Z_AXIS]) disable_z();
+  if (DISABLE_XX && !axis_active[XX_AXIS]) disable_xx();
+  if (DISABLE_YY && !axis_active[YY_AXIS]) disable_yy();
+  if (DISABLE_ZZ && !axis_active[ZZ_AXIS]) disable_zz();
   // if (DISABLE_E && !axis_active[E_AXIS]) {
   //   disable_e0();
   //   disable_e1();
@@ -498,11 +501,17 @@ float junction_deviation = 0.1;
   target[X_AXIS] = lround(x * axis_steps_per_unit[X_AXIS]);
   target[Y_AXIS] = lround(y * axis_steps_per_unit[Y_AXIS]);
   target[Z_AXIS] = lround(z * axis_steps_per_unit[Z_AXIS]);     
+  target[XX_AXIS] = lround(x * axis_steps_per_unit[XX_AXIS]);
+  target[YY_AXIS] = lround(y * axis_steps_per_unit[YY_AXIS]);
+  target[ZZ_AXIS] = lround(z * axis_steps_per_unit[ZZ_AXIS]);     
   target[E_AXIS] = lround(e * axis_steps_per_unit[E_AXIS]);
 
   float dx = target[X_AXIS] - position[X_AXIS],
         dy = target[Y_AXIS] - position[Y_AXIS],
-        dz = target[Z_AXIS] - position[Z_AXIS];
+        dz = target[Z_AXIS] - position[Z_AXIS],
+        dxx = target[X_AXIS] - position[X_AXIS],
+        dyy = target[Y_AXIS] - position[Y_AXIS],
+        dzz = target[Z_AXIS] - position[Z_AXIS];
 
   // DRYRUN ignores all temperature constraints and assures that the extruder is instantly satisfied
   if (marlin_debug_flags & DEBUG_DRYRUN)
@@ -536,23 +545,26 @@ float junction_deviation = 0.1;
   block->busy = false;
 
   // Number of steps for each axis
-  #ifdef COREXY
-    // corexy planning
-    // these equations follow the form of the dA and dB equations on http://www.corexy.com/theory.html
-    block->steps[A_AXIS] = labs(dx + dy);
-    block->steps[B_AXIS] = labs(dx - dy);
-    block->steps[Z_AXIS] = labs(dz);
-  #elif defined(COREXZ)
-    // corexz planning
-    block->steps[A_AXIS] = labs(dx + dz);
-    block->steps[Y_AXIS] = labs(dy);
-    block->steps[C_AXIS] = labs(dx - dz);
-  #else
+  // #ifdef COREXY
+  //   // corexy planning
+  //   // these equations follow the form of the dA and dB equations on http://www.corexy.com/theory.html
+  //   block->steps[A_AXIS] = labs(dx + dy);
+  //   block->steps[B_AXIS] = labs(dx - dy);
+  //   block->steps[Z_AXIS] = labs(dz);
+  // #elif defined(COREXZ)
+  //   // corexz planning
+  //   block->steps[A_AXIS] = labs(dx + dz);
+  //   block->steps[Y_AXIS] = labs(dy);
+  //   block->steps[C_AXIS] = labs(dx - dz);
+  // #else
     // default non-h-bot planning
     block->steps[X_AXIS] = labs(dx);
     block->steps[Y_AXIS] = labs(dy);
     block->steps[Z_AXIS] = labs(dz);
-  #endif
+    block->steps[XX_AXIS] = labs(dx);
+    block->steps[YY_AXIS] = labs(dy);
+    block->steps[ZZ_AXIS] = labs(dz);
+  // #endif
 
   block->steps[E_AXIS] = labs(de);
   // block->steps[E_AXIS] *= volumetric_multiplier[extruder];
@@ -587,6 +599,9 @@ float junction_deviation = 0.1;
     if (dx < 0) db |= BIT(X_AXIS);
     if (dy < 0) db |= BIT(Y_AXIS); 
     if (dz < 0) db |= BIT(Z_AXIS);
+    if (dx < 0) db |= BIT(XX_AXIS);
+    if (dy < 0) db |= BIT(YY_AXIS); 
+    if (dz < 0) db |= BIT(ZZ_AXIS);
   #endif
   if (de < 0) db |= BIT(E_AXIS); 
   block->direction_bits = db;
@@ -717,10 +732,13 @@ float junction_deviation = 0.1;
     delta_mm[A_AXIS] = (dx + dz) / axis_steps_per_unit[A_AXIS];
     delta_mm[C_AXIS] = (dx - dz) / axis_steps_per_unit[C_AXIS];
   #else
-    float delta_mm[4];
+    float delta_mm[7];
     delta_mm[X_AXIS] = dx / axis_steps_per_unit[X_AXIS];
     delta_mm[Y_AXIS] = dy / axis_steps_per_unit[Y_AXIS];
     delta_mm[Z_AXIS] = dz / axis_steps_per_unit[Z_AXIS];
+    delta_mm[XX_AXIS] = dxx / axis_steps_per_unit[XX_AXIS];
+    delta_mm[YY_AXIS] = dyy / axis_steps_per_unit[YY_AXIS];
+    delta_mm[ZZ_AXIS] = dzz / axis_steps_per_unit[ZZ_AXIS];
   #endif
   // delta_mm[E_AXIS] = (de / axis_steps_per_unit[E_AXIS]) * volumetric_multiplier[extruder] * extruder_multiplier[extruder] / 100.0;
 
@@ -932,6 +950,9 @@ float junction_deviation = 0.1;
     float dx = current_speed[X_AXIS] - previous_speed[X_AXIS],
           dy = current_speed[Y_AXIS] - previous_speed[Y_AXIS],
           dz = fabs(csz - previous_speed[Z_AXIS]),
+          dxx = current_speed[X_AXIS] - previous_speed[X_AXIS],
+          dyy = current_speed[Y_AXIS] - previous_speed[Y_AXIS],
+          dzz = fabs(csz - previous_speed[Z_AXIS]),
           de = fabs(cse - previous_speed[E_AXIS]),
           jerk = sqrt(dx * dx + dy * dy);
 
@@ -940,6 +961,7 @@ float junction_deviation = 0.1;
     //    }
     if (jerk > max_xy_jerk) vmax_junction_factor = max_xy_jerk / jerk;
     if (dz > max_z_jerk) vmax_junction_factor = min(vmax_junction_factor, max_z_jerk / dz);
+    if (dzz > max_z_jerk) vmax_junction_factor = min(vmax_junction_factor, max_z_jerk / dzz);
     if (de > max_e_jerk) vmax_junction_factor = min(vmax_junction_factor, max_e_jerk / de);
 
     vmax_junction = min(previous_nominal_speed, vmax_junction * vmax_junction_factor); // Limit speed to max previous speed
@@ -1553,7 +1575,9 @@ float junction_deviation = 0.1;
 
   // If the buffer is full: good! That means we are well ahead of the robot. 
   // Rest here until there is room in the buffer.
+  SERIAL_ECHOLNPGM("check if we are ahead or not");
   while (block_buffer_tail == next_buffer_head) idle();
+  SERIAL_ECHOLNPGM("Felt delay? Then, we are ahead of the robot");
 
   #ifdef MESH_BED_LEVELING
     if (mbl.active) z += mbl.get_z(x, y);
@@ -1612,18 +1636,18 @@ float junction_deviation = 0.1;
   block->busy = false;
 
   // Number of steps for each axis
-  #ifdef COREXY
-    // corexy planning
-    // these equations follow the form of the dA and dB equations on http://www.corexy.com/theory.html
-    block->steps[A_AXIS] = labs(dx + dy);
-    block->steps[B_AXIS] = labs(dx - dy);
-    block->steps[Z_AXIS] = labs(dz);
-  #elif defined(COREXZ)
-    // corexz planning
-    block->steps[A_AXIS] = labs(dx + dz);
-    block->steps[Y_AXIS] = labs(dy);
-    block->steps[C_AXIS] = labs(dx - dz);
-  #else
+  // #ifdef COREXY
+  //   // corexy planning
+  //   // these equations follow the form of the dA and dB equations on http://www.corexy.com/theory.html
+  //   block->steps[A_AXIS] = labs(dx + dy);
+  //   block->steps[B_AXIS] = labs(dx - dy);
+  //   block->steps[Z_AXIS] = labs(dz);
+  // #elif defined(COREXZ)
+  //   // corexz planning
+  //   block->steps[A_AXIS] = labs(dx + dz);
+  //   block->steps[Y_AXIS] = labs(dy);
+  //   block->steps[C_AXIS] = labs(dx - dz);
+  // #else
     // default non-h-bot planning
     block->steps[X_AXIS] = labs(dx);
     block->steps[Y_AXIS] = labs(dy);
@@ -1631,7 +1655,7 @@ float junction_deviation = 0.1;
     block->steps[XX_AXIS] = labs(dxx);
     block->steps[YY_AXIS] = labs(dyy);
     block->steps[ZZ_AXIS] = labs(dzz);
-  #endif
+  // #endif
 
   block->steps[E_AXIS] = labs(de);
   // block->steps[E_AXIS] *= volumetric_multiplier[extruder];
@@ -1651,47 +1675,47 @@ float junction_deviation = 0.1;
 
   // Compute direction bits for this block 
   uint8_t db = 0;
-  #ifdef COREXY
-    if (dx < 0) db |= BIT(X_HEAD); // Save the real Extruder (head) direction in X Axis
-    if (dy < 0) db |= BIT(Y_HEAD); // ...and Y
-    if (dz < 0) db |= BIT(Z_AXIS);
-    if (dx + dy < 0) db |= BIT(A_AXIS); // Motor A direction
-    if (dx - dy < 0) db |= BIT(B_AXIS); // Motor B direction
-  #elif defined(COREXZ)
-    if (dx < 0) db |= BIT(X_HEAD); // Save the real Extruder (head) direction in X Axis
-    if (dy < 0) db |= BIT(Y_AXIS);
-    if (dz < 0) db |= BIT(Z_HEAD); // ...and Z
-    if (dx + dz < 0) db |= BIT(A_AXIS); // Motor A direction
-    if (dx - dz < 0) db |= BIT(C_AXIS); // Motor B direction
-  #else
+  // #ifdef COREXY
+  //   if (dx < 0) db |= BIT(X_HEAD); // Save the real Extruder (head) direction in X Axis
+  //   if (dy < 0) db |= BIT(Y_HEAD); // ...and Y
+  //   if (dz < 0) db |= BIT(Z_AXIS);
+  //   if (dx + dy < 0) db |= BIT(A_AXIS); // Motor A direction
+  //   if (dx - dy < 0) db |= BIT(B_AXIS); // Motor B direction
+  // #elif defined(COREXZ)
+  //   if (dx < 0) db |= BIT(X_HEAD); // Save the real Extruder (head) direction in X Axis
+  //   if (dy < 0) db |= BIT(Y_AXIS);
+  //   if (dz < 0) db |= BIT(Z_HEAD); // ...and Z
+  //   if (dx + dz < 0) db |= BIT(A_AXIS); // Motor A direction
+  //   if (dx - dz < 0) db |= BIT(C_AXIS); // Motor B direction
+  // #else
     if (dx < 0) db |= BIT(X_AXIS);
     if (dy < 0) db |= BIT(Y_AXIS); 
     if (dz < 0) db |= BIT(Z_AXIS);
-    // if (dx < 0) db |= BIT(XX_AXIS);//??: TODO
-    // if (dy < 0) db |= BIT(YY_AXIS); 
-    // if (dz < 0) db |= BIT(ZZ_AXIS);
-  #endif
+    if (dxx < 0) db |= BIT(XX_AXIS);//??: TODO
+    if (dyy < 0) db |= BIT(YY_AXIS); 
+    if (dzz < 0) db |= BIT(ZZ_AXIS);
+  // #endif
   if (de < 0) db |= BIT(E_AXIS); 
   block->direction_bits = db;
 
   block->active_extruder = extruder;
 
   //enable active axes
-  #ifdef COREXY
-    if (block->steps[A_AXIS] || block->steps[B_AXIS]) {
-      enable_x();
-      enable_y();
-    }
-    #ifndef Z_LATE_ENABLE
-      if (block->steps[Z_AXIS]) enable_z();
-    #endif
-  #elif defined(COREXZ)
-    if (block->steps[A_AXIS] || block->steps[C_AXIS]) {
-      enable_x();
-      enable_z();
-    }
-    if (block->steps[Y_AXIS]) enable_y();
-  #else
+  // #ifdef COREXY
+  //   if (block->steps[A_AXIS] || block->steps[B_AXIS]) {
+  //     enable_x();
+  //     enable_y();
+  //   }
+  //   #ifndef Z_LATE_ENABLE
+  //     if (block->steps[Z_AXIS]) enable_z();
+  //   #endif
+  // #elif defined(COREXZ)
+  //   if (block->steps[A_AXIS] || block->steps[C_AXIS]) {
+  //     enable_x();
+  //     enable_z();
+  //   }
+  //   if (block->steps[Y_AXIS]) enable_y();
+  // #else
     if (block->steps[X_AXIS]) {
       enable_x();
     }
@@ -1712,7 +1736,7 @@ float junction_deviation = 0.1;
         enable_zz();
       }
     #endif
-  #endif
+  // #endif
 
   // Enable extruder(s)
   if (block->steps[E_AXIS]) {
@@ -1818,7 +1842,7 @@ float junction_deviation = 0.1;
   // delta_mm[E_AXIS] = (de / axis_steps_per_unit[E_AXIS]); * volumetric_multiplier[extruder] * extruder_multiplier[extruder] / 100.0;
   delta_mm[E_AXIS] = (de / axis_steps_per_unit[E_AXIS]);// this is dummy and irrelevant
 
-  if (block->steps[X_AXIS] <= dropsegments && block->steps[Y_AXIS] <= dropsegments && block->steps[Z_AXIS] <= dropsegments) {
+  if (block->steps[X_AXIS] <= dropsegments && block->steps[Y_AXIS] <= dropsegments && block->steps[Z_AXIS] <= dropsegments && block->steps[XX_AXIS] <= dropsegments && block->steps[YY_AXIS] <= dropsegments && block->steps[ZZ_AXIS] <= dropsegments) {
     block->millimeters = fabs(delta_mm[E_AXIS]);
   } 
   else {
@@ -1865,24 +1889,24 @@ float junction_deviation = 0.1;
   block->nominal_rate = ceil(block->step_event_count * inverse_second); // (step/sec) Always > 0
   // block->nominal_rate = ceil(block->step_event_count / fraction_time); // (step/sec) Always > 0
 
-  Preference *pref = Preference::getInstance();
-  if(pref->counter%20==0){
-    SERIAL_ECHOPGM("target[X_AXIS]"); SERIAL_ECHOLN(target[X_AXIS]);
-    SERIAL_ECHOPGM("target[XX_AXIS]"); SERIAL_ECHOLN(target[XX_AXIS]);
-    SERIAL_ECHOPGM("position[X_AXIS]"); SERIAL_ECHOLN(position[X_AXIS]);
-    SERIAL_ECHOPGM("position[XX_AXIS]"); SERIAL_ECHOLN(position[XX_AXIS]);
+  // Preference *pref = Preference::getInstance();
+  // if(pref->counter%20==0){
+  //   SERIAL_ECHOPGM("target[X_AXIS]"); SERIAL_ECHOLN(target[X_AXIS]);
+  //   SERIAL_ECHOPGM("target[XX_AXIS]"); SERIAL_ECHOLN(target[XX_AXIS]);
+  //   SERIAL_ECHOPGM("position[X_AXIS]"); SERIAL_ECHOLN(position[X_AXIS]);
+  //   SERIAL_ECHOPGM("position[XX_AXIS]"); SERIAL_ECHOLN(position[XX_AXIS]);
 
-    SERIAL_ECHOPGM("steps[X_AXIS]: "); SERIAL_ECHOLN(block->steps[X_AXIS]);
-    SERIAL_ECHOPGM("steps[Y_AXIS]: "); SERIAL_ECHOLN(block->steps[Y_AXIS]);
-    SERIAL_ECHOPGM("steps[Z_AXIS]: "); SERIAL_ECHOLN(block->steps[Z_AXIS]);
-    SERIAL_ECHOPGM("steps[XX_AXIS]: "); SERIAL_ECHOLN(block->steps[XX_AXIS]);
-    SERIAL_ECHOPGM("steps[YY_AXIS]: "); SERIAL_ECHOLN(block->steps[YY_AXIS]);
-    SERIAL_ECHOPGM("steps[ZZ_AXIS]: "); SERIAL_ECHOLN(block->steps[ZZ_AXIS]);
-    SERIAL_ECHOPGM("steps[E_AXIS]: "); SERIAL_ECHOLN(block->steps[E_AXIS]);
-    SERIAL_ECHOPGM("block->nominal_speed: "); SERIAL_ECHOLN(block->nominal_speed);
-    SERIAL_ECHOPGM("block->nominal_rate: "); SERIAL_ECHOLN(block->nominal_rate);
-  }
-  pref->counter = pref->counter + 1;
+  //   SERIAL_ECHOPGM("steps[X_AXIS]: "); SERIAL_ECHOLN(block->steps[X_AXIS]);
+  //   SERIAL_ECHOPGM("steps[Y_AXIS]: "); SERIAL_ECHOLN(block->steps[Y_AXIS]);
+  //   SERIAL_ECHOPGM("steps[Z_AXIS]: "); SERIAL_ECHOLN(block->steps[Z_AXIS]);
+  //   SERIAL_ECHOPGM("steps[XX_AXIS]: "); SERIAL_ECHOLN(block->steps[XX_AXIS]);
+  //   SERIAL_ECHOPGM("steps[YY_AXIS]: "); SERIAL_ECHOLN(block->steps[YY_AXIS]);
+  //   SERIAL_ECHOPGM("steps[ZZ_AXIS]: "); SERIAL_ECHOLN(block->steps[ZZ_AXIS]);
+  //   SERIAL_ECHOPGM("steps[E_AXIS]: "); SERIAL_ECHOLN(block->steps[E_AXIS]);
+  //   SERIAL_ECHOPGM("block->nominal_speed: "); SERIAL_ECHOLN(block->nominal_speed);
+  //   SERIAL_ECHOPGM("block->nominal_rate: "); SERIAL_ECHOLN(block->nominal_rate);
+  // }
+  // pref->counter = pref->counter + 1;
 
   #ifdef FILAMENT_SENSOR
     //FMM update ring buffer used for delay with filament measurements
@@ -1920,43 +1944,43 @@ float junction_deviation = 0.1;
   }
 
   // Max segement time in us.
-  #ifdef XY_FREQUENCY_LIMIT
-    #define MAX_FREQ_TIME (1000000.0 / XY_FREQUENCY_LIMIT)
+  // #ifdef XY_FREQUENCY_LIMIT
+  //   #define MAX_FREQ_TIME (1000000.0 / XY_FREQUENCY_LIMIT)
 
-    // Check and limit the xy direction change frequency
-    unsigned char direction_change = block->direction_bits ^ old_direction_bits;
-    old_direction_bits = block->direction_bits;
-    segment_time = lround((float)segment_time / speed_factor);
+  //   // Check and limit the xy direction change frequency
+  //   unsigned char direction_change = block->direction_bits ^ old_direction_bits;
+  //   old_direction_bits = block->direction_bits;
+  //   segment_time = lround((float)segment_time / speed_factor);
   
-    long xs0 = axis_segment_time[X_AXIS][0],
-         xs1 = axis_segment_time[X_AXIS][1],
-         xs2 = axis_segment_time[X_AXIS][2],
-         ys0 = axis_segment_time[Y_AXIS][0],
-         ys1 = axis_segment_time[Y_AXIS][1],
-         ys2 = axis_segment_time[Y_AXIS][2];
+  //   long xs0 = axis_segment_time[X_AXIS][0],
+  //        xs1 = axis_segment_time[X_AXIS][1],
+  //        xs2 = axis_segment_time[X_AXIS][2],
+  //        ys0 = axis_segment_time[Y_AXIS][0],
+  //        ys1 = axis_segment_time[Y_AXIS][1],
+  //        ys2 = axis_segment_time[Y_AXIS][2];
 
-    if ((direction_change & BIT(X_AXIS)) != 0) {
-      xs2 = axis_segment_time[X_AXIS][2] = xs1;
-      xs1 = axis_segment_time[X_AXIS][1] = xs0;
-      xs0 = 0;
-    }
-    xs0 = axis_segment_time[X_AXIS][0] = xs0 + segment_time;
+  //   if ((direction_change & BIT(X_AXIS)) != 0) {
+  //     xs2 = axis_segment_time[X_AXIS][2] = xs1;
+  //     xs1 = axis_segment_time[X_AXIS][1] = xs0;
+  //     xs0 = 0;
+  //   }
+  //   xs0 = axis_segment_time[X_AXIS][0] = xs0 + segment_time;
 
-    if ((direction_change & BIT(Y_AXIS)) != 0) {
-      ys2 = axis_segment_time[Y_AXIS][2] = axis_segment_time[Y_AXIS][1];
-      ys1 = axis_segment_time[Y_AXIS][1] = axis_segment_time[Y_AXIS][0];
-      ys0 = 0;
-    }
-    ys0 = axis_segment_time[Y_AXIS][0] = ys0 + segment_time;
+  //   if ((direction_change & BIT(Y_AXIS)) != 0) {
+  //     ys2 = axis_segment_time[Y_AXIS][2] = axis_segment_time[Y_AXIS][1];
+  //     ys1 = axis_segment_time[Y_AXIS][1] = axis_segment_time[Y_AXIS][0];
+  //     ys0 = 0;
+  //   }
+  //   ys0 = axis_segment_time[Y_AXIS][0] = ys0 + segment_time;
 
-    long max_x_segment_time = max(xs0, max(xs1, xs2)),
-         max_y_segment_time = max(ys0, max(ys1, ys2)),
-         min_xy_segment_time = min(max_x_segment_time, max_y_segment_time);
-    if (min_xy_segment_time < MAX_FREQ_TIME) {
-      float low_sf = speed_factor * min_xy_segment_time / MAX_FREQ_TIME;
-      speed_factor = min(speed_factor, low_sf);
-    }
-  #endif // XY_FREQUENCY_LIMIT
+  //   long max_x_segment_time = max(xs0, max(xs1, xs2)),
+  //        max_y_segment_time = max(ys0, max(ys1, ys2)),
+  //        min_xy_segment_time = min(max_x_segment_time, max_y_segment_time);
+  //   if (min_xy_segment_time < MAX_FREQ_TIME) {
+  //     float low_sf = speed_factor * min_xy_segment_time / MAX_FREQ_TIME;
+  //     speed_factor = min(speed_factor, low_sf);
+  //   }
+  // #endif // XY_FREQUENCY_LIMIT
 
   // Correct the speed  
   if (speed_factor < 1.0) {
@@ -1967,8 +1991,8 @@ float junction_deviation = 0.1;
 
   // Compute and limit the acceleration rate for the trapezoid generator.  
   float steps_per_mm = block->step_event_count / block->millimeters;
-  long bsx = block->steps[X_AXIS], bsy = block->steps[Y_AXIS], bsz = block->steps[Z_AXIS], bse = block->steps[E_AXIS];
-  if (bsx == 0 && bsy == 0 && bsz == 0) {
+  long bsx = block->steps[X_AXIS], bsy = block->steps[Y_AXIS], bsz = block->steps[Z_AXIS], bse = block->steps[E_AXIS], bsxx = block->steps[XX_AXIS], bsyy = block->steps[YY_AXIS], bszz = block->steps[ZZ_AXIS];
+  if (bsx == 0 && bsy == 0 && bsz == 0 && bsxx == 0 && bsyy == 0 && bszz == 0) {
     block->acceleration_st = ceil(retract_acceleration * steps_per_mm); // convert to: acceleration steps/sec^2
   }
   else if (bse == 0) {
@@ -1982,10 +2006,16 @@ float junction_deviation = 0.1;
                 xsteps = axis_steps_per_sqr_second[X_AXIS],
                 ysteps = axis_steps_per_sqr_second[Y_AXIS],
                 zsteps = axis_steps_per_sqr_second[Z_AXIS],
+                xxsteps = axis_steps_per_sqr_second[XX_AXIS],
+                yysteps = axis_steps_per_sqr_second[YY_AXIS],
+                zzsteps = axis_steps_per_sqr_second[ZZ_AXIS],
                 esteps = axis_steps_per_sqr_second[E_AXIS];
   if ((float)acc_st * bsx / block->step_event_count > xsteps) acc_st = xsteps;
   if ((float)acc_st * bsy / block->step_event_count > ysteps) acc_st = ysteps;
   if ((float)acc_st * bsz / block->step_event_count > zsteps) acc_st = zsteps;
+  if ((float)acc_st * bsxx / block->step_event_count > xxsteps) acc_st = xxsteps;
+  if ((float)acc_st * bsyy / block->step_event_count > yysteps) acc_st = yysteps;
+  if ((float)acc_st * bszz / block->step_event_count > zzsteps) acc_st = zzsteps;
   if ((float)acc_st * bse / block->step_event_count > esteps) acc_st = esteps;
  
   block->acceleration_st = acc_st;
@@ -2047,6 +2077,9 @@ float junction_deviation = 0.1;
     float dx = current_speed[X_AXIS] - previous_speed[X_AXIS],
           dy = current_speed[Y_AXIS] - previous_speed[Y_AXIS],
           dz = fabs(csz - previous_speed[Z_AXIS]),
+          dxx = current_speed[XX_AXIS] - previous_speed[XX_AXIS],
+          dyy = current_speed[YY_AXIS] - previous_speed[YY_AXIS],
+          dzz = fabs(csz - previous_speed[ZZ_AXIS]),
           de = fabs(cse - previous_speed[E_AXIS]),
           jerk = sqrt(dx * dx + dy * dy);
 
@@ -2055,6 +2088,7 @@ float junction_deviation = 0.1;
     //    }
     if (jerk > max_xy_jerk) vmax_junction_factor = max_xy_jerk / jerk;
     if (dz > max_z_jerk) vmax_junction_factor = min(vmax_junction_factor, max_z_jerk / dz);
+    if (dzz > max_z_jerk) vmax_junction_factor = min(vmax_junction_factor, max_z_jerk / dzz);
     if (de > max_e_jerk) vmax_junction_factor = min(vmax_junction_factor, max_e_jerk / de);
 
     vmax_junction = min(previous_nominal_speed, vmax_junction * vmax_junction_factor); // Limit speed to max previous speed
@@ -2080,26 +2114,26 @@ float junction_deviation = 0.1;
   for (int i = 0; i < NUM_AXIS; i++) previous_speed[i] = current_speed[i];
   previous_nominal_speed = block->nominal_speed;
 
-  #ifdef ADVANCE
-    // Calculate advance rate
-    if (!bse || (!bsx && !bsy && !bsz)) {
-      block->advance_rate = 0;
-      block->advance = 0;
-    }
-    else {
-      long acc_dist = estimate_acceleration_distance(0, block->nominal_rate, block->acceleration_st);
-      float advance = (STEPS_PER_CUBIC_MM_E * EXTRUDER_ADVANCE_K) * (cse * cse * EXTRUSION_AREA * EXTRUSION_AREA) * 256;
-      block->advance = advance;
-      block->advance_rate = acc_dist ? advance / (float)acc_dist : 0;
-    }
-    /*
-      SERIAL_ECHO_START;
-     SERIAL_ECHOPGM("advance :");
-     SERIAL_ECHO(block->advance/256.0);
-     SERIAL_ECHOPGM("advance rate :");
-     SERIAL_ECHOLN(block->advance_rate/256.0);
-     */
-  #endif // ADVANCE
+  // #ifdef ADVANCE
+  //   // Calculate advance rate
+  //   if (!bse || (!bsx && !bsy && !bsz)) {
+  //     block->advance_rate = 0;
+  //     block->advance = 0;
+  //   }
+  //   else {
+  //     long acc_dist = estimate_acceleration_distance(0, block->nominal_rate, block->acceleration_st);
+  //     float advance = (STEPS_PER_CUBIC_MM_E * EXTRUDER_ADVANCE_K) * (cse * cse * EXTRUSION_AREA * EXTRUSION_AREA) * 256;
+  //     block->advance = advance;
+  //     block->advance_rate = acc_dist ? advance / (float)acc_dist : 0;
+  //   }
+  //   /*
+  //     SERIAL_ECHO_START;
+  //    SERIAL_ECHOPGM("advance :");
+  //    SERIAL_ECHO(block->advance/256.0);
+  //    SERIAL_ECHOPGM("advance rate :");
+  //    SERIAL_ECHOLN(block->advance_rate/256.0);
+  //    */
+  // #endif // ADVANCE
 
   calculate_trapezoid_for_block(block, block->entry_speed / block->nominal_speed, safe_speed / block->nominal_speed);
 

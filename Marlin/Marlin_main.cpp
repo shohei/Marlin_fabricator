@@ -239,9 +239,10 @@ bool Running = true;
 uint8_t marlin_debug_flags = DEBUG_INFO|DEBUG_ERRORS;
 
 static float feedrate = 1500.0, saved_feedrate;
-float current_position[4] = { 0.0 };
-// static float destination[NUM_AXIS] = { 0.0 };
-static float destination[4] = { 0.0 };
+// float current_position[4] = { 0.0 };
+float current_position[NUM_AXIS] = { 0.0 };
+static float destination[NUM_AXIS] = { 0.0 };
+// static float destination[4] = { 0.0 };
 // bool axis_known_position[3] = { false };
 bool axis_known_position[6] = { false };
 
@@ -434,6 +435,15 @@ void serial_echopair_P(const char *s_P, long v)          { serialprintPGM(s_P); 
 void serial_echopair_P(const char *s_P, float v)         { serialprintPGM(s_P); SERIAL_ECHO(v); }
 void serial_echopair_P(const char *s_P, double v)        { serialprintPGM(s_P); SERIAL_ECHO(v); }
 void serial_echopair_P(const char *s_P, unsigned long v) { serialprintPGM(s_P); SERIAL_ECHO(v); }
+
+void dumpDestination(){
+    SERIAL_ECHOPGM("destination[X_AXIS]: ");SERIAL_ECHOLN(destination[X_AXIS]);
+    SERIAL_ECHOPGM("destination[Y_AXIS]: ");SERIAL_ECHOLN(destination[Y_AXIS]);
+    SERIAL_ECHOPGM("destination[Z_AXIS]: ");SERIAL_ECHOLN(destination[Z_AXIS]);
+    SERIAL_ECHOPGM("destination[XX_AXIS]: ");SERIAL_ECHOLN(destination[XX_AXIS]);
+    SERIAL_ECHOPGM("destination[YY_AXIS]: ");SERIAL_ECHOLN(destination[YY_AXIS]);
+    SERIAL_ECHOPGM("destination[ZZ_AXIS]: ");SERIAL_ECHOLN(destination[ZZ_AXIS]);
+}
 
 #ifdef PREVENT_DANGEROUS_EXTRUDE
   float extrude_min_temp = EXTRUDE_MINTEMP;
@@ -1122,37 +1132,7 @@ static void set_axis_is_at_home(AxisEnum axis) {
   //   else
   // #endif
   {
-    if(axis == X_AXIS){
-      SERIAL_ECHOLNPGM("X_AXIS");
-    }
-    else if(axis == Y_AXIS){
-      SERIAL_ECHOLNPGM("Y_AXIS");
-    }
-    else if(axis == Z_AXIS){
-      SERIAL_ECHOLNPGM("Z_AXIS");
-    }
-    else if(axis == XX_AXIS){
-      SERIAL_ECHOLNPGM("XX_AXIS");
-    }
-    else if(axis == YY_AXIS){
-      SERIAL_ECHOLNPGM("YY_AXIS");
-    }
-    else if(axis == ZZ_AXIS){
-      SERIAL_ECHOLNPGM("ZZ_AXIS");
-    }
-    SERIAL_ECHOPGM("base_home_pos(axis): ");SERIAL_ECHOLN(base_home_pos(axis));
-    SERIAL_ECHOPGM("home_offset[axis]: ");SERIAL_ECHOLN(home_offset[axis]);
-
     current_position[axis] = base_home_pos(axis) + home_offset[axis];
-    // if(axis == X_AXIS){
-    //   current_position[XX_AXIS] = base_home_pos(axis) + home_offset[axis];
-    // }
-    // if(axis == Y_AXIS){
-    //   current_position[YY_AXIS] = base_home_pos(axis) + home_offset[axis];
-    // }
-    // if(axis == Z_AXIS){
-    //   current_position[ZZ_AXIS] = base_home_pos(axis) + home_offset[axis];
-    // }
 
     min_pos[axis] = base_min_pos(axis) + home_offset[axis];
     max_pos[axis] = base_max_pos(axis) + home_offset[axis];
@@ -1168,13 +1148,17 @@ static void set_axis_is_at_home(AxisEnum axis) {
  */
 inline void set_homing_bump_feedrate(AxisEnum axis) {
   const int homing_bump_divisor[] = HOMING_BUMP_DIVISOR;
+  int idNum = sizeof(homing_bump_divisor)/sizeof(homing_bump_divisor[0]);
+  SERIAL_ECHOPGM("idNum: ");SERIAL_ECHOLN(idNum);
   int hbd = homing_bump_divisor[axis];
+  SERIAL_ECHOPGM("hbd: ");SERIAL_ECHOLN(hbd);
   if (hbd < 1) {
     hbd = 10;
     SERIAL_ECHO_START;
     SERIAL_ECHOLNPGM("Warning: Homing Bump Divisor < 1");
   }
   feedrate = homing_feedrate[axis] / hbd;
+  SERIAL_ECHOPGM("feedrate: ");SERIAL_ECHOLN(feedrate);
 }
 inline void line_to_current_position() {
   plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], feedrate/60, active_extruder);
@@ -1187,6 +1171,12 @@ inline void line_to_destination(float mm_m) {
 }
 inline void line_to_destination() {
   line_to_destination(feedrate);
+}
+inline void line_to_destination_6DOF(float mm_m, float fraction_time) {
+  plan_buffer_line3(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[XX_AXIS], destination[YY_AXIS], destination[ZZ_AXIS], destination[E_AXIS], feedrate/60*feedrate_multiplier/100.0, active_extruder, fraction_time);
+}
+inline void line_to_destination_6DOF(float fraction_time) {
+  line_to_destination_6DOF(feedrate, fraction_time);
 }
 // inline void line_to_destination4(float mm_m) {
 //   plan_buffer_line4(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[XX_AXIS], destination[YY_AXIS], destination[ZZ_AXIS], destination[E_AXIS], mm_m/60, active_extruder);
@@ -1203,9 +1193,9 @@ inline void line_to_destination() {
 inline void sync_plan_position() {
   plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
 }
-// inline void sync_plan_position2() {
-//   plan_set_position2(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[XX_AXIS], current_position[YY_AXIS], current_position[ZZ_AXIS], current_position[E_AXIS]);
-// }
+inline void sync_plan_position2() {
+  plan_set_position2(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[XX_AXIS], current_position[YY_AXIS], current_position[ZZ_AXIS], current_position[E_AXIS]);
+}
 #if defined(DELTA) || defined(SCARA)
   inline void sync_plan_position_delta() {
     calculate_delta(current_position);
@@ -1734,8 +1724,8 @@ inline void sync_plan_position() {
   #define HOMEAXIS_DO(LETTER) \
     ((LETTER##_MAX_PIN > -1 && LETTER##_HOME_DIR==1))
 
-    if (axis == X_AXIS ? HOMEAXIS_DO(X) : axis == Y_AXIS ? HOMEAXIS_DO(Y) : axis == Z_AXIS ? HOMEAXIS_DO(Z) : 0) {
-  // if (axis == X_AXIS ? HOMEAXIS_DO(X) : axis == Y_AXIS ? HOMEAXIS_DO(Y) : axis == Z_AXIS ? HOMEAXIS_DO(Z) : axis == XX_AXIS ? HOMEAXIS_DO(XX) : axis == YY_AXIS ? HOMEAXIS_DO(YY) : axis == ZZ_AXIS ? HOMEAXIS_DO(ZZ) : 0) {
+    // if (axis == X_AXIS ? HOMEAXIS_DO(X) : axis == Y_AXIS ? HOMEAXIS_DO(Y) : axis == Z_AXIS ? HOMEAXIS_DO(Z) : 0) {
+  if (axis == X_AXIS ? HOMEAXIS_DO(X) : axis == Y_AXIS ? HOMEAXIS_DO(Y) : axis == Z_AXIS ? HOMEAXIS_DO(Z) : axis == XX_AXIS ? HOMEAXIS_DO(XX) : axis == YY_AXIS ? HOMEAXIS_DO(YY) : axis == ZZ_AXIS ? HOMEAXIS_DO(ZZ) : 0) {
 
       int axis_home_dir =
       // #ifdef DUAL_X_CARRIAGE
@@ -1745,16 +1735,7 @@ inline void sync_plan_position() {
 
     // Set the axis position as setup for the move
       current_position[axis] = 0;
-      // if(axis==X_AXIS){
-      //   current_position[XX_AXIS] = 0;
-      // }
-      // if(axis==Y_AXIS){
-      //   current_position[YY_AXIS] = 0;
-      // }
-      // if(axis==Z_AXIS){
-      //   current_position[ZZ_AXIS] = 0;
-      // }
-      sync_plan_position();
+      sync_plan_position2();
 
     #ifdef Z_PROBE_SLED
       // Get Probe
@@ -1786,97 +1767,51 @@ inline void sync_plan_position() {
     // #endif
 
     // Move towards the endstop until an endstop is triggered
-    destination[axis] = 1.5 * max_length(Z_AXIS) * axis_home_dir;
-    if(axis==X_AXIS){
-      destination[XX_AXIS] = 1.5 * max_length(Z_AXIS) * axis_home_dir;
-    }
-    if(axis==Y_AXIS){
-      destination[YY_AXIS] = 1.5 * max_length(Z_AXIS) * axis_home_dir;
-    }
-    if(axis==Z_AXIS){
-      destination[ZZ_AXIS] = 1.5 * max_length(Z_AXIS) * axis_home_dir;
-    }
+    setup_for_endstop_move(); 
+
+    destination[axis] = 1.5 * max_length(axis) * axis_home_dir;
     feedrate = homing_feedrate[axis];
+    SERIAL_ECHOLNPGM("line_to_destination 1");
+    //XとXXが違う→意味わからん
+    float fraction_time = destination[axis] / (feedrate / 60.0);
+    SERIAL_ECHOPGM("fraction_time: "); SERIAL_ECHOLN(fraction_time);
+    line_to_destination_6DOF(fraction_time); 
 
-
-SERIAL_ECHOPGM("destination[X_AXIS] "); SERIAL_ECHOLN( destination[X_AXIS]);
-SERIAL_ECHOPGM("destination[Y_AXIS] "); SERIAL_ECHOLN( destination[Y_AXIS]);
-SERIAL_ECHOPGM("destination[Z_AXIS] "); SERIAL_ECHOLN(destination[Z_AXIS]);
-SERIAL_ECHOPGM("destination[XX_AXIS]"); SERIAL_ECHOLN(  destination[XX_AXIS]);
-SERIAL_ECHOPGM("destination[YY_AXIS]"); SERIAL_ECHOLN(  destination[YY_AXIS]);
-SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
-
-    float seconds = 6000 * destination[axis] / homing_feedrate[Z_AXIS] / feedrate_multiplier;
-    SERIAL_ECHOPGM("do homeaxis seconds[sec]: ");SERIAL_ECHOLN(seconds);
-    SERIAL_ECHOLNPGM("GOTO: MAX_HEIGHT * 1.5");
-    line_to_destination(); 
-    // line_to_destination4(feedrate);
+    SERIAL_ECHOLNPGM("line_to_destination 1 done");
     st_synchronize();
+    SERIAL_ECHOLNPGM("st_synchronize done");
 
     // Set the axis position as setup for the move
     current_position[axis] = 0;
-    // if(axis==X_AXIS){
-    //   current_position[XX_AXIS] = 0;
-    // }
-    // if(axis==Y_AXIS){
-    //   current_position[ZZ_AXIS] = 0;
-    // }
-    // if(axis==Z_AXIS){
-    //   current_position[ZZ_AXIS] = 0;
-    // }
-    sync_plan_position();
+    SERIAL_ECHOLNPGM("current_position[axis]=0 done");
+    sync_plan_position2();
+    SERIAL_ECHOLNPGM("sync_plan_position2 done");
 
     enable_endstops(false); // Disable endstops while moving away
+    SERIAL_ECHOLNPGM("endstop made false");
 
     // Move away from the endstop by the axis HOME_BUMP_MM
     destination[axis] = -home_bump_mm(axis) * axis_home_dir;
-    if(axis==X_AXIS){
-      destination[XX_AXIS] = -home_bump_mm(axis) * axis_home_dir;
-    }
-    if(axis==Y_AXIS){
-      destination[YY_AXIS] = -home_bump_mm(axis) * axis_home_dir;
-    }
-    if(axis==Z_AXIS){
-      destination[ZZ_AXIS] = -home_bump_mm(axis) * axis_home_dir;
-    }
-
-    seconds = 6000 * destination[axis] / feedrate / feedrate_multiplier;
-    SERIAL_ECHOLNPGM("GOTO: -HOME_BUMP HEIGHT");
-    line_to_destination();
-    // line_to_destination2();
-    // line_to_destination3(feedrate,seconds);
-    // line_to_destination2();
+    SERIAL_ECHOLNPGM("line_to_destination 2");
+    fraction_time = destination[axis] / (feedrate / 60.0);
+    line_to_destination_6DOF(fraction_time); 
+    SERIAL_ECHOLNPGM("line_to_destination 2 done");
     st_synchronize();
     enable_endstops(true); // Enable endstops for next homing move
+    SERIAL_ECHOLNPGM("endstop made true");
 
     // Slow down the feedrate for the next move
-    set_homing_bump_feedrate(axis);
-    if(axis==X_AXIS){
-      set_homing_bump_feedrate(XX_AXIS);
-    }
-    if(axis==Y_AXIS){
-      set_homing_bump_feedrate(YY_AXIS);
-    }
-    if(axis==Z_AXIS){
-      set_homing_bump_feedrate(ZZ_AXIS);
-    }
+    // set_homing_bump_feedrate(axis);
+    feedrate = homing_feedrate[axis] / 10;
+
+    SERIAL_ECHOLNPGM("set_homing_bump_feedrate done.");
 
     // Move slowly towards the endstop until triggered
     destination[axis] = 2 * home_bump_mm(axis) * axis_home_dir;
-    if(axis==X_AXIS){
-      destination[XX_AXIS] = 2 * home_bump_mm(axis) * axis_home_dir;
-    }
-    if(axis==Y_AXIS){
-      destination[YY_AXIS] = 2 * home_bump_mm(axis) * axis_home_dir;
-    }
-    if(axis==Z_AXIS){
-      destination[ZZ_AXIS] = 2 * home_bump_mm(axis) * axis_home_dir;
-    }
-
-    seconds = 6000 * destination[axis] / feedrate / feedrate_multiplier;
-    SERIAL_ECHOLNPGM("GOTO: 2 * HOME_BUMP with SLOW SPEED");
-    line_to_destination();
-    // line_to_destination2();
+    SERIAL_ECHOLNPGM("line_to_destination 3");
+    fraction_time = destination[axis] / (feedrate / 60.0);
+    line_to_destination_6DOF(fraction_time); 
+    SERIAL_ECHOLNPGM("line_to_destination 3 done");
     st_synchronize();
 
     // #ifdef Z_DUAL_ENDSTOPS
@@ -1908,22 +1843,10 @@ SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
       // retrace by the amount specified in endstop_adj
       if (endstop_adj[axis] * axis_home_dir < 0) {
         enable_endstops(false); // Disable endstops while moving away
-        sync_plan_position();
+        sync_plan_position2();
         destination[axis] = endstop_adj[axis];
-        if(axis==X_AXIS){
-          destination[XX_AXIS] = endstop_adj[axis];
-        }
-        if(axis==Y_AXIS){
-          destination[YY_AXIS] = endstop_adj[axis];
-        }
-        if(axis==Z_AXIS){
-          destination[ZZ_AXIS] = endstop_adj[axis];
-        }
-
-        float seconds = 6000 * destination[axis] / feedrate / feedrate_multiplier;
-        line_to_destination();
-        // line_to_destination2();
-        // line_to_destination();
+        fraction_time = destination[axis] / (feedrate / 60.0);
+        line_to_destination_6DOF(fraction_time); 
         st_synchronize();
         enable_endstops(true); // Enable endstops for next homing move
       }
@@ -1931,41 +1854,14 @@ SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
 
     // Set the axis position to its home position (plus home offsets)
     set_axis_is_at_home(axis);
-        if(axis==X_AXIS){
-          set_axis_is_at_home(XX_AXIS);
-        }
-        if(axis==Y_AXIS){
-          set_axis_is_at_home(YY_AXIS);
-        }
-        if(axis==Z_AXIS){
-          set_axis_is_at_home(ZZ_AXIS);
-        }
 
-    sync_plan_position();
+    sync_plan_position2();
 
     destination[axis] = current_position[axis];
-        // if(axis==X_AXIS){
-        //   destination[XX_AXIS] = current_position[axis];
-        // }
-        // if(axis==Y_AXIS){
-        //   destination[YY_AXIS] = current_position[axis];
-        // }
-        // if(axis==Z_AXIS){
-        //   destination[ZZ_AXIS] = current_position[axis];
-        // }
         
     feedrate = 0.0;
     endstops_hit_on_purpose(); // clear endstop hit flags
     axis_known_position[axis] = true;
-        if(axis==X_AXIS){
-         axis_known_position[XX_AXIS] = true;
-        }
-        if(axis==Y_AXIS){
-         axis_known_position[YY_AXIS] = true;
-        }
-        if(axis==Z_AXIS){
-         axis_known_position[ZZ_AXIS] = true;
-        }
 
     #ifdef Z_PROBE_SLED
     // bring probe back
@@ -1994,285 +1890,6 @@ SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
 
   }
 }
-
-#define HOMEAXIS_DELTA(LETTER) homeaxis_delta(LETTER##_AXIS)
-
-  static void homeaxis_delta(AxisEnum axis) {
-  // #define HOMEAXIS_DO(LETTER) \
-  //   ((LETTER##_MIN_PIN > -1 && LETTER##_HOME_DIR==-1) || (LETTER##_MAX_PIN > -1 && LETTER##_HOME_DIR==1))
-
-  // #define HOMEAXIS_DO_DELTA(LETTER) \
-  //   ((LETTER##_MAX_PIN > -1 && LETTER##_HOME_DIR==1))
-
-    // if (axis == X_AXIS ? HOMEAXIS_DO(X) : axis == Y_AXIS ? HOMEAXIS_DO(Y) : axis == Z_AXIS ? HOMEAXIS_DO(Z) : 0) {
-  // if (axis == X_AXIS ? HOMEAXIS_DO(X) : axis == Y_AXIS ? HOMEAXIS_DO(Y) : axis == Z_AXIS ? HOMEAXIS_DO(Z) : axis == XX_AXIS ? HOMEAXIS_DO(XX) : axis == YY_AXIS ? HOMEAXIS_DO(YY) : axis == ZZ_AXIS ? HOMEAXIS_DO(ZZ) : 0) {
-
-      int axis_home_dir = 1;
-      // #ifdef DUAL_X_CARRIAGE
-      // (axis == X_AXIS) ? x_home_dir(active_extruder) :
-      // #endif
-      // home_dir(axis);
-
-    // Set the axis position as setup for the move
-      for(int i=X_AXIS;i<=Z_AXIS;i++) current_position[axis] = 0;
-      // current_position[axis] = 0;
-      // if(axis==X_AXIS){
-      //   current_position[XX_AXIS] = 0;
-      // }
-      // if(axis==Y_AXIS){
-      //   current_position[YY_AXIS] = 0;
-      // }
-      // if(axis==Z_AXIS){
-      //   current_position[ZZ_AXIS] = 0;
-      // }
-      sync_plan_position();
-
-    // #ifdef Z_PROBE_SLED
-    //   // Get Probe
-    //   if (axis == Z_AXIS) {
-    //     if (axis_home_dir < 0) dock_sled(false);
-    //   }
-    // #endif
-    
-    // #if SERVO_LEVELING && !defined(Z_PROBE_SLED)
-
-    //   // Deploy a probe if there is one, and homing towards the bed
-    //   if (axis == Z_AXIS) {
-    //     if (axis_home_dir < 0) deploy_z_probe();
-    //   }
-
-    // #endif
-
-    // #ifdef SERVO_ENDSTOPS
-    //   if (axis != Z_AXIS) {
-    //     // Engage Servo endstop if enabled
-    //     if (servo_endstops[axis] >= 0) 
-    //       servo[servo_endstops[axis]].move(servo_endstop_angles[axis * 2]);
-    //   }
-    // #endif
-
-    // Set a flag for Z motor locking
-    // #ifdef Z_DUAL_ENDSTOPS
-    //   if (axis == Z_AXIS) In_Homing_Process(true);
-    // #endif
-
-    // Move towards the endstop until an endstop is triggered
-      for(int i=X_AXIS; i<=ZZ_AXIS; i++) destination[axis] = 1.5 * max_length(Z_AXIS) * axis_home_dir;
-    // if(axis==X_AXIS){
-    //   destination[XX_AXIS] = 1.5 * max_length(Z_AXIS) * axis_home_dir;
-    // }
-    // if(axis==Y_AXIS){
-    //   destination[YY_AXIS] = 1.5 * max_length(Z_AXIS) * axis_home_dir;
-    // }
-    // if(axis==Z_AXIS){
-    //   destination[ZZ_AXIS] = 1.5 * max_length(Z_AXIS) * axis_home_dir;
-    // }
-    feedrate = homing_feedrate[axis];
-
-SERIAL_ECHOPGM("destination[X_AXIS] "); SERIAL_ECHOLN( destination[X_AXIS]);
-SERIAL_ECHOPGM("destination[Y_AXIS] "); SERIAL_ECHOLN( destination[Y_AXIS]);
-SERIAL_ECHOPGM("destination[Z_AXIS] "); SERIAL_ECHOLN(destination[Z_AXIS]);
-SERIAL_ECHOPGM("destination[XX_AXIS]"); SERIAL_ECHOLN(  destination[XX_AXIS]);
-SERIAL_ECHOPGM("destination[YY_AXIS]"); SERIAL_ECHOLN(  destination[YY_AXIS]);
-SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
-
-    float seconds = 6000 * destination[axis] / feedrate / feedrate_multiplier;
-    SERIAL_ECHOPGM("seconds[sec]: ");SERIAL_ECHOLN(seconds);
-
-    line_to_destination();
-    st_synchronize();
-
-    // Set the axis position as setup for the move
-      for(int i=0;i<Z_AXIS;i++) current_position[axis] = 0;
-    // if(axis==X_AXIS){
-    //   current_position[XX_AXIS] = 0;
-    // }
-    // if(axis==Y_AXIS){
-    //   current_position[ZZ_AXIS] = 0;
-    // }
-    // if(axis==Z_AXIS){
-    //   current_position[ZZ_AXIS] = 0;
-    // }
-    sync_plan_position();
-
-    enable_endstops(false); // Disable endstops while moving away
-
-    // Move away from the endstop by the axis HOME_BUMP_MM
-      for(int i=X_AXIS; i<=ZZ_AXIS; i++) destination[i] = -home_bump_mm(i) * axis_home_dir;
-    // if(axis==X_AXIS){
-    //   destination[XX_AXIS] = -home_bump_mm(axis) * axis_home_dir;
-    // }
-    // if(axis==Y_AXIS){
-    //   destination[YY_AXIS] = -home_bump_mm(axis) * axis_home_dir;
-    // }
-    // if(axis==Z_AXIS){
-    //   destination[ZZ_AXIS] = -home_bump_mm(axis) * axis_home_dir;
-    // }
-
-    seconds = 6000 * destination[axis] / feedrate / feedrate_multiplier;
-    line_to_destination();
-    // line_to_destination2();
-    st_synchronize();
-    enable_endstops(true); // Enable endstops for next homing move
-
-    // Slow down the feedrate for the next move
-    // for(int i=X_AXIS; i<=ZZ_AXIS; i++) set_homing_bump_feedrate(i);
-      set_homing_bump_feedrate(X_AXIS);
-      set_homing_bump_feedrate(XX_AXIS);
-      set_homing_bump_feedrate(Y_AXIS);
-      set_homing_bump_feedrate(YY_AXIS);
-      set_homing_bump_feedrate(Z_AXIS);
-      set_homing_bump_feedrate(ZZ_AXIS);
-
-    // if(axis==X_AXIS){
-    //   set_homing_bump_feedrate(XX_AXIS);
-    // }
-    // if(axis==Y_AXIS){
-    //   set_homing_bump_feedrate(YY_AXIS);
-    // }
-    // if(axis==Z_AXIS){
-    //   set_homing_bump_feedrate(ZZ_AXIS);
-    // }
-
-    // Move slowly towards the endstop until triggered
-    for(int i=X_AXIS; i<=ZZ_AXIS; i++) destination[i] = 2 * home_bump_mm(i) * axis_home_dir;
-    // if(axis==X_AXIS){
-    //   destination[XX_AXIS] = -home_bump_mm(axis) * axis_home_dir;
-    // }
-    // if(axis==Y_AXIS){
-    //   destination[YY_AXIS] = -home_bump_mm(axis) * axis_home_dir;
-    // }
-    // if(axis==Z_AXIS){
-    //   destination[ZZ_AXIS] = -home_bump_mm(axis) * axis_home_dir;
-    // }
-
-    seconds = 6000 * destination[axis] / feedrate / feedrate_multiplier;
-    line_to_destination();
-    // line_to_destination2();
-    st_synchronize();
-
-    // #ifdef Z_DUAL_ENDSTOPS
-    //   if (axis == Z_AXIS) {
-    //     float adj = fabs(z_endstop_adj);
-    //     bool lockZ1;
-    //     if (axis_home_dir > 0) {
-    //       adj = -adj;
-    //       lockZ1 = (z_endstop_adj > 0);
-    //     }
-    //     else
-    //       lockZ1 = (z_endstop_adj < 0);
-
-    //     if (lockZ1) Lock_z_motor(true); else Lock_z2_motor(true);
-    //     sync_plan_position2();
-
-    //     // Move to the adjusted endstop height
-    //     feedrate = homing_feedrate[axis];
-    //     destination[Z_AXIS] = adj;
-    //     line_to_destination();
-    //     st_synchronize();
-
-    //     if (lockZ1) Lock_z_motor(false); else Lock_z2_motor(false);
-    //     In_Homing_Process(false);
-    //   } // Z_AXIS
-    // #endif
-
-    #ifdef DELTA
-      // retrace by the amount specified in endstop_adj
-      if (endstop_adj[axis] * axis_home_dir < 0) {
-        enable_endstops(false); // Disable endstops while moving away
-        sync_plan_position();
-       for(int i=X_AXIS;i<=ZZ_AXIS;i++) destination[i] = endstop_adj[i];
-        // if(axis==X_AXIS){
-        //   destination[XX_AXIS] = endstop_adj[axis];
-        // }
-        // if(axis==Y_AXIS){
-        //   destination[YY_AXIS] = endstop_adj[axis];
-        // }
-        // if(axis==Z_AXIS){
-        //   destination[ZZ_AXIS] = endstop_adj[axis];
-        // }
-
-        SERIAL_ECHOLNPGM("Is it reaching??");
-        float seconds = 6000 * destination[axis] / feedrate / feedrate_multiplier;
-        line_to_destination();
-        // line_to_destination2();
-        // line_to_destination();
-        st_synchronize();
-        enable_endstops(true); // Enable endstops for next homing move
-      }
-    #endif
-
-    // Set the axis position to its home position (plus home offsets)
-       // for(int i=X_AXIS;i<=ZZ_AXIS;i++) set_axis_is_at_home(i);
-          set_axis_is_at_home(X_AXIS);
-          set_axis_is_at_home(XX_AXIS);
-          set_axis_is_at_home(Y_AXIS);
-          set_axis_is_at_home(YY_AXIS);
-          set_axis_is_at_home(Z_AXIS);
-          set_axis_is_at_home(ZZ_AXIS);
-        // if(axis==X_AXIS){
-        //   set_axis_is_at_home(XX_AXIS);
-        // }
-        // if(axis==Y_AXIS){
-        //   set_axis_is_at_home(YY_AXIS);
-        // }
-        // if(axis==Z_AXIS){
-        //   set_axis_is_at_home(ZZ_AXIS);
-        // }
-
-    sync_plan_position();
-
-
-    for(int i=X_AXIS;i<=Z_AXIS;i++) destination[i] = current_position[i];
-        // if(axis==X_AXIS){
-        //   destination[XX_AXIS] = current_position[axis];
-        // }
-        // if(axis==Y_AXIS){
-        //   destination[YY_AXIS] = current_position[axis];
-        // }
-        // if(axis==Z_AXIS){
-        //   destination[ZZ_AXIS] = current_position[axis];
-        // }
-    feedrate = 0.0;
-    endstops_hit_on_purpose(); // clear endstop hit flags
-    for(int i=X_AXIS;i<=ZZ_AXIS;i++) axis_known_position[i] = true;
-        // if(axis==X_AXIS){
-        //  axis_known_position[XX_AXIS] = true;
-        // }
-        // if(axis==Y_AXIS){
-        //  axis_known_position[YY_AXIS] = true;
-        // }
-        // if(axis==Z_AXIS){
-        //  axis_known_position[ZZ_AXIS] = true;
-        // }
-
-    #ifdef Z_PROBE_SLED
-    // bring probe back
-      if (axis == Z_AXIS) {
-        if (axis_home_dir < 0) dock_sled(true);
-      } 
-    #endif
-
-    #if SERVO_LEVELING && !defined(Z_PROBE_SLED)
-
-      // Deploy a probe if there is one, and homing towards the bed
-      if (axis == Z_AXIS) {
-        if (axis_home_dir < 0) stow_z_probe();
-      }
-      else
-
-    #endif
-
-    {
-      #ifdef SERVO_ENDSTOPS
-        // Retract Servo endstop if enabled
-        if (servo_endstops[axis] >= 0)
-          servo[servo_endstops[axis]].move(servo_endstop_angles[axis * 2 + 1]);
-      #endif
-    }
-
-  // }
-}//end homeaxis delta
 
 #ifdef FWRETRACT
 
@@ -2341,7 +1958,7 @@ SERIAL_ECHOPGM("destination[ZZ_AXIS]"); SERIAL_ECHOLN(  destination[ZZ_AXIS]);
  *  - Set the feedrate, if included
  */
 void gcode_get_destination() {
-  for (int i = 0; i < NUM_AXIS; i++) {
+  for (int i = 0; i < 4; i++) {
     if (code_seen(axis_codes[i]))
       destination[i] = code_value() + (axis_relative_modes[i] || relative_mode ? current_position[i] : 0);
     else
@@ -2496,43 +2113,55 @@ inline void gcode_G28() {
 
   feedrate = 0.0;
 
+  SERIAL_ECHOLNPGM("HOMEAXIS(X)");
+  HOMEAXIS(X);
+  return;
+
   #ifdef DELTA
     // A delta can only safely home all axis at the same time
     // all axis have to home at the same time
 
     // Pretend the current position is 0,0,0
-    for (int i = X_AXIS; i <= Z_AXIS; i++) current_position[i] = 0;
+    for (int i = X_AXIS; i <= ZZ_AXIS; i++) current_position[i] = 0;
     // for (int i = X_AXIS; i <= ZZ_AXIS; i++) current_position[i] = 0;
     // sync_plan_position();
-    sync_plan_position();
+    sync_plan_position2();
 
     // Move all carriages up together until the first endstop is hit.
-    for (int i = X_AXIS; i <= Z_AXIS; i++) destination[i] = 3 * Z_MAX_LENGTH;
+    for (int i = X_AXIS; i <= ZZ_AXIS; i++) destination[i] = 3 * Z_MAX_LENGTH;
     // for (int i = X_AXIS; i <= ZZ_AXIS; i++) destination[i] = 3 * Z_MAX_LENGTH;
     feedrate = 1.732 * homing_feedrate[X_AXIS];
-    line_to_destination();
+    float fraction_time = destination[X_AXIS]/(feedrate/60.0); 
+    line_to_destination_6DOF(fraction_time);
     st_synchronize();
     endstops_hit_on_purpose(); // clear endstop hit flags
 
     // Destination reached
-    for (int i = X_AXIS; i <= Z_AXIS; i++) current_position[i] = destination[i];
+    for (int i = X_AXIS; i <= ZZ_AXIS; i++) current_position[i] = destination[i];
     // for (int i = X_AXIS; i <= ZZ_AXIS; i++) current_position[i] = destination[i];
 
     // take care of back off and rehome now we are all at the top
 
     // SERIAL_ECHOLNPGM("HOMEAXIS_DELTA(Z)");
     // HOMEAXIS_DELTA(Z);
-    // SERIAL_ECHOLNPGM("HOMEAXIS(X)");
-    // HOMEAXIS(X);
-    // SERIAL_ECHOLNPGM("HOMEAXIS(Y)");
-    // HOMEAXIS(Y);
-    // SERIAL_ECHOLNPGM("HOMEAXIS(Z)");
-    // HOMEAXIS(Z);
-    for (int i = X_AXIS; i <= Z_AXIS; i++) destination[i] = current_position[i] - home_bump_mm(Z_AXIS);
-    line_to_destination();
+    SERIAL_ECHOLNPGM("HOMEAXIS(X)");
+    HOMEAXIS(X);
+    SERIAL_ECHOLNPGM("HOMEAXIS(XX)");
+    HOMEAXIS(XX);
+    SERIAL_ECHOLNPGM("HOMEAXIS(Y)");
+    HOMEAXIS(Y);
+    SERIAL_ECHOLNPGM("HOMEAXIS(YY)");
+    HOMEAXIS(YY);
+    SERIAL_ECHOLNPGM("HOMEAXIS(Z)");
+    HOMEAXIS(Z);
+    SERIAL_ECHOLNPGM("HOMEAXIS(ZZ)");
+    HOMEAXIS(ZZ);
+    for (int i = X_AXIS; i <= ZZ_AXIS; i++) destination[i] = current_position[i] - home_bump_mm(Z_AXIS);
+    fraction_time = destination[X_AXIS]/(feedrate/60.0); 
+    line_to_destination_6DOF(fraction_time);
     st_synchronize();
     endstops_hit_on_purpose(); // clear endstop hit flags
-    for (int i = X_AXIS; i <= Z_AXIS; i++) current_position[i] = destination[i];
+    for (int i = X_AXIS; i <= ZZ_AXIS; i++) current_position[i] = destination[i];
 
     sync_plan_position_delta2();
 
@@ -3343,7 +2972,7 @@ inline void gcode_G92() {
     st_synchronize();
 
   bool didXYZ = false;
-  for (int i = 0; i < NUM_AXIS; i++) {
+  for (int i = 0; i < 4; i++) {
     if (code_seen(axis_codes[i])) {
       float v = current_position[i] = code_value();
       if (i == E_AXIS)
@@ -4301,7 +3930,7 @@ inline void gcode_M85() {
  *      (Follows the same syntax as G92)
  */
 inline void gcode_M92() {
-  for(int8_t i=0; i < NUM_AXIS; i++) {
+  for(int8_t i=0; i < 4; i++) {
     if (code_seen(axis_codes[i])) {
       if (i == E_AXIS) {
         float value = code_value();
@@ -4475,7 +4104,7 @@ inline void gcode_M200() {
  * M201: Set max acceleration in units/s^2 for print moves (M201 X1000 Y1000)
  */
 inline void gcode_M201() {
-  for (int8_t i=0; i < NUM_AXIS; i++) {
+  for (int8_t i=0; i < 4; i++) {
     if (code_seen(axis_codes[i])) {
       max_acceleration_units_per_sq_second[i] = code_value();
     }
@@ -4497,7 +4126,7 @@ inline void gcode_M201() {
  * M203: Set maximum feedrate that your machine can sustain (M203 X200 Y200 Z300 E10000) in mm/sec
  */
 inline void gcode_M203() {
-  for (int8_t i=0; i < NUM_AXIS; i++) {
+  for (int8_t i=0; i < 4; i++) {
     if (code_seen(axis_codes[i])) {
       max_feedrate[i] = code_value();
     }
@@ -5351,9 +4980,9 @@ inline void gcode_M503() {
       return;
     }
 
-    float lastpos[NUM_AXIS], fr60 = feedrate / 60;
+    float lastpos[4], fr60 = feedrate / 60;
 
-    for (int i=0; i<NUM_AXIS; i++)
+    for (int i=0; i<4; i++)
       lastpos[i] = destination[i] = current_position[i];
 
     #ifdef DELTA
@@ -5521,7 +5150,7 @@ inline void gcode_M503() {
  */
 inline void gcode_M907() {
   #if HAS_DIGIPOTSS
-    for (int i=0;i<NUM_AXIS;i++)
+    for (int i=0;i<4;i++)
       if (code_seen(axis_codes[i])) digipot_current(i, code_value());
     if (code_seen('B')) digipot_current(4, code_value());
     if (code_seen('S')) for (int i=0; i<=4; i++) digipot_current(i, code_value());
@@ -5537,9 +5166,9 @@ inline void gcode_M907() {
   #endif
   #ifdef DIGIPOT_I2C
     // this one uses actual amps in floating point
-    for (int i=0;i<NUM_AXIS;i++) if(code_seen(axis_codes[i])) digipot_i2c_set_current(i, code_value());
+    for (int i=0;i<4;i++) if(code_seen(axis_codes[i])) digipot_i2c_set_current(i, code_value());
     // for each additional extruder (named B,C,D,E..., channels 4,5,6,7...)
-    for (int i=NUM_AXIS;i<DIGIPOT_I2C_NUM_CHANNELS;i++) if(code_seen('B'+i-NUM_AXIS)) digipot_i2c_set_current(i, code_value());
+    for (int i=4;i<DIGIPOT_I2C_NUM_CHANNELS;i++) if(code_seen('B'+i-4)) digipot_i2c_set_current(i, code_value());
   #endif
 }
 
@@ -5562,7 +5191,7 @@ inline void gcode_M907() {
   // M350 Set microstepping mode. Warning: Steps per unit remains unchanged. S code sets stepping mode for all drivers.
   inline void gcode_M350() {
     if(code_seen('S')) for(int i=0;i<=4;i++) microstep_mode(i,code_value());
-    for(int i=0;i<NUM_AXIS;i++) if(code_seen(axis_codes[i])) microstep_mode(i,(uint8_t)code_value());
+    for(int i=0;i<4;i++) if(code_seen(axis_codes[i])) microstep_mode(i,(uint8_t)code_value());
     if(code_seen('B')) microstep_mode(4,code_value());
     microstep_readings();
   }
@@ -5574,11 +5203,11 @@ inline void gcode_M907() {
   inline void gcode_M351() {
     if (code_seen('S')) switch(code_value_short()) {
       case 1:
-        for(int i=0;i<NUM_AXIS;i++) if (code_seen(axis_codes[i])) microstep_ms(i, code_value(), -1);
+        for(int i=0;i<4;i++) if (code_seen(axis_codes[i])) microstep_ms(i, code_value(), -1);
         if (code_seen('B')) microstep_ms(4, code_value(), -1);
         break;
       case 2:
-        for(int i=0;i<NUM_AXIS;i++) if (code_seen(axis_codes[i])) microstep_ms(i, -1, code_value());
+        for(int i=0;i<4;i++) if (code_seen(axis_codes[i])) microstep_ms(i, -1, code_value());
         if (code_seen('B')) microstep_ms(4, -1, code_value());
         break;
     }
@@ -6401,7 +6030,7 @@ void clamp_to_software_endstops2(float target[6]) {
     */
   }
 
-  void calculate_delta2(float cartesian[3]) {
+  void calculate_delta2(float cartesian[NUM_AXIS]) {
     delta[X_AXIS] = sqrt(delta_diagonal_rod_2
                          - sq(delta_tower1_x-cartesian[X_AXIS])
                          - sq(delta_tower1_y-cartesian[Y_AXIS])
@@ -6573,7 +6202,8 @@ void mesh_plan_buffer_line(float x, float y, float z, const float e, float feed_
 
 #if defined(DELTA) || defined(SCARA)
 
-  inline bool prepare_move_delta(float target[NUM_AXIS]) {
+  // inline bool prepare_move_delta(float target[NUM_AXIS]) {
+  inline bool prepare_move_delta(float target[4]) {
     //target is destination, actually
     float difference[4];
     for (int8_t i=0; i < 3; i++) difference[i] = target[i] - current_position[i];
@@ -6588,15 +6218,12 @@ void mesh_plan_buffer_line(float x, float y, float z, const float e, float feed_
     SERIAL_ECHOPGM(" seconds="); SERIAL_ECHO(seconds);
     // SERIAL_ECHOPGM(" steps="); SERIAL_ECHOLN(steps);
 
-    Preference *pref = Preference::getInstance();
-    SERIAL_ECHOPGM("BEFORE pref->counter"); SERIAL_ECHOLN(pref->counter);
-
     float fraction_time = seconds/steps;
     for (int s = 1; s <= steps; s++) {
 
       float fraction = float(s) / float(steps);
 
-      for (int8_t i = 0; i < NUM_AXIS; i++)
+      for (int8_t i = 0; i < 4; i++)
         target[i] = current_position[i] + difference[i] * fraction;
 
       calculate_delta2(target);
@@ -6605,21 +6232,8 @@ void mesh_plan_buffer_line(float x, float y, float z, const float e, float feed_
         adjust_delta(target);
       #endif
 
-      //SERIAL_ECHOPGM("target[X_AXIS]="); SERIAL_ECHOLN(target[X_AXIS]);
-      //SERIAL_ECHOPGM("target[Y_AXIS]="); SERIAL_ECHOLN(target[Y_AXIS]);
-      //SERIAL_ECHOPGM("target[Z_AXIS]="); SERIAL_ECHOLN(target[Z_AXIS]);
-      // SERIAL_ECHOPGM("delta[X_AXIS]="); SERIAL_ECHOLN(delta[X_AXIS]);
-      // SERIAL_ECHOPGM("delta[Y_AXIS]="); SERIAL_ECHOLN(delta[Y_AXIS]);
-      // SERIAL_ECHOPGM("delta[Z_AXIS]="); SERIAL_ECHOLN(delta[Z_AXIS]);
-      // SERIAL_ECHOPGM("delta[XX_AXIS]="); SERIAL_ECHOLN(delta[XX_AXIS]);
-      // SERIAL_ECHOPGM("delta[YY_AXIS]="); SERIAL_ECHOLN(delta[YY_AXIS]);
-      // SERIAL_ECHOPGM("delta[ZZ_AXIS]="); SERIAL_ECHOLN(delta[ZZ_AXIS]);
-
-      // plan_buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], target[E_AXIS], feedrate/60*feedrate_multiplier/100.0, active_extruder);
-      // plan_buffer_line2(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], target[E_AXIS], feedrate/60*feedrate_multiplier/100.0, active_extruder, fraction_time);
       plan_buffer_line3(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], delta[XX_AXIS], delta[YY_AXIS], delta[ZZ_AXIS], target[E_AXIS], feedrate/60*feedrate_multiplier/100.0, active_extruder, fraction_time);
     }
-    SERIAL_ECHOPGM("AFTER pref->counter"); SERIAL_ECHOLN(pref->counter);
 
     return true;
   }
@@ -6628,7 +6242,7 @@ void mesh_plan_buffer_line(float x, float y, float z, const float e, float feed_
 #endif // DELTA || SCARA
 
 #ifdef SCARA
-  inline bool prepare_move_scara(float target[NUM_AXIS]) { return prepare_move_delta(target); }
+  inline bool prepare_move_scara(float target[4]) { return prepare_move_delta(target); }
 #endif
 
 #ifdef DUAL_X_CARRIAGE
@@ -6732,7 +6346,7 @@ void prepare_move() {
  * options for G2/G3 arc generation. In future these options may be GCode tunable.
  */
 void plan_arc(
-  float target[NUM_AXIS], // Destination position
+  float target[4], // Destination position
   float *offset,          // Center of rotation relative to current_position
   uint8_t clockwise       // Clockwise?
 ) {
@@ -6794,7 +6408,7 @@ void plan_arc(
   float cos_T = 1-0.5*theta_per_segment*theta_per_segment; // Small angle approximation
   float sin_T = theta_per_segment;
   
-  float arc_target[NUM_AXIS];
+  float arc_target[4];
   float sin_Ti;
   float cos_Ti;
   float r_axisi;

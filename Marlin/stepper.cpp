@@ -93,10 +93,10 @@ static volatile char endstop_hit_bits = 0; // use X_MIN, Y_MIN, Z_MIN and Z_PROB
 
 static bool check_endstops = true;
 
-// volatile long count_position[NUM_AXIS] = { 0 };
-volatile long count_position[6] = { 0 };
-// volatile signed char count_direction[NUM_AXIS] = { 1, 1, 1, 1 };
-volatile signed char count_direction[6] = { 1, 1, 1, 1 , 1 ,1};
+volatile long count_position[NUM_AXIS] = { 0 };
+// volatile long count_position[6] = { 0 };
+volatile signed char count_direction[NUM_AXIS] = { 1, 1, 1, 1, 1,1,1 };
+// volatile signed char count_direction[6] = { 1, 1, 1, 1 , 1 ,1};
 
 
 //===========================================================================
@@ -179,18 +179,30 @@ void checkHitEndstops() {
   if (endstop_hit_bits) {
     SERIAL_ECHO_START;
     SERIAL_ECHOPGM(MSG_ENDSTOPS_HIT);
-    // if (endstop_hit_bits & BIT(X_MIN)) {
-    //   SERIAL_ECHOPAIR(" X:", (float)endstops_trigsteps[X_AXIS] / axis_steps_per_unit[X_AXIS]);
-    //   LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "X");
-    // }
-    // if (endstop_hit_bits & BIT(Y_MIN)) {
-    //   SERIAL_ECHOPAIR(" Y:", (float)endstops_trigsteps[Y_AXIS] / axis_steps_per_unit[Y_AXIS]);
-    //   LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "Y");
-    // }
-    // if (endstop_hit_bits & BIT(Z_MIN)) {
-    //   SERIAL_ECHOPAIR(" Z:", (float)endstops_trigsteps[Z_AXIS] / axis_steps_per_unit[Z_AXIS]);
-    //   LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "Z");
-    // }
+    if (endstop_hit_bits & BIT(X_MIN)) {
+      SERIAL_ECHOPAIR(" X:", (float)endstops_trigsteps[X_AXIS] / axis_steps_per_unit[X_AXIS]);
+      LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "X");
+    }
+    if (endstop_hit_bits & BIT(Y_MIN)) {
+      SERIAL_ECHOPAIR(" Y:", (float)endstops_trigsteps[Y_AXIS] / axis_steps_per_unit[Y_AXIS]);
+      LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "Y");
+    }
+    if (endstop_hit_bits & BIT(Z_MIN)) {
+      SERIAL_ECHOPAIR(" Z:", (float)endstops_trigsteps[Z_AXIS] / axis_steps_per_unit[Z_AXIS]);
+      LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "Z");
+    }
+    if (endstop_hit_bits & BIT(XX_MIN)) {
+      SERIAL_ECHOPAIR(" X:", (float)endstops_trigsteps[X_AXIS] / axis_steps_per_unit[X_AXIS]);
+      LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "X");
+    }
+    if (endstop_hit_bits & BIT(YY_MIN)) {
+      SERIAL_ECHOPAIR(" Y:", (float)endstops_trigsteps[Y_AXIS] / axis_steps_per_unit[Y_AXIS]);
+      LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "Y");
+    }
+    if (endstop_hit_bits & BIT(ZZ_MIN)) {
+      SERIAL_ECHOPAIR(" Z:", (float)endstops_trigsteps[Z_AXIS] / axis_steps_per_unit[Z_AXIS]);
+      LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "Z");
+    }
     #ifdef Z_PROBE_ENDSTOP
     if (endstop_hit_bits & BIT(Z_PROBE)) {
       SERIAL_ECHOPAIR(" Z_PROBE:", (float)endstops_trigsteps[Z_AXIS] / axis_steps_per_unit[Z_AXIS]);
@@ -250,15 +262,13 @@ inline void update_endstops() {
   //     step_events_completed = current_block->step_event_count; \
   //   }
 
+
   #define UPDATE_ENDSTOP(AXIS,MAX) \
     SET_ENDSTOP_BIT(AXIS, MAX); \
     if (TEST_ENDSTOP(_ENDSTOP(AXIS, MAX))  && (current_block->steps[_AXIS(AXIS)] > 0)) { \
-      SERIAL_ECHOPGM("hit endstop "); SERIAL_ECHOLN(_AXIS(AXIS)); \
-      SERIAL_ECHOPGM("count_position[axis]"); SERIAL_ECHOLN(count_position[_AXIS(AXIS)] ); \
+      SERIAL_ECHOPGM("endstop hit "); SERIAL_ECHOLN(_AXIS(AXIS)); \
       endstops_trigsteps[_AXIS(AXIS)] = count_position[_AXIS(AXIS)]; \
-      SERIAL_ECHOPGM("endstops_trigsteps[axis]"); SERIAL_ECHOLN(endstops_trigsteps[_AXIS(AXIS)] ); \
       _ENDSTOP_HIT(AXIS); \
-      SERIAL_ECHOPGM("current_block->step_event_count"); SERIAL_ECHOLN(current_block->step_event_count); \
       step_events_completed = current_block->step_event_count; \
     }
   // #ifdef COREXY
@@ -757,6 +767,7 @@ HAL_STEP_TIMER_ISR {
     if (step_events_completed >= current_block->step_event_count) {
       current_block = NULL;
       plan_discard_current_block();
+      SERIAL_ECHOLNPGM("stepper block discarded.");
     }
   } // current_block != NULL
 }
@@ -1297,6 +1308,12 @@ void microstep_init() {
     pinMode(Y_MS2_PIN,OUTPUT);
     pinMode(Z_MS1_PIN,OUTPUT);
     pinMode(Z_MS2_PIN,OUTPUT);
+    pinMode(XX_MS1_PIN,OUTPUT);
+    pinMode(XX_MS2_PIN,OUTPUT);
+    pinMode(YY_MS1_PIN,OUTPUT);
+    pinMode(YY_MS2_PIN,OUTPUT);
+    pinMode(ZZ_MS1_PIN,OUTPUT);
+    pinMode(ZZ_MS2_PIN,OUTPUT);
     pinMode(E0_MS1_PIN,OUTPUT);
     pinMode(E0_MS2_PIN,OUTPUT);
     const uint8_t microstep_modes[] = MICROSTEP_MODES;
