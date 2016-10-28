@@ -189,12 +189,12 @@
 // @section homing
 
 //homing hits the endstop, then retracts by this distance, before it tries to slowly bump again:
-#define X_HOME_BUMP_MM 5
-#define Y_HOME_BUMP_MM 5
+#define X_HOME_BUMP_MM 5 
+#define Y_HOME_BUMP_MM 5 
 #define Z_HOME_BUMP_MM 5 // deltas need the same for all three axis
 #define XX_HOME_BUMP_MM 5
-#define YY_HOME_BUMP_MM 5
-#define ZZ_HOME_BUMP_MM 5 // deltas need the same for all three axis
+#define YY_HOME_BUMP_MM 5 
+#define ZZ_HOME_BUMP_MM 5// deltas need the same for all three axis
 // #define HOMING_BUMP_DIVISOR {10, 10, 20, 10, 10, 20}  // Re-Bump Speed Divisor (Divides the Homing Feedrate)
 #define HOMING_BUMP_DIVISOR {10, 10, 10, 10, 10, 10}  // Re-Bump Speed Divisor (Divides the Homing Feedrate)
 //#define QUICK_HOME  //if this is defined, if both x and y are to be homed, a diagonal move will be performed initially.
@@ -204,7 +204,7 @@
 
 // @section machine
 
-#define AXIS_RELATIVE_MODES {false, false, false, false}
+#define AXIS_RELATIVE_MODES {false, false, false, false, false, false, false}
 
 // @section machine
 
@@ -250,7 +250,7 @@
 #define MINIMUM_PLANNER_SPEED 0.05// (mm/sec)
 
 // Microstep setting (Only functional when stepper driver microstep pins are connected to MCU.
-#define MICROSTEP_MODES {16,16,16,16,16} // [1,2,4,8,16]
+#define MICROSTEP_MODES {16,16,16,16,16,16,16} // [1,2,4,8,16]
 
 // Motor Current setting (Only functional when motor driver current ref pins are connected to a digital trimpot on supported boards)
 #define DIGIPOT_MOTOR_CURRENT {135,135,135,135,135} // Values 0-255 (RAMBO 135 = ~0.75A, 185 = ~1A)

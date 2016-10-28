@@ -46,6 +46,7 @@ block_t *current_block;  // A pointer to the block currently being traced
 
 // Variables used by The Stepper Driver Interrupt
 static unsigned char out_bits = 0;        // The next stepping-bits to be output
+// static uint16_t out_bits = 0;        // The next stepping-bits to be output
 static unsigned int cleaning_buffer_counter;
 
 #ifdef Z_DUAL_ENDSTOPS
@@ -669,9 +670,9 @@ HAL_STEP_TIMER_ISR {
         }
       #endif
 
-      // #ifdef ADVANCE
-      //   e_steps[current_block->active_extruder] = 0;
-      // #endif
+      #ifdef ADVANCE
+        e_steps[current_block->active_extruder] = 0;
+      #endif
     }
     else {
         HAL_timer_stepper_count(HAL_TIMER_RATE / 1000); // 1kHz
@@ -692,7 +693,8 @@ HAL_STEP_TIMER_ISR {
 	  if (_COUNTER(axis) > 0) { \
 		_APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0); \
 		_COUNTER(axis) -= current_block->step_event_count; \
-		count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; }
+		count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)];  \
+    } 
 
 	#define STEP_END(axis, AXIS) _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS),0)
 
@@ -838,7 +840,6 @@ HAL_STEP_TIMER_ISR {
     if (step_events_completed >= current_block->step_event_count) {
       current_block = NULL;
       plan_discard_current_block();
-      SERIAL_ECHOLNPGM("stepper block discarded.");
     }
   } // current_block != NULL
 }
@@ -932,6 +933,8 @@ void st_init() {
   // Initialize Dir Pins
   #if HAS_X_DIR
     X_DIR_INIT;
+  #endif
+  #if HAS_XX_DIR
     XX_DIR_INIT;
   #endif
   #if HAS_X2_DIR
@@ -939,17 +942,21 @@ void st_init() {
   #endif
   #if HAS_Y_DIR
     Y_DIR_INIT;
-    YY_DIR_INIT;
     #if defined(Y_DUAL_STEPPER_DRIVERS) && HAS_Y2_DIR
       Y2_DIR_INIT;
     #endif
   #endif
+  #if HAS_YY_DIR
+    YY_DIR_INIT;
+  #endif
   #if HAS_Z_DIR
     Z_DIR_INIT;
-    ZZ_DIR_INIT;
     #if defined(Z_DUAL_STEPPER_DRIVERS) && HAS_Z2_DIR
       Z2_DIR_INIT;
     #endif
+  #endif
+  #if HAS_ZZ_DIR
+    ZZ_DIR_INIT;
   #endif
   #if HAS_E0_DIR
     E0_DIR_INIT;
@@ -970,7 +977,10 @@ void st_init() {
     X_ENABLE_INIT;
     XX_ENABLE_INIT;
     if (!X_ENABLE_ON) X_ENABLE_WRITE(HIGH);
-    if (!X_ENABLE_ON) XX_ENABLE_WRITE(HIGH);
+  #endif
+  #if HAS_XX_ENABLE
+    XX_ENABLE_INIT;
+    if (!XX_ENABLE_ON) XX_ENABLE_WRITE(HIGH);
   #endif
   #if HAS_X2_ENABLE
     X2_ENABLE_INIT;
@@ -978,25 +988,28 @@ void st_init() {
   #endif
   #if HAS_Y_ENABLE
     Y_ENABLE_INIT;
-    YY_ENABLE_INIT;
     if (!Y_ENABLE_ON) Y_ENABLE_WRITE(HIGH);
-    if (!Y_ENABLE_ON) YY_ENABLE_WRITE(HIGH);
 
   #if defined(Y_DUAL_STEPPER_DRIVERS) && HAS_Y2_ENABLE
     Y2_ENABLE_INIT;
     if (!Y_ENABLE_ON) Y2_ENABLE_WRITE(HIGH);
   #endif
   #endif
+  #if HAS_YY_ENABLE
+    YY_ENABLE_INIT;
+    if (!Y_ENABLE_ON) YY_ENABLE_WRITE(HIGH);
+  #endif
   #if HAS_Z_ENABLE
     Z_ENABLE_INIT;
-    ZZ_ENABLE_INIT;
-    if (!Z_ENABLE_ON) Z_ENABLE_WRITE(HIGH);
     if (!Z_ENABLE_ON) ZZ_ENABLE_WRITE(HIGH);
-
     #if defined(Z_DUAL_STEPPER_DRIVERS) && HAS_Z2_ENABLE
       Z2_ENABLE_INIT;
       if (!Z_ENABLE_ON) Z2_ENABLE_WRITE(HIGH);
     #endif
+  #endif
+  #if HAS_Z_ENABLE
+    ZZ_ENABLE_INIT;
+    if (!Z_ENABLE_ON) ZZ_ENABLE_WRITE(HIGH);
   #endif
   // #if HAS_E0_ENABLE
     // E0_ENABLE_INIT;
@@ -1039,7 +1052,6 @@ void st_init() {
   // #endif
 
   #if HAS_X_MAX
-    SERIAL_ECHOLNPGM("set input X_MAX and XX_MAX pin");
     SET_INPUT(X_MAX_PIN);
     SET_INPUT(XX_MAX_PIN);
     #ifdef ENDSTOPPULLUP_XMAX
@@ -1051,7 +1063,6 @@ void st_init() {
   #if HAS_Y_MAX
     SET_INPUT(Y_MAX_PIN);
     SET_INPUT(YY_MAX_PIN);
-    SERIAL_ECHOLNPGM("set input Y_MAX and YY_MAX pin");
     #ifdef ENDSTOPPULLUP_YMAX
       PULLUP(Y_MAX_PIN,HIGH);
       PULLUP(YY_MAX_PIN,HIGH);
@@ -1059,7 +1070,6 @@ void st_init() {
   #endif
 
   #if HAS_Z_MAX
-    SERIAL_ECHOLNPGM("set input Z_MAX and ZZ_MAX pin");
     SET_INPUT(Z_MAX_PIN);
     SET_INPUT(ZZ_MAX_PIN);
     #ifdef ENDSTOPPULLUP_ZMAX
@@ -1096,6 +1106,8 @@ void st_init() {
   // Initialize Step Pins
   #if HAS_X_STEP
     AXIS_INIT(x, X, X);
+  #endif
+  #if HAS_XX_STEP
     AXIS_INIT(xx, XX, XX);
   #endif
   #if HAS_X2_STEP
@@ -1107,6 +1119,8 @@ void st_init() {
       Y2_STEP_WRITE(INVERT_Y_STEP_PIN);
     #endif
     AXIS_INIT(y, Y, Y);
+  #endif
+  #if HAS_YY_STEP
     AXIS_INIT(yy, YY, YY);
   #endif
   #if HAS_Z_STEP
@@ -1115,6 +1129,8 @@ void st_init() {
       Z2_STEP_WRITE(INVERT_Z_STEP_PIN);
     #endif
     AXIS_INIT(z, Z, Z);
+  #endif
+  #if HAS_ZZ_STEP
     AXIS_INIT(zz, ZZ, ZZ);
   #endif
   // #if HAS_E0_STEP

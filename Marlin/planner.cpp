@@ -2472,24 +2472,6 @@ float junction_deviation = 0.1;
   block->nominal_rate = ceil(block->step_event_count * inverse_second); // (step/sec) Always > 0
   // block->nominal_rate = ceil(block->step_event_count / fraction_time); // (step/sec) Always > 0
 
-  Preference *pref = Preference::getInstance();
-  if(pref->counter%100==0){
-    SERIAL_ECHOPGM("target[X_AXIS]"); SERIAL_ECHOLN(target[X_AXIS]);
-    SERIAL_ECHOPGM("target[XX_AXIS]"); SERIAL_ECHOLN(target[XX_AXIS]);
-    SERIAL_ECHOPGM("position[X_AXIS]"); SERIAL_ECHOLN(position[X_AXIS]);
-    SERIAL_ECHOPGM("position[XX_AXIS]"); SERIAL_ECHOLN(position[XX_AXIS]);
-
-    SERIAL_ECHOPGM("steps[X_AXIS]: "); SERIAL_ECHOLN(block->steps[X_AXIS]);
-    SERIAL_ECHOPGM("steps[Y_AXIS]: "); SERIAL_ECHOLN(block->steps[Y_AXIS]);
-    SERIAL_ECHOPGM("steps[Z_AXIS]: "); SERIAL_ECHOLN(block->steps[Z_AXIS]);
-    SERIAL_ECHOPGM("steps[XX_AXIS]: "); SERIAL_ECHOLN(block->steps[XX_AXIS]);
-    SERIAL_ECHOPGM("steps[YY_AXIS]: "); SERIAL_ECHOLN(block->steps[YY_AXIS]);
-    SERIAL_ECHOPGM("steps[ZZ_AXIS]: "); SERIAL_ECHOLN(block->steps[ZZ_AXIS]);
-    SERIAL_ECHOPGM("steps[E_AXIS]: "); SERIAL_ECHOLN(block->steps[E_AXIS]);
-    SERIAL_ECHOPGM("block->nominal_rate: "); SERIAL_ECHOLN(block->nominal_rate);
-  }
-  pref->counter = pref->counter + 1;
-
   #ifdef FILAMENT_SENSOR
     //FMM update ring buffer used for delay with filament measurements
   

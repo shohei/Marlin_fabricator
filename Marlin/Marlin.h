@@ -114,8 +114,8 @@ void manage_inactivity(bool ignore_stepper_queue=false);
 #elif HAS_X_ENABLE
   #define  enable_x() X_ENABLE_WRITE( X_ENABLE_ON)
   #define disable_x() { X_ENABLE_WRITE(!X_ENABLE_ON); axis_known_position[X_AXIS] = false; }
-  #define  enable_xx() XX_ENABLE_WRITE( X_ENABLE_ON)
-  #define disable_xx() { XX_ENABLE_WRITE(!X_ENABLE_ON); axis_known_position[X_AXIS] = false; }
+  #define  enable_xx() XX_ENABLE_WRITE( XX_ENABLE_ON)
+  #define disable_xx() { XX_ENABLE_WRITE(!XX_ENABLE_ON); axis_known_position[XX_AXIS] = false; }
 #else
   #define enable_x() ;
   #define disable_x() ;
@@ -130,8 +130,8 @@ void manage_inactivity(bool ignore_stepper_queue=false);
   #else
     #define  enable_y() Y_ENABLE_WRITE( Y_ENABLE_ON)
     #define disable_y() { Y_ENABLE_WRITE(!Y_ENABLE_ON); axis_known_position[Y_AXIS] = false; }
-    #define  enable_yy() YY_ENABLE_WRITE( Y_ENABLE_ON)
-    #define disable_yy() { YY_ENABLE_WRITE(!Y_ENABLE_ON); axis_known_position[Y_AXIS] = false; }
+    #define  enable_yy() YY_ENABLE_WRITE( YY_ENABLE_ON)
+    #define disable_yy() { YY_ENABLE_WRITE(!YY_ENABLE_ON); axis_known_position[YY_AXIS] = false; }
   #endif
 #else
   #define enable_y() ;
@@ -147,8 +147,8 @@ void manage_inactivity(bool ignore_stepper_queue=false);
   #else
     #define  enable_z() Z_ENABLE_WRITE( Z_ENABLE_ON)
     #define disable_z() { Z_ENABLE_WRITE(!Z_ENABLE_ON); axis_known_position[Z_AXIS] = false; }
-    #define  enable_zz() ZZ_ENABLE_WRITE( Z_ENABLE_ON)
-    #define disable_zz() { ZZ_ENABLE_WRITE(!Z_ENABLE_ON); axis_known_position[Z_AXIS] = false; }
+    #define  enable_zz() ZZ_ENABLE_WRITE( ZZ_ENABLE_ON)
+    #define disable_zz() { ZZ_ENABLE_WRITE(!ZZ_ENABLE_ON); axis_known_position[ZZ_AXIS] = false; }
   #endif
 #else
   #define enable_z() ;
@@ -247,6 +247,7 @@ void enqueuecommands_P(const char *cmd); //put one or many ASCII commands at the
 
 void prepare_arc_move(char isclockwise);
 void clamp_to_software_endstops(float target[3]);
+void clamp_to_software_endstops2(float target[NUM_AXIS]);
 
 extern millis_t previous_cmd_ms;
 inline void refresh_cmd_timeout() { previous_cmd_ms = millis(); }
@@ -279,7 +280,7 @@ extern bool axis_known_position[6]; // axis[n].is_known
 
 #if defined(DELTA) || defined(SCARA)
   void calculate_delta(float cartesian[3]);
-  void calculate_delta2(float cartesian[3]);
+  void calculate_delta2(float cartesian[NUM_AXIS]);
   #ifdef DELTA
     // extern float delta[3];
     // extern float endstop_adj[3]; // axis[n].endstop_adj
@@ -292,7 +293,8 @@ extern bool axis_known_position[6]; // axis[n].is_known
     #ifdef ENABLE_AUTO_BED_LEVELING
       extern int delta_grid_spacing[2];
       // void adjust_delta(float cartesian[3]);
-      void adjust_delta(float cartesian[6]);
+      // void adjust_delta(float cartesian[6]);
+      void adjust_delta(float cartesian[NUM_AXIS]);
     #endif
   #elif defined(SCARA)
     extern float axis_scaling[3];  // Build size scaling

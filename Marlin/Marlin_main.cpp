@@ -1179,9 +1179,9 @@ inline void line_to_destination() {
 inline void line_to_destination_6DOF(float mm_m, float fraction_time) {
   plan_buffer_line3(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[XX_AXIS], destination[YY_AXIS], destination[ZZ_AXIS], destination[E_AXIS], feedrate/60*feedrate_multiplier/100.0, active_extruder, fraction_time);
 }
-inline void line_to_destination_6DOF(float fraction_time) {
-  line_to_destination_6DOF(feedrate, fraction_time);
-}
+// inline void line_to_destination_6DOF(float fraction_time) {
+//   line_to_destination_6DOF(feedrate, fraction_time);
+// }
 // inline void line_to_destination4(float mm_m) {
 //   plan_buffer_line4(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[XX_AXIS], destination[YY_AXIS], destination[ZZ_AXIS], destination[E_AXIS], mm_m/60, active_extruder);
 // }
@@ -1773,8 +1773,8 @@ inline void sync_plan_position2() {
 
     destination[axis] = 1.5 * max_length(axis) * axis_home_dir;
     feedrate = homing_feedrate[axis];
-    float fraction_time = fraction_time = destination[axis] / (feedrate / 60.0);
-    line_to_destination_6DOF(fraction_time); 
+    float fraction_time = fabs(destination[axis]-current_position[axis]) / (feedrate / 60.0);
+    line_to_destination_6DOF(feedrate,fraction_time); 
     st_synchronize();
 
     // Set the axis position as setup for the move
@@ -1785,8 +1785,8 @@ inline void sync_plan_position2() {
 
     // Move away from the endstop by the axis HOME_BUMP_MM
     destination[axis] = -home_bump_mm(axis) * axis_home_dir;
-    fraction_time = destination[axis] / (feedrate / 60.0);
-    line_to_destination_6DOF(fraction_time); 
+    fraction_time = fabs(destination[axis]-current_position[axis]) / (feedrate / 60.0);
+    line_to_destination_6DOF(feedrate,fraction_time); 
     st_synchronize();
 
     enable_endstops(true); // Enable endstops for next homing move
@@ -1795,11 +1795,10 @@ inline void sync_plan_position2() {
     // set_homing_bump_feedrate(axis);
     feedrate = homing_feedrate[axis] / 10;
 
-
     // Move slowly towards the endstop until triggered
     destination[axis] = 2 * home_bump_mm(axis) * axis_home_dir;
-    fraction_time = destination[axis] / (feedrate / 60.0);
-    line_to_destination_6DOF(fraction_time); 
+    fraction_time = fabs(destination[axis]-current_position[axis]) / (feedrate / 60.0);
+    line_to_destination_6DOF(feedrate,fraction_time); 
     st_synchronize();
 
     // #ifdef Z_DUAL_ENDSTOPS
@@ -1833,8 +1832,8 @@ inline void sync_plan_position2() {
         enable_endstops(false); // Disable endstops while moving away
         sync_plan_position2();
         destination[axis] = endstop_adj[axis];
-        fraction_time = destination[axis] / (feedrate / 60.0);
-        line_to_destination_6DOF(fraction_time); 
+        fraction_time = fabs(destination[axis]-current_position[axis]) / (feedrate / 60.0);
+        line_to_destination_6DOF(feedrate,fraction_time); 
         st_synchronize();
         enable_endstops(true); // Enable endstops for next homing move
       }
@@ -1876,6 +1875,38 @@ inline void sync_plan_position2() {
       #endif
     }
 
+  }
+}
+
+#define DOWNAXIS(LETTER) downaxis(LETTER##_AXIS)
+
+  static void downaxis(AxisEnum axis) {
+  // #define HOMEAXIS_DO(LETTER) \
+  //   ((LETTER##_MIN_PIN > -1 && LETTER##_HOME_DIR==-1) || (LETTER##_MAX_PIN > -1 && LETTER##_HOME_DIR==1))
+
+  #define DOWNAXIS_DO(LETTER) \
+    ((LETTER##_MAX_PIN > -1 && LETTER##_HOME_DIR==1))
+
+    // if (axis == X_AXIS ? HOMEAXIS_DO(X) : axis == Y_AXIS ? HOMEAXIS_DO(Y) : axis == Z_AXIS ? HOMEAXIS_DO(Z) : 0) {
+  if (axis == X_AXIS ? DOWNAXIS_DO(X) : axis == Y_AXIS ? DOWNAXIS_DO(Y) : axis == Z_AXIS ? DOWNAXIS_DO(Z) : axis == XX_AXIS ? DOWNAXIS_DO(XX) : axis == YY_AXIS ? DOWNAXIS_DO(YY) : axis == ZZ_AXIS ? DOWNAXIS_DO(ZZ) : 0) {
+
+      int axis_home_dir = home_dir(axis);
+
+      current_position[axis] = 0;
+      sync_plan_position2();
+
+    // Move towards the endstop until an endstop is triggered
+
+    destination[axis] = 5 * axis_home_dir;
+    feedrate = homing_feedrate[axis];
+    float fraction_time = fabs(destination[axis]-current_position[axis]) / (feedrate / 60.0);
+    line_to_destination_6DOF(feedrate,fraction_time); 
+    st_synchronize();
+
+    current_position[axis] = 0;
+    sync_plan_position2();
+
+    endstops_hit_on_purpose(); // clear endstop hit flags
   }
 }
 
@@ -1946,7 +1977,7 @@ inline void sync_plan_position2() {
  *  - Set the feedrate, if included
  */
 void gcode_get_destination() {
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < NUM_AXIS; i++) {
     if (code_seen(axis_codes[i]))
       destination[i] = code_value() + (axis_relative_modes[i] || relative_mode ? current_position[i] : 0);
     else
@@ -2115,8 +2146,8 @@ inline void gcode_G28() {
     for (int i = X_AXIS; i <= ZZ_AXIS; i++) destination[i] = 3 * Z_MAX_LENGTH;
     // for (int i = X_AXIS; i <= ZZ_AXIS; i++) destination[i] = 3 * Z_MAX_LENGTH;
     feedrate = 1.732 * homing_feedrate[X_AXIS];
-    float fraction_time = destination[X_AXIS]/(feedrate/60.0); 
-    line_to_destination_6DOF(fraction_time);
+    float fraction_time = fabs(destination[X_AXIS]-current_position[X_AXIS]) / (feedrate / 60.0);
+    line_to_destination_6DOF(feedrate,fraction_time);
     st_synchronize();
     endstops_hit_on_purpose(); // clear endstop hit flags
 
@@ -2128,35 +2159,28 @@ inline void gcode_G28() {
 
     // SERIAL_ECHOLNPGM("HOMEAXIS_DELTA(Z)");
     // HOMEAXIS_DELTA(Z);
-    // SERIAL_ECHOLNPGM("HOMEAXIS_(X)");
-    // HOMEAXIS(X);
-    // SERIAL_ECHOLNPGM("HOMEAXIS_(XX)");
-    // HOMEAXIS(XX);
-    // SERIAL_ECHOLNPGM("HOMEAXIS_(Y)");
-    // HOMEAXIS(Y);
-    SERIAL_ECHOLNPGM("HOMEAXIS_(YY)");
+    SERIAL_ECHOLNPGM("HOMEAXIS(X)");
+    HOMEAXIS(X);
+    SERIAL_ECHOLNPGM("HOMEAXIS(XX)");
+    HOMEAXIS(XX);
+    SERIAL_ECHOLNPGM("HOMEAXIS(Y)");
+    HOMEAXIS(Y);
+    SERIAL_ECHOLNPGM("HOMEAXIS(YY)");
     HOMEAXIS(YY);
-    SERIAL_ECHOLNPGM("HOMEAXIS_(YY)");
-    HOMEAXIS(YY);
-    SERIAL_ECHOLNPGM("HOMEAXIS_(YY)");
-    HOMEAXIS(YY);
-    SERIAL_ECHOLNPGM("HOMEAXIS_(YY)");
-    HOMEAXIS(YY);
-    SERIAL_ECHOLNPGM("HOMEAXIS_(YY)");
-    HOMEAXIS(YY);
-    SERIAL_ECHOLNPGM("HOMEAXIS_(YY)");
-    HOMEAXIS(YY);
-    // SERIAL_ECHOLNPGM("HOMEAXIS_(Z)");
-    // HOMEAXIS(Z);
-    // SERIAL_ECHOLNPGM("HOMEAXIS_(ZZ)");
-    // HOMEAXIS(ZZ);
+    SERIAL_ECHOLNPGM("HOMEAXIS(Z)");
+    HOMEAXIS(Z);
+    SERIAL_ECHOLNPGM("HOMEAXIS(ZZ)");
+    HOMEAXIS(ZZ);
+
+    sync_plan_position2();
     for (int i = X_AXIS; i <= ZZ_AXIS; i++) destination[i] = current_position[i] - home_bump_mm(Z_AXIS);
-    fraction_time = destination[X_AXIS]/(feedrate/60.0); 
-    line_to_destination_6DOF(fraction_time);
+    feedrate = homing_feedrate[X_AXIS];
+    fraction_time = fabs(destination[X_AXIS]-current_position[X_AXIS]) / (feedrate / 60.0);
+    line_to_destination_6DOF(feedrate,fraction_time);
     st_synchronize();
     endstops_hit_on_purpose(); // clear endstop hit flags
-    for (int i = X_AXIS; i <= ZZ_AXIS; i++) current_position[i] = destination[i];
 
+    for (int i = X_AXIS; i <= ZZ_AXIS; i++) current_position[i] = destination[i];
     sync_plan_position_delta2();
 
 
@@ -4013,6 +4037,10 @@ inline void gcode_M119() {
     SERIAL_PROTOCOLPGM(MSG_X_MAX);
     SERIAL_PROTOCOLLN(((READ(X_MAX_PIN)^X_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
   #endif
+  #if HAS_XX_MAX
+    SERIAL_PROTOCOLPGM(MSG_XX_MAX);
+    SERIAL_PROTOCOLLN(((READ(XX_MAX_PIN)^XX_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+  #endif
   // #if HAS_Y_MIN
   //   SERIAL_PROTOCOLPGM(MSG_Y_MIN);
   //   SERIAL_PROTOCOLLN(((READ(Y_MIN_PIN)^Y_MIN_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
@@ -4021,6 +4049,10 @@ inline void gcode_M119() {
     SERIAL_PROTOCOLPGM(MSG_Y_MAX);
     SERIAL_PROTOCOLLN(((READ(Y_MAX_PIN)^Y_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
   #endif
+  #if HAS_YY_MAX
+    SERIAL_PROTOCOLPGM(MSG_YY_MAX);
+    SERIAL_PROTOCOLLN(((READ(YY_MAX_PIN)^YY_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+  #endif
   // #if HAS_Z_MIN
   //   SERIAL_PROTOCOLPGM(MSG_Z_MIN);
   //   SERIAL_PROTOCOLLN(((READ(Z_MIN_PIN)^Z_MIN_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
@@ -4028,6 +4060,10 @@ inline void gcode_M119() {
   #if HAS_Z_MAX
     SERIAL_PROTOCOLPGM(MSG_Z_MAX);
     SERIAL_PROTOCOLLN(((READ(Z_MAX_PIN)^Z_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+  #endif
+  #if HAS_ZZ_MAX
+    SERIAL_PROTOCOLPGM(MSG_ZZ_MAX);
+    SERIAL_PROTOCOLLN(((READ(ZZ_MAX_PIN)^ZZ_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
   #endif
   #if HAS_Z2_MAX
     SERIAL_PROTOCOLPGM(MSG_Z2_MAX);
@@ -5860,19 +5896,51 @@ void process_next_command() {
       #endif // DUAL_X_CARRIAGE
 
       case 720:
-    SERIAL_ECHOLNPGM("HOMEAXIS(X)");
-    HOMEAXIS(X);
-    SERIAL_ECHOLNPGM("HOMEAXIS(Y)");
-    HOMEAXIS(Y);
-    SERIAL_ECHOLNPGM("HOMEAXIS(Z)");
-    HOMEAXIS(Z);
-        // OUT_WRITE(36,1);
-        // SERIAL_ECHOLNPGM("WRITE 36 HIGH");
+        HOMEAXIS(X);
         break;    
 
       case 721:
-        // OUT_WRITE(36,0);
-        // SERIAL_ECHOLNPGM("WRITE 36 LOW");
+        HOMEAXIS(XX);
+        break;    
+
+      case 722:
+        HOMEAXIS(Y);
+        break;    
+
+      case 723:
+        HOMEAXIS(YY);
+        break;    
+
+      case 724:
+        HOMEAXIS(Z);
+        break;    
+
+      case 725:
+        HOMEAXIS(ZZ);
+        break;    
+
+      case 730:
+        DOWNAXIS(X);
+        break;    
+
+      case 731:
+        DOWNAXIS(XX);
+        break;    
+
+      case 732:
+        DOWNAXIS(Y);
+        break;    
+
+      case 733:
+        DOWNAXIS(YY);
+        break;    
+
+      case 734:
+        DOWNAXIS(Z);
+        break;    
+
+      case 735:
+        DOWNAXIS(ZZ);
         break;    
 
       case 907: // M907 Set digital trimpot motor current using axis codes.
@@ -5962,7 +6030,7 @@ void clamp_to_software_endstops(float target[3]) {
   }
 }
 
-void clamp_to_software_endstops2(float target[6]) {
+void clamp_to_software_endstops2(float target[NUM_AXIS]) {
   if (min_software_endstops) {
     NOLESS(target[X_AXIS], min_pos[X_AXIS]);
     NOLESS(target[Y_AXIS], min_pos[Y_AXIS]);
