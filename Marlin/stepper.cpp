@@ -737,18 +737,9 @@ HAL_STEP_TIMER_ISR {
       STEP_START(x,X);
       STEP_START(y,Y);
       STEP_START(z,Z);
-      SET_OUTPUT(XX_STEP_PIN);
-      SET_OUTPUT(YY_STEP_PIN);
-      SET_OUTPUT(ZZ_STEP_PIN);
       STEP_START(xx,XX);
       STEP_START(yy,YY);
       STEP_START(zz,ZZ);
-      // OUT_WRITE(XX_STEP_PIN,1);
-      // OUT_WRITE(YY_STEP_PIN,1);
-      // OUT_WRITE(ZZ_STEP_PIN,1);
-      // WRITE(XX_STEP_PIN,1);
-      // WRITE(YY_STEP_PIN,1);
-      // WRITE(ZZ_STEP_PIN,1);
       // #ifndef ADVANCE
       //   STEP_START(e,E);
       // #endif
@@ -817,18 +808,9 @@ HAL_STEP_TIMER_ISR {
       STEP_END(x, X);
       STEP_END(y, Y);
       STEP_END(z, Z);
-      SET_OUTPUT(XX_STEP_PIN);
-      SET_OUTPUT(YY_STEP_PIN);
-      SET_OUTPUT(ZZ_STEP_PIN);
       STEP_END(xx, XX);
       STEP_END(yy, YY);
       STEP_END(zz, ZZ);
-      // OUT_WRITE(XX_STEP_PIN,0);
-      // OUT_WRITE(YY_STEP_PIN,0);
-      // OUT_WRITE(ZZ_STEP_PIN,0);
-      // WRITE(XX_STEP_PIN,0);
-      // WRITE(YY_STEP_PIN,0);
-      // WRITE(ZZ_STEP_PIN,0);
     //   #ifndef ADVANCE
     //     STEP_END(e, E);
     //   #endif
@@ -975,41 +957,39 @@ void st_init() {
 
   #if HAS_X_ENABLE
     X_ENABLE_INIT;
-    XX_ENABLE_INIT;
     if (!X_ENABLE_ON) X_ENABLE_WRITE(HIGH);
   #endif
   #if HAS_XX_ENABLE
     XX_ENABLE_INIT;
     if (!XX_ENABLE_ON) XX_ENABLE_WRITE(HIGH);
   #endif
-  #if HAS_X2_ENABLE
-    X2_ENABLE_INIT;
-    if (!X_ENABLE_ON) X2_ENABLE_WRITE(HIGH);
-  #endif
+  // #if HAS_X2_ENABLE
+  //   X2_ENABLE_INIT;
+  //   if (!X_ENABLE_ON) X2_ENABLE_WRITE(HIGH);
+  // #endif
   #if HAS_Y_ENABLE
     Y_ENABLE_INIT;
     if (!Y_ENABLE_ON) Y_ENABLE_WRITE(HIGH);
-
-  #if defined(Y_DUAL_STEPPER_DRIVERS) && HAS_Y2_ENABLE
-    Y2_ENABLE_INIT;
-    if (!Y_ENABLE_ON) Y2_ENABLE_WRITE(HIGH);
-  #endif
+  // #if defined(Y_DUAL_STEPPER_DRIVERS) && HAS_Y2_ENABLE
+  //   Y2_ENABLE_INIT;
+  //   if (!Y_ENABLE_ON) Y2_ENABLE_WRITE(HIGH);
+  // #endif
   #endif
   #if HAS_YY_ENABLE
     YY_ENABLE_INIT;
-    if (!Y_ENABLE_ON) YY_ENABLE_WRITE(HIGH);
+    if (!YY_ENABLE_ON) YY_ENABLE_WRITE(HIGH);
   #endif
   #if HAS_Z_ENABLE
     Z_ENABLE_INIT;
-    if (!Z_ENABLE_ON) ZZ_ENABLE_WRITE(HIGH);
-    #if defined(Z_DUAL_STEPPER_DRIVERS) && HAS_Z2_ENABLE
-      Z2_ENABLE_INIT;
-      if (!Z_ENABLE_ON) Z2_ENABLE_WRITE(HIGH);
-    #endif
+    if (!Z_ENABLE_ON) Z_ENABLE_WRITE(HIGH);
+    // #if defined(Z_DUAL_STEPPER_DRIVERS) && HAS_Z2_ENABLE
+    //   Z2_ENABLE_INIT;
+    //   if (!Z_ENABLE_ON) Z2_ENABLE_WRITE(HIGH);
+    // #endif
   #endif
-  #if HAS_Z_ENABLE
+  #if HAS_ZZ_ENABLE
     ZZ_ENABLE_INIT;
-    if (!Z_ENABLE_ON) ZZ_ENABLE_WRITE(HIGH);
+    if (!ZZ_ENABLE_ON) ZZ_ENABLE_WRITE(HIGH);
   #endif
   // #if HAS_E0_ENABLE
     // E0_ENABLE_INIT;
@@ -1110,24 +1090,24 @@ void st_init() {
   #if HAS_XX_STEP
     AXIS_INIT(xx, XX, XX);
   #endif
-  #if HAS_X2_STEP
-    AXIS_INIT(x, X2, X);
-  #endif
+  // #if HAS_X2_STEP
+  //   AXIS_INIT(x, X2, X);
+  // #endif
   #if HAS_Y_STEP
-    #if defined(Y_DUAL_STEPPER_DRIVERS) && HAS_Y2_STEP
-      Y2_STEP_INIT;
-      Y2_STEP_WRITE(INVERT_Y_STEP_PIN);
-    #endif
+    // #if defined(Y_DUAL_STEPPER_DRIVERS) && HAS_Y2_STEP
+    //   Y2_STEP_INIT;
+    //   Y2_STEP_WRITE(INVERT_Y_STEP_PIN);
+    // #endif
     AXIS_INIT(y, Y, Y);
   #endif
   #if HAS_YY_STEP
     AXIS_INIT(yy, YY, YY);
   #endif
   #if HAS_Z_STEP
-    #if defined(Z_DUAL_STEPPER_DRIVERS) && HAS_Z2_STEP
-      Z2_STEP_INIT;
-      Z2_STEP_WRITE(INVERT_Z_STEP_PIN);
-    #endif
+    // #if defined(Z_DUAL_STEPPER_DRIVERS) && HAS_Z2_STEP
+    //   Z2_STEP_INIT;
+    //   Z2_STEP_WRITE(INVERT_Z_STEP_PIN);
+    // #endif
     AXIS_INIT(z, Z, Z);
   #endif
   #if HAS_ZZ_STEP

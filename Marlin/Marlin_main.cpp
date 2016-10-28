@@ -65,6 +65,7 @@
   #include <SPI.h>
 #endif
 
+
 /**
  * Look here for descriptions of G-codes:
  *  - http://linuxcnc.org/handbook/gcode/g-code.html
@@ -423,6 +424,7 @@ bool target_direction;
 //===========================================================================
 //================================ Functions ================================
 //===========================================================================
+
 
 void process_next_command();
 
@@ -1179,6 +1181,12 @@ inline void line_to_destination() {
 inline void line_to_destination_6DOF(float mm_m, float fraction_time) {
   plan_buffer_line3(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[XX_AXIS], destination[YY_AXIS], destination[ZZ_AXIS], destination[E_AXIS], feedrate/60*feedrate_multiplier/100.0, active_extruder, fraction_time);
 }
+void upAllAxis(){
+  for(int i=X_AXIS;i<=ZZ_AXIS;i++) 
+    destination[i] = current_position[i] - 5; 
+  float s = 5.0/(feedrate/60.0); 
+  line_to_destination_6DOF(feedrate,s); 
+}
 // inline void line_to_destination_6DOF(float fraction_time) {
 //   line_to_destination_6DOF(feedrate, fraction_time);
 // }
@@ -1790,6 +1798,7 @@ inline void sync_plan_position2() {
     st_synchronize();
 
     enable_endstops(true); // Enable endstops for next homing move
+    sync_plan_position2();
 
     // Slow down the feedrate for the next move
     // set_homing_bump_feedrate(axis);
@@ -5943,6 +5952,10 @@ void process_next_command() {
         DOWNAXIS(ZZ);
         break;    
 
+      case 740:
+        upAllAxis();
+        break;
+
       case 907: // M907 Set digital trimpot motor current using axis codes.
         gcode_M907();
         break;
@@ -5979,6 +5992,7 @@ void process_next_command() {
 
     default: code_is_good = false;
   }
+
 
 ExitUnknownCommand:
 
