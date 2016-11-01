@@ -46,7 +46,6 @@ block_t *current_block;  // A pointer to the block currently being traced
 
 // Variables used by The Stepper Driver Interrupt
 static unsigned char out_bits = 0;        // The next stepping-bits to be output
-// static uint16_t out_bits = 0;        // The next stepping-bits to be output
 static unsigned int cleaning_buffer_counter;
 
 #ifdef Z_DUAL_ENDSTOPS
@@ -324,6 +323,19 @@ inline void update_endstops() {
             #endif
           }
       }
+    if (TEST(out_bits, Y_AXIS))   // -direction
+  // #endif
+      { // -direction
+        #if HAS_Y_MIN
+          // UPDATE_ENDSTOP(Y, MIN);
+        #endif
+      }
+      else { // +direction
+        #if HAS_Y_MAX
+        //comment out
+          UPDATE_ENDSTOP(Y, MAX);
+        #endif
+      }
       if (TEST(out_bits, YY_AXIS))  
       { // -direction
           {
@@ -360,19 +372,7 @@ inline void update_endstops() {
   //   if ((current_block->steps[A_AXIS] != current_block->steps[B_AXIS]) || (TEST(out_bits, A_AXIS) != TEST(out_bits, B_AXIS))) {
   //     if (TEST(out_bits, Y_HEAD))
   // #else
-      if (TEST(out_bits, Y_AXIS))   // -direction
-  // #endif
-      { // -direction
-        #if HAS_Y_MIN
-          // UPDATE_ENDSTOP(Y, MIN);
-        #endif
-      }
-      else { // +direction
-        #if HAS_Y_MAX
-        //comment out
-          UPDATE_ENDSTOP(Y, MAX);
-        #endif
-      }
+  
   // #if defined(COREXY)
   //   }
   // #endif
@@ -516,7 +516,6 @@ FORCE_INLINE unsigned long calc_timer(unsigned long step_rate) {
  *   X_AXIS=A_AXIS and Z_AXIS=C_AXIS for COREXZ
  */
 void set_stepper_direction() {
-
   if (TEST(out_bits, X_AXIS)) { // A_AXIS
     X_APPLY_DIR(INVERT_X_DIR, 0);
     count_direction[X_AXIS] = -1;
@@ -657,7 +656,7 @@ HAL_STEP_TIMER_ISR {
     current_block = plan_get_current_block();
     if (current_block) {
       current_block->busy = true;
-      trapezoid_generator_reset();
+      trapezoid_generator_reset();//call set_stepper_direction() 
       counter_x = -(current_block->step_event_count >> 1);
       counter_xx = counter_y = counter_z = counter_yy = counter_zz = counter_e = counter_x;
       step_events_completed = 0;
@@ -691,8 +690,8 @@ HAL_STEP_TIMER_ISR {
 	#define STEP_START(axis, AXIS) \
 	  _COUNTER(axis) += current_block->steps[_AXIS(AXIS)]; \
 	  if (_COUNTER(axis) > 0) { \
-		_APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0); \
 		_COUNTER(axis) -= current_block->step_event_count; \
+    _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0); \
 		count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)];  \
     } 
 
@@ -915,29 +914,35 @@ void st_init() {
   // Initialize Dir Pins
   #if HAS_X_DIR
     X_DIR_INIT;
+    SERIAL_ECHOLNPGM("X_DIR_INIT");
   #endif
   #if HAS_XX_DIR
     XX_DIR_INIT;
+    SERIAL_ECHOLNPGM("XX_DIR_INIT");
   #endif
   #if HAS_X2_DIR
     X2_DIR_INIT;
   #endif
   #if HAS_Y_DIR
     Y_DIR_INIT;
+    SERIAL_ECHOLNPGM("Y_DIR_INIT");
     #if defined(Y_DUAL_STEPPER_DRIVERS) && HAS_Y2_DIR
       Y2_DIR_INIT;
     #endif
   #endif
   #if HAS_YY_DIR
+    SERIAL_ECHOLNPGM("YY_DIR_INIT");
     YY_DIR_INIT;
   #endif
   #if HAS_Z_DIR
+    SERIAL_ECHOLNPGM("Z_DIR_INIT");
     Z_DIR_INIT;
     #if defined(Z_DUAL_STEPPER_DRIVERS) && HAS_Z2_DIR
       Z2_DIR_INIT;
     #endif
   #endif
   #if HAS_ZZ_DIR
+    SERIAL_ECHOLNPGM("ZZ_DIR_INIT");
     ZZ_DIR_INIT;
   #endif
   #if HAS_E0_DIR
@@ -957,10 +962,12 @@ void st_init() {
 
   #if HAS_X_ENABLE
     X_ENABLE_INIT;
+    SERIAL_ECHOLNPGM("X_ENABLE_INIT");
     if (!X_ENABLE_ON) X_ENABLE_WRITE(HIGH);
   #endif
   #if HAS_XX_ENABLE
     XX_ENABLE_INIT;
+    SERIAL_ECHOLNPGM("XX_ENABLE_INIT");
     if (!XX_ENABLE_ON) XX_ENABLE_WRITE(HIGH);
   #endif
   // #if HAS_X2_ENABLE
@@ -969,6 +976,7 @@ void st_init() {
   // #endif
   #if HAS_Y_ENABLE
     Y_ENABLE_INIT;
+    SERIAL_ECHOLNPGM("Y_ENABLE_INIT");
     if (!Y_ENABLE_ON) Y_ENABLE_WRITE(HIGH);
   // #if defined(Y_DUAL_STEPPER_DRIVERS) && HAS_Y2_ENABLE
   //   Y2_ENABLE_INIT;
@@ -977,10 +985,12 @@ void st_init() {
   #endif
   #if HAS_YY_ENABLE
     YY_ENABLE_INIT;
+    SERIAL_ECHOLNPGM("YY_ENABLE_INIT");
     if (!YY_ENABLE_ON) YY_ENABLE_WRITE(HIGH);
   #endif
   #if HAS_Z_ENABLE
     Z_ENABLE_INIT;
+    SERIAL_ECHOLNPGM("Z_ENABLE_INIT");
     if (!Z_ENABLE_ON) Z_ENABLE_WRITE(HIGH);
     // #if defined(Z_DUAL_STEPPER_DRIVERS) && HAS_Z2_ENABLE
     //   Z2_ENABLE_INIT;
@@ -989,6 +999,7 @@ void st_init() {
   #endif
   #if HAS_ZZ_ENABLE
     ZZ_ENABLE_INIT;
+    SERIAL_ECHOLNPGM("ZZ_ENABLE_INIT");
     if (!ZZ_ENABLE_ON) ZZ_ENABLE_WRITE(HIGH);
   #endif
   // #if HAS_E0_ENABLE
@@ -1086,9 +1097,11 @@ void st_init() {
   // Initialize Step Pins
   #if HAS_X_STEP
     AXIS_INIT(x, X, X);
+    SERIAL_ECHOLNPGM("X_AXIS_INIT");
   #endif
   #if HAS_XX_STEP
     AXIS_INIT(xx, XX, XX);
+    SERIAL_ECHOLNPGM("XX_AXIS_INIT");
   #endif
   // #if HAS_X2_STEP
   //   AXIS_INIT(x, X2, X);
@@ -1099,9 +1112,11 @@ void st_init() {
     //   Y2_STEP_WRITE(INVERT_Y_STEP_PIN);
     // #endif
     AXIS_INIT(y, Y, Y);
+    SERIAL_ECHOLNPGM("Y_AXIS_INIT");
   #endif
   #if HAS_YY_STEP
     AXIS_INIT(yy, YY, YY);
+    SERIAL_ECHOLNPGM("YY_AXIS_INIT");
   #endif
   #if HAS_Z_STEP
     // #if defined(Z_DUAL_STEPPER_DRIVERS) && HAS_Z2_STEP
@@ -1109,9 +1124,11 @@ void st_init() {
     //   Z2_STEP_WRITE(INVERT_Z_STEP_PIN);
     // #endif
     AXIS_INIT(z, Z, Z);
+    SERIAL_ECHOLNPGM("Z_AXIS_INIT");
   #endif
   #if HAS_ZZ_STEP
     AXIS_INIT(zz, ZZ, ZZ);
+    SERIAL_ECHOLNPGM("ZZ_AXIS_INIT");
   #endif
   // #if HAS_E0_STEP
     // E_AXIS_INIT(0);

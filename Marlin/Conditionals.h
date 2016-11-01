@@ -496,6 +496,7 @@
   #define HAS_X_DIR (PIN_EXISTS(X_DIR))
   #define HAS_XX_DIR (PIN_EXISTS(XX_DIR))
   #define HAS_X2_DIR (PIN_EXISTS(X2_DIR))
+  #define HAS_Y_DIR (PIN_EXISTS(Y_DIR))
   #define HAS_YY_DIR (PIN_EXISTS(YY_DIR))
   #define HAS_Y2_DIR (PIN_EXISTS(Y2_DIR))
   #define HAS_Z_DIR (PIN_EXISTS(Z_DIR))
