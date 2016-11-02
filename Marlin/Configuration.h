@@ -57,7 +57,8 @@ Here are some standard links for getting your machine calibrated:
 
 // This determines the communication speed of the printer
 // :[2400,9600,19200,38400,57600,115200,250000]
-#define BAUDRATE 250000
+// #define BAUDRATE 250000
+#define BAUDRATE 115200
 
 // This enables the serial port associated to the Bluetooth interface
 //#define BTENABLED              // Enable BT interface on AT90USB devices
@@ -678,15 +679,21 @@ const bool ZZ_MAX_ENDSTOP_INVERTING =true; // set to true to invert the logic of
 // delta speeds must be the same on xyz
 // #define DEFAULT_AXIS_STEPS_PER_UNIT   {XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, 1.1}  // default steps per unit for Kossel (GT2, 20 tooth)
 #define DEFAULT_AXIS_STEPS_PER_UNIT   {XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS}  // default steps per unit for Kossel (GT2, 20 tooth)
-#define DEFAULT_MAX_FEEDRATE          {3000, 3000, 3000, 3000, 3000, 3000, 3000}    // (mm/sec)
+#define DEFAULT_MAX_FEEDRATE          {30000, 30000, 30000, 30000, 30000, 30000, 30000}    // (mm/sec)
 #define DEFAULT_MAX_ACCELERATION      {9000,9000,9000,9000,9000,9000,9000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
 
+// #define DEFAULT_ACCELERATION          300    // X, Y, Z and E acceleration in mm/s^2 for printing moves
+// #define DEFAULT_RETRACT_ACCELERATION  300   // E acceleration in mm/s^2 for retracts
+// #define DEFAULT_TRAVEL_ACCELERATION   300    // X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
 // #define DEFAULT_ACCELERATION          300    // X, Y, Z and E acceleration in mm/s^2 for printing moves
 // #define DEFAULT_RETRACT_ACCELERATION  300   // E acceleration in mm/s^2 for retracts
 // #define DEFAULT_TRAVEL_ACCELERATION   300    // X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
 #define DEFAULT_ACCELERATION          3000    // X, Y, Z and E acceleration in mm/s^2 for printing moves
 #define DEFAULT_RETRACT_ACCELERATION  3000   // E acceleration in mm/s^2 for retracts
 #define DEFAULT_TRAVEL_ACCELERATION   3000    // X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
+// #define DEFAULT_ACCELERATION          6000    // X, Y, Z and E acceleration in mm/s^2 for printing moves
+// #define DEFAULT_RETRACT_ACCELERATION  6000   // E acceleration in mm/s^2 for retracts
+// #define DEFAULT_TRAVEL_ACCELERATION   6000    // X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
 
 // The speed change that does not require acceleration (i.e. the software might assume it can be done instantaneously)
 #define DEFAULT_XYJERK                5.0    // (mm/sec)

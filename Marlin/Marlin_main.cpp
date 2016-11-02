@@ -2161,10 +2161,10 @@ inline void gcode_G28() {
 
     // take care of back off and rehome now we are all at the top
     HOMEAXIS(X);
-    HOMEAXIS(XX);
     HOMEAXIS(Y);
-    HOMEAXIS(YY);
     HOMEAXIS(Z);
+    HOMEAXIS(XX);
+    HOMEAXIS(YY);
     HOMEAXIS(ZZ);
 
     current_position[Z_AXIS] = max_pos[Z_AXIS];
@@ -2172,13 +2172,13 @@ inline void gcode_G28() {
     calculate_delta2(destination);
     for(int i=X_AXIS;i<=ZZ_AXIS;i++) current_position_delta[i] = delta[i];//delta all zero
     sync_plan_position2();
-    current_position[Z_AXIS] = current_position[Z_AXIS] - home_bump_mm(Z_AXIS);
+    current_position[Z_AXIS] = current_position[Z_AXIS] - 2*home_bump_mm(Z_AXIS);
     destination[Z_AXIS] = current_position[Z_AXIS];
     calculate_delta2(destination);
     enable_endstops(false);
     // float main_difference = max(delta[X_AXIS]-current_position_delta[X_AXIS],max(delta[Y_AXIS]-current_position_delta[Y_AXIS],max(delta[Z_AXIS]-current_position_delta[Z_AXIS],max(delta[XX_AXIS]-current_position_delta[XX_AXIS],max(delta[YY_AXIS]-current_position_delte[YY_AXIS],delta[ZZ_AXIS]-current_position[ZZ_AXIS])))));
     feedrate = homing_feedrate[X_AXIS];
-    fraction_time = fabs(home_bump_mm(Z_AXIS)) / (feedrate / 60.0);
+    fraction_time = fabs(2*home_bump_mm(Z_AXIS)) / (feedrate / 60.0);
     SERIAL_ECHOLN(feedrate);
     SERIAL_ECHOLN(fraction_time);
     line_to_destination_6DOF(feedrate,fraction_time);
