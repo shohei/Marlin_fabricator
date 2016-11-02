@@ -1827,7 +1827,7 @@ inline void sync_plan_position2() {
 
     // Slow down the feedrate for the next move
     // set_homing_bump_feedrate(axis);
-    feedrate = homing_feedrate[axis] / 10;
+    feedrate = homing_feedrate[axis] / 3;
 
     // Move slowly towards the endstop until triggered
     delta[axis] = 2 * home_bump_mm(axis) * axis_home_dir;
