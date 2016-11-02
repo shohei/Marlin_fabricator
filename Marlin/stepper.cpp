@@ -914,35 +914,29 @@ void st_init() {
   // Initialize Dir Pins
   #if HAS_X_DIR
     X_DIR_INIT;
-    SERIAL_ECHOLNPGM("X_DIR_INIT");
   #endif
   #if HAS_XX_DIR
     XX_DIR_INIT;
-    SERIAL_ECHOLNPGM("XX_DIR_INIT");
   #endif
   #if HAS_X2_DIR
     X2_DIR_INIT;
   #endif
   #if HAS_Y_DIR
     Y_DIR_INIT;
-    SERIAL_ECHOLNPGM("Y_DIR_INIT");
     #if defined(Y_DUAL_STEPPER_DRIVERS) && HAS_Y2_DIR
       Y2_DIR_INIT;
     #endif
   #endif
   #if HAS_YY_DIR
-    SERIAL_ECHOLNPGM("YY_DIR_INIT");
     YY_DIR_INIT;
   #endif
   #if HAS_Z_DIR
-    SERIAL_ECHOLNPGM("Z_DIR_INIT");
     Z_DIR_INIT;
     #if defined(Z_DUAL_STEPPER_DRIVERS) && HAS_Z2_DIR
       Z2_DIR_INIT;
     #endif
   #endif
   #if HAS_ZZ_DIR
-    SERIAL_ECHOLNPGM("ZZ_DIR_INIT");
     ZZ_DIR_INIT;
   #endif
   #if HAS_E0_DIR
@@ -962,12 +956,10 @@ void st_init() {
 
   #if HAS_X_ENABLE
     X_ENABLE_INIT;
-    SERIAL_ECHOLNPGM("X_ENABLE_INIT");
     if (!X_ENABLE_ON) X_ENABLE_WRITE(HIGH);
   #endif
   #if HAS_XX_ENABLE
     XX_ENABLE_INIT;
-    SERIAL_ECHOLNPGM("XX_ENABLE_INIT");
     if (!XX_ENABLE_ON) XX_ENABLE_WRITE(HIGH);
   #endif
   // #if HAS_X2_ENABLE
@@ -976,7 +968,6 @@ void st_init() {
   // #endif
   #if HAS_Y_ENABLE
     Y_ENABLE_INIT;
-    SERIAL_ECHOLNPGM("Y_ENABLE_INIT");
     if (!Y_ENABLE_ON) Y_ENABLE_WRITE(HIGH);
   // #if defined(Y_DUAL_STEPPER_DRIVERS) && HAS_Y2_ENABLE
   //   Y2_ENABLE_INIT;
@@ -985,12 +976,10 @@ void st_init() {
   #endif
   #if HAS_YY_ENABLE
     YY_ENABLE_INIT;
-    SERIAL_ECHOLNPGM("YY_ENABLE_INIT");
     if (!YY_ENABLE_ON) YY_ENABLE_WRITE(HIGH);
   #endif
   #if HAS_Z_ENABLE
     Z_ENABLE_INIT;
-    SERIAL_ECHOLNPGM("Z_ENABLE_INIT");
     if (!Z_ENABLE_ON) Z_ENABLE_WRITE(HIGH);
     // #if defined(Z_DUAL_STEPPER_DRIVERS) && HAS_Z2_ENABLE
     //   Z2_ENABLE_INIT;
@@ -999,7 +988,6 @@ void st_init() {
   #endif
   #if HAS_ZZ_ENABLE
     ZZ_ENABLE_INIT;
-    SERIAL_ECHOLNPGM("ZZ_ENABLE_INIT");
     if (!ZZ_ENABLE_ON) ZZ_ENABLE_WRITE(HIGH);
   #endif
   // #if HAS_E0_ENABLE
@@ -1097,11 +1085,9 @@ void st_init() {
   // Initialize Step Pins
   #if HAS_X_STEP
     AXIS_INIT(x, X, X);
-    SERIAL_ECHOLNPGM("X_AXIS_INIT");
   #endif
   #if HAS_XX_STEP
     AXIS_INIT(xx, XX, XX);
-    SERIAL_ECHOLNPGM("XX_AXIS_INIT");
   #endif
   // #if HAS_X2_STEP
   //   AXIS_INIT(x, X2, X);
@@ -1112,11 +1098,9 @@ void st_init() {
     //   Y2_STEP_WRITE(INVERT_Y_STEP_PIN);
     // #endif
     AXIS_INIT(y, Y, Y);
-    SERIAL_ECHOLNPGM("Y_AXIS_INIT");
   #endif
   #if HAS_YY_STEP
     AXIS_INIT(yy, YY, YY);
-    SERIAL_ECHOLNPGM("YY_AXIS_INIT");
   #endif
   #if HAS_Z_STEP
     // #if defined(Z_DUAL_STEPPER_DRIVERS) && HAS_Z2_STEP
@@ -1124,11 +1108,9 @@ void st_init() {
     //   Z2_STEP_WRITE(INVERT_Z_STEP_PIN);
     // #endif
     AXIS_INIT(z, Z, Z);
-    SERIAL_ECHOLNPGM("Z_AXIS_INIT");
   #endif
   #if HAS_ZZ_STEP
     AXIS_INIT(zz, ZZ, ZZ);
-    SERIAL_ECHOLNPGM("ZZ_AXIS_INIT");
   #endif
   // #if HAS_E0_STEP
     // E_AXIS_INIT(0);

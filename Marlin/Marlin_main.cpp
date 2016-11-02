@@ -240,10 +240,9 @@ bool Running = true;
 uint8_t marlin_debug_flags = DEBUG_INFO|DEBUG_ERRORS;
 
 static float feedrate = 1500.0, saved_feedrate;
-float current_position[4] = { 0.0 };
-float current_position_delta[NUM_AXIS] = { 0.0 };
-static float destination[4] = { 0.0 };
-// static float destination_delta[NUM_AXIS] = { 0.0 };
+float current_position[4] = { 0.0 };//X,Y,Z,E
+float current_position_delta[6] = { 0.0 };//X,XX,Y,YY,Z,ZZ
+static float destination[4] = { 0.0 };//X,Y,Z,E
 // bool axis_known_position[3] = { false };
 bool axis_known_position[6] = { false };
 
@@ -267,8 +266,8 @@ bool volumetric_enabled = false;
 // float min_pos[3] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS };
 // float max_pos[3] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS };
 float home_offset[6] = { 0 };
-float min_pos[6] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS , X_MIN_POS, Y_MIN_POS, Z_MIN_POS};
-float max_pos[6] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS , X_MAX_POS, Y_MAX_POS, Z_MAX_POS};
+float min_pos[6] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS , XX_MIN_POS, YY_MIN_POS, ZZ_MIN_POS};
+float max_pos[6] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS , XX_MAX_POS, YY_MAX_POS, ZZ_MAX_POS};
 
 uint8_t active_extruder = 0;
 int fanSpeed = 0;
@@ -442,17 +441,29 @@ void dumpDestination(){
     SERIAL_ECHOPGM("destination[X_AXIS]: ");SERIAL_ECHOLN(destination[X_AXIS]);
     SERIAL_ECHOPGM("destination[Y_AXIS]: ");SERIAL_ECHOLN(destination[Y_AXIS]);
     SERIAL_ECHOPGM("destination[Z_AXIS]: ");SERIAL_ECHOLN(destination[Z_AXIS]);
-    SERIAL_ECHOPGM("destination[XX_AXIS]: ");SERIAL_ECHOLN(destination[XX_AXIS]);
-    SERIAL_ECHOPGM("destination[YY_AXIS]: ");SERIAL_ECHOLN(destination[YY_AXIS]);
-    SERIAL_ECHOPGM("destination[ZZ_AXIS]: ");SERIAL_ECHOLN(destination[ZZ_AXIS]);
+    SERIAL_ECHOPGM("destination[E_AXIS]: ");SERIAL_ECHOLN(destination[ZZ_AXIS]);
 }
 void dumpCurrent(){
     SERIAL_ECHOPGM("current_position[X_AXIS]: "); SERIAL_ECHOLN(current_position[X_AXIS]);
     SERIAL_ECHOPGM("current_position[Y_AXIS]: "); SERIAL_ECHOLN(current_position[Y_AXIS]);
     SERIAL_ECHOPGM("current_position[Z_AXIS]: "); SERIAL_ECHOLN(current_position[Z_AXIS]);
-    SERIAL_ECHOPGM("current_position[XX_AXIS]: ");SERIAL_ECHOLN(current_position[XX_AXIS]);
-    SERIAL_ECHOPGM("current_position[YY_AXIS]: ");SERIAL_ECHOLN(current_position[YY_AXIS]);
-    SERIAL_ECHOPGM("current_position[ZZ_AXIS]: ");SERIAL_ECHOLN(current_position[ZZ_AXIS]);
+    SERIAL_ECHOPGM("current_position[E_AXIS]: "); SERIAL_ECHOLN(current_position[E_AXIS]);
+}
+void dumpCurrentDelta(){
+    SERIAL_ECHOPGM("current_position_delta[X_AXIS]: "); SERIAL_ECHOLN(current_position_delta[X_AXIS]);
+    SERIAL_ECHOPGM("current_position_delta[Y_AXIS]: "); SERIAL_ECHOLN(current_position_delta[Y_AXIS]);
+    SERIAL_ECHOPGM("current_position_delta[Z_AXIS]: "); SERIAL_ECHOLN(current_position_delta[Z_AXIS]);
+    SERIAL_ECHOPGM("current_position_delta[XX_AXIS]: "); SERIAL_ECHOLN(current_position_delta[XX_AXIS]);
+    SERIAL_ECHOPGM("current_position_delta[YY_AXIS]: "); SERIAL_ECHOLN(current_position_delta[YY_AXIS]);
+    SERIAL_ECHOPGM("current_position_delta[ZZ_AXIS]: "); SERIAL_ECHOLN(current_position_delta[ZZ_AXIS]);
+}
+void dumpDelta(){
+    SERIAL_ECHOPGM("delta[X_AXIS]: "); SERIAL_ECHOLN(delta[X_AXIS]);
+    SERIAL_ECHOPGM("delta[Y_AXIS]: "); SERIAL_ECHOLN(delta[Y_AXIS]);
+    SERIAL_ECHOPGM("delta[Z_AXIS]: "); SERIAL_ECHOLN(delta[Z_AXIS]);
+    SERIAL_ECHOPGM("delta[XX_AXIS]: ");SERIAL_ECHOLN(delta[XX_AXIS]);
+    SERIAL_ECHOPGM("delta[YY_AXIS]: ");SERIAL_ECHOLN(delta[YY_AXIS]);
+    SERIAL_ECHOPGM("delta[ZZ_AXIS]: ");SERIAL_ECHOLN(delta[ZZ_AXIS]);
 }
 
 #ifdef PREVENT_DANGEROUS_EXTRUDE
@@ -1211,7 +1222,7 @@ inline void sync_plan_position() {
   plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
 }
 inline void sync_plan_position2() {
-  plan_set_position2(current_position_delta[X_AXIS], current_position_delta[Y_AXIS], current_position_delta[Z_AXIS], current_position_delta[XX_AXIS], current_position_delta[YY_AXIS], current_position_delta[ZZ_AXIS], current_position_delta[E_AXIS]);
+  plan_set_position2(current_position_delta[X_AXIS], current_position_delta[Y_AXIS], current_position_delta[Z_AXIS], current_position_delta[XX_AXIS], current_position_delta[YY_AXIS], current_position_delta[ZZ_AXIS], current_position[E_AXIS]);
 }
 #if defined(DELTA) || defined(SCARA)
   inline void sync_plan_position_delta() {
@@ -1219,7 +1230,8 @@ inline void sync_plan_position2() {
     plan_set_position(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], current_position[E_AXIS]);
   }
   inline void sync_plan_position_delta2() {
-    calculate_delta2(current_position_delta);
+    // calculate_delta2(current_position_delta);
+    calculate_delta2(destination);
     plan_set_position2(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], delta[XX_AXIS], delta[YY_AXIS], delta[ZZ_AXIS], current_position_delta[E_AXIS]);
   }
 #endif
@@ -1227,6 +1239,7 @@ inline void sync_plan_position2() {
   inline void set_current_to_delta() { memcpy(current_position_delta, delta, sizeof(current_position_delta)); }
   // inline void set_current_to_destination2() { memcpy(current_position, destination, sizeof(current_position)); }
   inline void set_destination_to_current() { memcpy(destination, current_position, sizeof(destination)); }
+  // inline void set_destination_delta_to_current() { memcpy(delta, current_position_delta, sizeof(destination)); }
   inline void set_delta_to_current() { memcpy(delta, current_position_delta, sizeof(delta)); }
 
   static void setup_for_endstop_move() {
@@ -1754,9 +1767,9 @@ inline void sync_plan_position2() {
 
     // Set the axis position as setup for the move
       current_position_delta[axis] = 0;
-      if(axis==X_AXIS||axis==Y_AXIS||axis==Z_AXIS){
-      current_position[axis] = 0;
-      }
+      // if(axis==X_AXIS||axis==Y_AXIS||axis==Z_AXIS){
+      // current_position[axis] = 0;
+      // }
       sync_plan_position2();
     // #ifdef Z_PROBE_SLED
     //   // Get Probe
@@ -1790,23 +1803,22 @@ inline void sync_plan_position2() {
     // Move towards the endstop until an endstop is triggered
 
     // for(int i=0;i<ZZ_AXIS;i++) delta[i] = 0;
-    delta[axis] = 1.5 * max_length(axis) * axis_home_dir;
+    float difference = 1.5 * max_length(axis) * axis_home_dir;
+    delta[axis] = current_position_delta[axis]+difference;
     feedrate = homing_feedrate[axis];
-    float fraction_time = fabs(delta[axis]-current_position_delta[axis]) / (feedrate / 60.0);
+    float fraction_time = fabs(delta[axis]) / (feedrate / 60.0);
     line_to_destination_6DOF(feedrate,fraction_time); 
     st_synchronize();
 
     // Set the axis position as setup for the move
     current_position_delta[axis] = 0;
-    if(axis==X_AXIS||axis==Y_AXIS||axis==Z_AXIS){
-      current_position[axis] = 0;
-    }
     sync_plan_position2();
     enable_endstops(false); // Disable endstops while moving away
 
     // Move away from the endstop by the axis HOME_BUMP_MM
-    delta[axis] = -home_bump_mm(axis) * axis_home_dir;
-    fraction_time = fabs(delta[axis]-current_position_delta[axis]) / (feedrate / 60.0);
+    difference = -home_bump_mm(axis) * axis_home_dir;
+    delta[axis] = current_position_delta[axis]+difference;
+    fraction_time = fabs(delta[axis]) / (feedrate / 60.0);
     line_to_destination_6DOF(feedrate,fraction_time); 
     st_synchronize();
 
@@ -1819,7 +1831,7 @@ inline void sync_plan_position2() {
 
     // Move slowly towards the endstop until triggered
     delta[axis] = 2 * home_bump_mm(axis) * axis_home_dir;
-    fraction_time = fabs(delta[axis]-current_position_delta[axis]) / (feedrate / 60.0);
+    fraction_time = fabs(delta[axis]) / (feedrate / 60.0);
     line_to_destination_6DOF(feedrate,fraction_time); 
     st_synchronize();
 
@@ -1854,7 +1866,7 @@ inline void sync_plan_position2() {
         enable_endstops(false); // Disable endstops while moving away
         sync_plan_position2();
         delta[axis] = endstop_adj[axis];
-        fraction_time = fabs(delta[axis]-current_position_delta[axis]) / (feedrate / 60.0);
+        fraction_time = fabs(delta[axis]) / (feedrate / 60.0);
         line_to_destination_6DOF(feedrate,fraction_time); 
         st_synchronize();
         enable_endstops(true); // Enable endstops for next homing move
@@ -2119,8 +2131,7 @@ inline void gcode_G28() {
 
   setup_for_endstop_move();
 
-  // set_destination_to_current();
-  //set_delta_to_current()の必要性？
+  set_destination_to_current();
   set_delta_to_current();
 
   feedrate = 0.0;
@@ -2130,23 +2141,23 @@ inline void gcode_G28() {
     // all axis have to home at the same time
 
     // Pretend the current position is 0,0,0
-    for (int i = X_AXIS; i < Z_AXIS; i++) current_position[i] = 0;
-    for (int i = X_AXIS; i < ZZ_AXIS; i++) current_position_delta[i] = 0;
+    for (int i = X_AXIS; i <= Z_AXIS; i++) current_position[i] = 0;
+    for (int i = X_AXIS; i <= ZZ_AXIS; i++) current_position_delta[i] = 0;
     // sync_plan_position();
     sync_plan_position2();
 
     // Move all carriages up together until the first endstop is hit.
-    for (int i = X_AXIS; i < ZZ_AXIS; i++) delta[i] = 3 * Z_MAX_LENGTH;
-    // for (int i = X_AXIS; i <= ZZ_AXIS; i++) destination[i] = 3 * Z_MAX_LENGTH;
+    destination[Z_AXIS] = 3 * Z_MAX_LENGTH;
+    calculate_delta2(destination);
     feedrate = 1.732 * homing_feedrate[X_AXIS];
-    float fraction_time = fabs(delta[X_AXIS]-current_position_delta[X_AXIS]) / (feedrate / 60.0);
+    float fraction_time = fabs(delta[X_AXIS]) / (feedrate / 60.0);
     line_to_destination_6DOF(feedrate,fraction_time);
     st_synchronize();
     endstops_hit_on_purpose(); // clear endstop hit flags
 
     // Destination reached
-    for (int i = X_AXIS; i < ZZ_AXIS; i++) current_position_delta[i] = delta[i];
-    for (int i = X_AXIS; i < Z_AXIS; i++) current_position[i] = delta[i];
+    for (int i = X_AXIS; i <= Z_AXIS; i++) current_position[i] = destination[i];
+    for (int i = X_AXIS; i <= ZZ_AXIS; i++) current_position_delta[i] = delta[i];
 
     // take care of back off and rehome now we are all at the top
     HOMEAXIS(X);
@@ -2156,18 +2167,29 @@ inline void gcode_G28() {
     HOMEAXIS(Z);
     HOMEAXIS(ZZ);
 
+    current_position[Z_AXIS] = max_pos[Z_AXIS];
+    destination[Z_AXIS] = current_position[Z_AXIS];
+    calculate_delta2(destination);
+    for(int i=X_AXIS;i<=ZZ_AXIS;i++) current_position_delta[i] = delta[i];//delta all zero
     sync_plan_position2();
-    for (int i = X_AXIS; i < ZZ_AXIS; i++) delta[i] = current_position_delta[i] - home_bump_mm(Z_AXIS);
+    current_position[Z_AXIS] = current_position[Z_AXIS] - home_bump_mm(Z_AXIS);
+    destination[Z_AXIS] = current_position[Z_AXIS];
+    calculate_delta2(destination);
+    enable_endstops(false);
+    // float main_difference = max(delta[X_AXIS]-current_position_delta[X_AXIS],max(delta[Y_AXIS]-current_position_delta[Y_AXIS],max(delta[Z_AXIS]-current_position_delta[Z_AXIS],max(delta[XX_AXIS]-current_position_delta[XX_AXIS],max(delta[YY_AXIS]-current_position_delte[YY_AXIS],delta[ZZ_AXIS]-current_position[ZZ_AXIS])))));
     feedrate = homing_feedrate[X_AXIS];
-    fraction_time = fabs(delta[X_AXIS]-current_position_delta[X_AXIS]) / (feedrate / 60.0);
+    fraction_time = fabs(home_bump_mm(Z_AXIS)) / (feedrate / 60.0);
+    SERIAL_ECHOLN(feedrate);
+    SERIAL_ECHOLN(fraction_time);
     line_to_destination_6DOF(feedrate,fraction_time);
     st_synchronize();
     endstops_hit_on_purpose(); // clear endstop hit flags
+    enable_endstops(true);
 
-    for (int i = X_AXIS; i < ZZ_AXIS; i++) current_position_delta[i] = delta[i];
-    for (int i = X_AXIS; i < Z_AXIS; i++) current_position[i] = delta[i];
-    sync_plan_position_delta2();
-
+    for (int i = X_AXIS; i <= Z_AXIS; i++) current_position[i] = destination[i];
+    for (int i = X_AXIS; i <= ZZ_AXIS; i++) current_position_delta[i] = delta[i];
+    // sync_plan_position_delta2();
+    sync_plan_position2();
 
   #else // NOT DELTA
 
@@ -5917,6 +5939,61 @@ void process_next_command() {
         upAxis();
         break;
 
+      case 731:
+        dumpDelta();
+        dumpCurrent();
+        dumpDestination();
+        dumpCurrentDelta();
+        break;
+
+      case 732:
+        dumpCurrent();
+        dumpDestination();
+        dumpDelta();
+        calculate_delta2(destination);
+        dumpDelta();
+
+        destination[Z_AXIS] = 10;
+        calculate_delta2(destination);
+        dumpDelta();
+
+        break; 
+
+      case 733:
+        current_position_delta[X_AXIS] = 0;
+        sync_plan_position2();
+        delta[X_AXIS] = current_position_delta[X_AXIS]+max_length(X_AXIS);
+        feedrate = homing_feedrate[X_AXIS];
+        line_to_destination_6DOF(feedrate,fabs(delta[X_AXIS]) / (feedrate / 60.0)); 
+        st_synchronize();
+
+        current_position_delta[X_AXIS] = 0;
+        sync_plan_position2();
+        enable_endstops(false); // Disable endstops while moving away
+
+        current_position_delta[X_AXIS] = 0;
+        sync_plan_position2();
+        enable_endstops(false); // Disable endstops while moving away
+        // Move away from the endstop by the axis HOME_BUMP_MM
+        delta[X_AXIS] = current_position_delta[X_AXIS] - max_length(X_AXIS);
+        dumpCurrentDelta();
+        dumpDelta();
+        line_to_destination_6DOF(feedrate,fabs(delta[X_AXIS]) / (feedrate / 60.0)); 
+        st_synchronize();
+        break;
+
+      case 734:
+        current_position_delta[X_AXIS] = 0;
+        sync_plan_position2();
+        enable_endstops(false); // Disable endstops while moving away
+        // Move away from the endstop by the axis HOME_BUMP_MM
+        delta[X_AXIS] = current_position_delta[X_AXIS] + home_bump_mm(X_AXIS);
+        dumpCurrentDelta();
+        dumpDelta();
+        line_to_destination_6DOF(feedrate,fabs(delta[X_AXIS]) / (feedrate / 60.0)); 
+        st_synchronize();
+        break;
+
       case 907: // M907 Set digital trimpot motor current using axis codes.
         gcode_M907();
         break;
@@ -6067,8 +6144,9 @@ void clamp_to_software_endstops2(float target[NUM_AXIS]) {
     */
   }
 
-  void calculate_delta2(float cartesian[4]) {
+  void calculate_delta2(float cartesian[3]) {
     // cartesian[4] => X,Y,Z,E
+     
     delta[X_AXIS] = sqrt(delta_diagonal_rod_2
                          - sq(delta_tower1_x-cartesian[X_AXIS])
                          - sq(delta_tower1_y-cartesian[Y_AXIS])
@@ -6084,6 +6162,7 @@ void clamp_to_software_endstops2(float target[NUM_AXIS]) {
     delta[XX_AXIS] = delta[X_AXIS];
     delta[YY_AXIS] = delta[Y_AXIS];
     delta[ZZ_AXIS] = delta[Z_AXIS];
+
     /*
     SERIAL_ECHOPGM("cartesian x="); SERIAL_ECHO(cartesian[X_AXIS]);
     SERIAL_ECHOPGM(" y="); SERIAL_ECHO(cartesian[Y_AXIS]);

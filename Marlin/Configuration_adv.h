@@ -192,7 +192,7 @@
 #define X_HOME_BUMP_MM 5 
 #define Y_HOME_BUMP_MM 5 
 #define Z_HOME_BUMP_MM 5 // deltas need the same for all three axis
-#define XX_HOME_BUMP_MM 5
+#define XX_HOME_BUMP_MM 5 
 #define YY_HOME_BUMP_MM 5 
 #define ZZ_HOME_BUMP_MM 5// deltas need the same for all three axis
 // #define HOMING_BUMP_DIVISOR {10, 10, 20, 10, 10, 20}  // Re-Bump Speed Divisor (Divides the Homing Feedrate)
