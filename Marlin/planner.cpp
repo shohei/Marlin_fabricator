@@ -59,6 +59,9 @@
   #include "mesh_bed_leveling.h"
 #endif
 
+#define max(a,b) ((a)>(b)?(a):(b))
+#define min(a,b) ((a)<(b)?(a):(b))
+
 //===========================================================================
 //============================= public variables ============================
 //===========================================================================
@@ -749,11 +752,11 @@ float junction_deviation = 0.1;
   else {
     block->millimeters = sqrt(
       #ifdef COREXY
-        square(delta_mm[X_HEAD]) + square(delta_mm[Y_HEAD]) + square(delta_mm[Z_AXIS])
+        sq(delta_mm[X_HEAD]) + sq(delta_mm[Y_HEAD]) + sq(delta_mm[Z_AXIS])
       #elif defined(COREXZ)
-        square(delta_mm[X_HEAD]) + square(delta_mm[Y_AXIS]) + square(delta_mm[Z_HEAD])
+        sq(delta_mm[X_HEAD]) + sq(delta_mm[Y_AXIS]) + sq(delta_mm[Z_HEAD])
       #else
-        square(delta_mm[X_AXIS]) + square(delta_mm[Y_AXIS]) + square(delta_mm[Z_AXIS])
+        sq(delta_mm[X_AXIS]) + sq(delta_mm[Y_AXIS]) + sq(delta_mm[Z_AXIS])
       #endif
     );
   }
@@ -1307,12 +1310,12 @@ float junction_deviation = 0.1;
   else {
     block->millimeters = sqrt(
       #ifdef COREXY
-        square(delta_mm[X_HEAD]) + square(delta_mm[Y_HEAD]) + square(delta_mm[Z_AXIS])
+        sq(delta_mm[X_HEAD]) + sq(delta_mm[Y_HEAD]) + sq(delta_mm[Z_AXIS])
       #elif defined(COREXZ)
-        square(delta_mm[X_HEAD]) + square(delta_mm[Y_AXIS]) + square(delta_mm[Z_HEAD])
+        sq(delta_mm[X_HEAD]) + sq(delta_mm[Y_AXIS]) + sq(delta_mm[Z_HEAD])
       #else
-        (square(delta_mm[X_AXIS]) + square(delta_mm[Y_AXIS]) + square(delta_mm[Z_AXIS])
-         + square(delta_mm[XX_AXIS]) + square(delta_mm[YY_AXIS]) + square(delta_mm[Z_AXIS]))*0.5
+        (sq(delta_mm[X_AXIS]) + sq(delta_mm[Y_AXIS]) + sq(delta_mm[Z_AXIS])
+         + sq(delta_mm[XX_AXIS]) + sq(delta_mm[YY_AXIS]) + sq(delta_mm[Z_AXIS]))*0.5
       #endif
     );
   }

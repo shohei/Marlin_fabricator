@@ -98,6 +98,8 @@ Here are some standard links for getting your machine calibrated:
 // Enable DELTA kinematics and most of the default configuration for Deltas
 #define DELTA
 
+#define ARDUINO_IDE_158 // required for compile Eigen
+
 // Make delta curves from many straight lines (linear interpolation).
 // This is a trade-off between visible corners (not enough segments)
 // and processor overload (too many expensive sqrt calls).

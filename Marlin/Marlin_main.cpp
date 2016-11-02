@@ -52,6 +52,76 @@
 #include "math.h"
 #include "buzzer.h"
 
+#define max(a,b) ((a)>(b)?(a):(b))
+#define min(a,b) ((a)<(b)?(a):(b))
+
+#ifdef ARDUINO_IDE_158
+  #include <Eigen313.h>     // Calls main Eigen matrix class library
+  #include <LU>             // Calls inverse, determinant, LU decomp., etc.
+  void print_mtxf(const Eigen::MatrixXf& X)  
+{
+   int i, j, nrow, ncol;
+   
+   nrow = X.rows();
+   ncol = X.cols();
+
+   Serial.print("nrow: "); Serial.println(nrow);
+   Serial.print("ncol: "); Serial.println(ncol);       
+   Serial.println();
+   
+   for (i=0; i<nrow; i++)
+   {
+       for (j=0; j<ncol; j++)
+       {
+           Serial.print(X(i,j), 6);   // print 6 decimal places
+           Serial.print(", ");
+       }
+       Serial.println();
+   }
+   Serial.println();
+}
+
+void matTest(){
+         Eigen::MatrixXf Pp(6,6);   // Produces 6x6 float matrix class
+         Eigen::MatrixXf H(6,6);    // Note: without "using namespace Eigen", declaration would be: Eigen::MatrixXf H(6,6);
+         Eigen::MatrixXf R(6,6);  
+         Eigen::MatrixXf X(6,6);  
+         Eigen::MatrixXf K(6,6);  
+         Eigen::MatrixXf Z(6,6);  
+
+         // INPUT MATRICES (so-called comma-initialize syntax)
+         //---------------------------------------------------------
+         Pp << 0.3252,  0.3192,  1.0933, -0.0068, -1.0891, -1.4916,
+              -0.7549,  0.3129,  1.1093,  1.5326,  0.0326, -0.7423,
+               1.3703, -0.8649, -0.8637, -0.7697,  0.5525, -1.0616,
+              -1.7115, -0.0301,  0.0774,  0.3714,  1.1006,  2.3505,
+              -0.1022, -0.1649, -1.2141, -0.2256,  1.5442, -0.6156,
+              -0.2414,  0.6277, -1.1135,  1.1174,  0.0859,  0.7481 ;
+
+         H << 0.8147, 0.2785, 0.9572, 0.7922, 0.6787, 0.7060,
+              0.9058, 0.5469, 0.4854, 0.9595, 0.7577, 0.0318,
+              0.1270, 0.9575, 0.8003, 0.6557, 0.7431, 0.2769,
+              0.9134, 0.9649, 0.1419, 0.0357, 0.3922, 0.0462,
+              0.6324, 0.1576, 0.4218, 0.8491, 0.6555, 0.0971,
+              0.0975, 0.9706, 0.9157, 0.9340, 0.1712, 0.8235;
+
+         R << 0.3252,  0.3192,  1.0933, -0.0068, -1.0891, -1.4916,
+             -0.7549,  0.3129,  1.1093,  1.5326,  0.0326, -0.7423,
+              1.3703, -0.8649, -0.8637, -0.7697,  0.5525, -1.0616,
+             -1.7115, -0.0301,  0.0774,  0.3714,  1.1006,  2.3505,
+             -0.1022, -0.1649, -1.2141, -0.2256,  1.5442, -0.6156,
+             -0.2414,  0.6277, -1.1135,  1.1174,  0.0859,  0.7481;
+
+
+         // Kalman Gain Example; Matlab form:  K = Pp * H' * inv(H * Pp * H' + R)
+         //-----------------------------------
+         X  = H * Pp * H.transpose() + R;    
+         K  = Pp * H.transpose() * X.inverse();   
+         print_mtxf(K);      // Print Matrix Result (passed by reference)
+}
+
+#endif
+
 #ifdef BLINKM
   #include "blinkm.h"
   #include "Wire.h"
@@ -5947,51 +6017,7 @@ void process_next_command() {
         break;
 
       case 732:
-        dumpCurrent();
-        dumpDestination();
-        dumpDelta();
-        calculate_delta2(destination);
-        dumpDelta();
-
-        destination[Z_AXIS] = 10;
-        calculate_delta2(destination);
-        dumpDelta();
-
-        break; 
-
-      case 733:
-        current_position_delta[X_AXIS] = 0;
-        sync_plan_position2();
-        delta[X_AXIS] = current_position_delta[X_AXIS]+max_length(X_AXIS);
-        feedrate = homing_feedrate[X_AXIS];
-        line_to_destination_6DOF(feedrate,fabs(delta[X_AXIS]) / (feedrate / 60.0)); 
-        st_synchronize();
-
-        current_position_delta[X_AXIS] = 0;
-        sync_plan_position2();
-        enable_endstops(false); // Disable endstops while moving away
-
-        current_position_delta[X_AXIS] = 0;
-        sync_plan_position2();
-        enable_endstops(false); // Disable endstops while moving away
-        // Move away from the endstop by the axis HOME_BUMP_MM
-        delta[X_AXIS] = current_position_delta[X_AXIS] - max_length(X_AXIS);
-        dumpCurrentDelta();
-        dumpDelta();
-        line_to_destination_6DOF(feedrate,fabs(delta[X_AXIS]) / (feedrate / 60.0)); 
-        st_synchronize();
-        break;
-
-      case 734:
-        current_position_delta[X_AXIS] = 0;
-        sync_plan_position2();
-        enable_endstops(false); // Disable endstops while moving away
-        // Move away from the endstop by the axis HOME_BUMP_MM
-        delta[X_AXIS] = current_position_delta[X_AXIS] + home_bump_mm(X_AXIS);
-        dumpCurrentDelta();
-        dumpDelta();
-        line_to_destination_6DOF(feedrate,fabs(delta[X_AXIS]) / (feedrate / 60.0)); 
-        st_synchronize();
+        matTest();
         break;
 
       case 907: // M907 Set digital trimpot motor current using axis codes.
@@ -6146,23 +6172,61 @@ void clamp_to_software_endstops2(float target[NUM_AXIS]) {
 
   void calculate_delta2(float cartesian[3]) {
     // cartesian[4] => X,Y,Z,E
-     
-    delta[X_AXIS] = sqrt(delta_diagonal_rod_2
-                         - sq(delta_tower1_x-cartesian[X_AXIS])
-                         - sq(delta_tower1_y-cartesian[Y_AXIS])
-                         ) + cartesian[Z_AXIS];
-    delta[Y_AXIS] = sqrt(delta_diagonal_rod_2
-                         - sq(delta_tower2_x-cartesian[X_AXIS])
-                         - sq(delta_tower2_y-cartesian[Y_AXIS])
-                         ) + cartesian[Z_AXIS];
-    delta[Z_AXIS] = sqrt(delta_diagonal_rod_2
-                         - sq(delta_tower3_x-cartesian[X_AXIS])
-                         - sq(delta_tower3_y-cartesian[Y_AXIS])
-                         ) + cartesian[Z_AXIS];
-    delta[XX_AXIS] = delta[X_AXIS];
-    delta[YY_AXIS] = delta[Y_AXIS];
-    delta[ZZ_AXIS] = delta[Z_AXIS];
+    //Use Arduino IDE 1.5.8 for compiling Eigen
+    #ifdef ARDUINO_IDE_158
+         Eigen::MatrixXf Pp(6,6);   // Produces 6x6 float matrix class
+         Eigen::MatrixXf H(6,6);    // Note: without "using namespace Eigen", declaration would be: Eigen::MatrixXf H(6,6);
+         Eigen::MatrixXf R(6,6);  
+         Eigen::MatrixXf X(6,6);  
+         Eigen::MatrixXf K(6,6);  
+         Eigen::MatrixXf Z(6,6);  
 
+         // INPUT MATRICES (so-called comma-initialize syntax)
+         //---------------------------------------------------------
+         Pp << 0.3252,  0.3192,  1.0933, -0.0068, -1.0891, -1.4916,
+              -0.7549,  0.3129,  1.1093,  1.5326,  0.0326, -0.7423,
+               1.3703, -0.8649, -0.8637, -0.7697,  0.5525, -1.0616,
+              -1.7115, -0.0301,  0.0774,  0.3714,  1.1006,  2.3505,
+              -0.1022, -0.1649, -1.2141, -0.2256,  1.5442, -0.6156,
+              -0.2414,  0.6277, -1.1135,  1.1174,  0.0859,  0.7481 ;
+
+         H << 0.8147, 0.2785, 0.9572, 0.7922, 0.6787, 0.7060,
+              0.9058, 0.5469, 0.4854, 0.9595, 0.7577, 0.0318,
+              0.1270, 0.9575, 0.8003, 0.6557, 0.7431, 0.2769,
+              0.9134, 0.9649, 0.1419, 0.0357, 0.3922, 0.0462,
+              0.6324, 0.1576, 0.4218, 0.8491, 0.6555, 0.0971,
+              0.0975, 0.9706, 0.9157, 0.9340, 0.1712, 0.8235;
+
+         R << 0.3252,  0.3192,  1.0933, -0.0068, -1.0891, -1.4916,
+             -0.7549,  0.3129,  1.1093,  1.5326,  0.0326, -0.7423,
+              1.3703, -0.8649, -0.8637, -0.7697,  0.5525, -1.0616,
+             -1.7115, -0.0301,  0.0774,  0.3714,  1.1006,  2.3505,
+             -0.1022, -0.1649, -1.2141, -0.2256,  1.5442, -0.6156,
+             -0.2414,  0.6277, -1.1135,  1.1174,  0.0859,  0.7481;
+
+
+         // Kalman Gain Example; Matlab form:  K = Pp * H' * inv(H * Pp * H' + R)
+         //-----------------------------------
+         X  = H * Pp * H.transpose() + R;    
+         K  = Pp * H.transpose() * X.inverse();   
+         print_mtxf(K);      // Print Matrix Result (passed by reference)
+    #else 
+      delta[X_AXIS] = sqrt(delta_diagonal_rod_2
+                           - sq(delta_tower1_x-cartesian[X_AXIS])
+                           - sq(delta_tower1_y-cartesian[Y_AXIS])
+                           ) + cartesian[Z_AXIS];
+      delta[Y_AXIS] = sqrt(delta_diagonal_rod_2
+                           - sq(delta_tower2_x-cartesian[X_AXIS])
+                           - sq(delta_tower2_y-cartesian[Y_AXIS])
+                           ) + cartesian[Z_AXIS];
+      delta[Z_AXIS] = sqrt(delta_diagonal_rod_2
+                           - sq(delta_tower3_x-cartesian[X_AXIS])
+                           - sq(delta_tower3_y-cartesian[Y_AXIS])
+                           ) + cartesian[Z_AXIS];
+      delta[XX_AXIS] = delta[X_AXIS];
+      delta[YY_AXIS] = delta[Y_AXIS];
+      delta[ZZ_AXIS] = delta[Z_AXIS];
+    #endif 
     /*
     SERIAL_ECHOPGM("cartesian x="); SERIAL_ECHO(cartesian[X_AXIS]);
     SERIAL_ECHOPGM(" y="); SERIAL_ECHO(cartesian[Y_AXIS]);
@@ -6320,6 +6384,7 @@ void mesh_plan_buffer_line(float x, float y, float z, const float e, float feed_
     // if (cartesian_mm < 0.000001) cartesian_mm = abs(difference[E_AXIS]);
     // if (cartesian_mm < 0.000001) return false;
     float seconds = cartesian_mm / (feedrate/60.0) / (feedrate_multiplier / 100.0);
+    #define max(a,b) ((a)>(b)?(a):(b))
     int steps = max(1, int(delta_segments_per_second * seconds));
 
     // SERIAL_ECHOPGM("mm="); SERIAL_ECHO(cartesian_mm);

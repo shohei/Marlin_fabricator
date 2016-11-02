@@ -20,6 +20,7 @@
 #include "fsr_sensor.h"
 #include "Preference.h"
 
+
 #ifndef SANITYCHECK_H
   #error Your Configuration.h and Configuration_adv.h files are outdated!
 #endif
@@ -354,5 +355,6 @@ extern uint8_t active_extruder;
 #endif
 
 extern void calculate_volumetric_multipliers();
+
 
 #endif //MARLIN_H
