@@ -411,6 +411,11 @@ const bool ZZ_MAX_ENDSTOP_INVERTING =true; // set to true to invert the logic of
 #define YY_ENABLE_ON 0
 #define ZZ_ENABLE_ON 0
 
+#define C1_ENABLE_ON 0
+#define C2_ENABLE_ON 0
+#define C3_ENABLE_ON 0
+#define W_ENABLE_ON 0
+
 // #define E_ENABLE_ON 0 // For all extruders
 
 // Disables axis when it's not being used.
@@ -421,6 +426,11 @@ const bool ZZ_MAX_ENDSTOP_INVERTING =true; // set to true to invert the logic of
 #define DISABLE_XX false
 #define DISABLE_YY false
 #define DISABLE_ZZ false
+
+#define DISABLE_C1 false
+#define DISABLE_C2 false
+#define DISABLE_C3 false
+#define DISABLE_W false
 
 // @section extruder
 
@@ -436,6 +446,11 @@ const bool ZZ_MAX_ENDSTOP_INVERTING =true; // set to true to invert the logic of
 #define INVERT_XX_DIR true // DELTA does not invert
 #define INVERT_YY_DIR true
 #define INVERT_ZZ_DIR true
+
+#define INVERT_C1_DIR true 
+#define INVERT_C2_DIR true
+#define INVERT_C3_DIR true
+#define INVERT_W_DIR true
 
 // #define INVERT_X_DIR false// DELTA does not invert
 // #define INVERT_Y_DIR false

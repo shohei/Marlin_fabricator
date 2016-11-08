@@ -951,6 +951,18 @@ void st_init() {
   #if HAS_E3_DIR
     E3_DIR_INIT;
   #endif
+  #if HAS_C1_DIR
+    C1_DIR_INIT;
+  #endif
+  #if HAS_C2_DIR
+    C2_DIR_INIT;
+  #endif
+  #if HAS_C3_DIR
+    C3_DIR_INIT;
+  #endif
+  #if HAS_W_DIR
+    W_DIR_INIT;
+  #endif
 
   //Initialize Enable Pins - steppers default to disabled.
 
@@ -1111,6 +1123,18 @@ void st_init() {
   #endif
   #if HAS_ZZ_STEP
     AXIS_INIT(zz, ZZ, ZZ);
+  #endif
+  #if HAS_C1_STEP
+    AXIS_INIT(c1, C1, C1);
+  #endif
+  #if HAS_C2_STEP
+    AXIS_INIT(c2, C2, C2);
+  #endif
+  #if HAS_C3_STEP
+    AXIS_INlT(c3, C3, C3);
+  #endif
+  #if HAS_W_STEP
+    AXIS_INlT(w, W, W);
   #endif
   // #if HAS_E0_STEP
     // E_AXIS_INIT(0);

@@ -157,6 +157,16 @@ void manage_inactivity(bool ignore_stepper_queue=false);
   #define disable_zz() ;
 #endif
 
+#define enable_c1() ;
+#define disable_c1() ;
+#define enable_c2() ;
+#define disable_c2() ;
+#define enable_c3() ;
+#define disable_c3() ;
+#define enable_w() ;
+#define disable_w() ;
+
+
 // #if HAS_E0_ENABLE
 //   #define enable_e0()  E0_ENABLE_WRITE( E_ENABLE_ON)
 //   #define disable_e0() E0_ENABLE_WRITE(!E_ENABLE_ON)
