@@ -1025,9 +1025,9 @@ float junction_deviation = 0.1;
 
 
 #if defined(ENABLE_AUTO_BED_LEVELING) || defined(MESH_BED_LEVELING)
-  void plan_buffer_line3(float x, float y, float z, float xx, float yy, float zz, const float &e, float feed_rate, const uint8_t &extruder, float fraction_time)
+  void plan_buffer_line_6axes(float x, float y, float z, float xx, float yy, float zz, const float &e, float feed_rate, const uint8_t &extruder, float fraction_time)
 #else
-  void plan_buffer_line3(const float &x, const float &y, const float &z, const float &xx, const float &yy, const float &zz, const float &e, float feed_rate, const uint8_t &extruder, float fraction_time)
+  void plan_buffer_line_6axes(const float &x, const float &y, const float &z, const float &xx, const float &yy, const float &zz, const float &e, float feed_rate, const uint8_t &extruder, float fraction_time)
 #endif  // ENABLE_AUTO_BED_LEVELING
 {
 
@@ -1588,7 +1588,7 @@ float junction_deviation = 0.1;
 
   st_wake_up();
 
-} // plan_buffer_line3() 
+} // plan_buffer_line_6axes() 
 
 
 #if defined(ENABLE_AUTO_BED_LEVELING) && !defined(DELTA)

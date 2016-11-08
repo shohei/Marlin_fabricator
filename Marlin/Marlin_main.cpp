@@ -1191,7 +1191,7 @@ inline void line_to_destination() {
   line_to_destination(feedrate);
 }
 inline void line_to_destination_6DOF(float mm_m, float fraction_time) {
-  plan_buffer_line3(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], delta[XX_AXIS], delta[YY_AXIS], delta[ZZ_AXIS], destination[E_AXIS], feedrate/60*feedrate_multiplier/100.0, active_extruder, fraction_time);
+  plan_buffer_line_6axes(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], delta[XX_AXIS], delta[YY_AXIS], delta[ZZ_AXIS], destination[E_AXIS], feedrate/60*feedrate_multiplier/100.0, active_extruder, fraction_time);
 }
 void upAxis(){
   endstops_hit_on_purpose();
@@ -1213,7 +1213,7 @@ void upAxis(){
 //   line_to_destination4(feedrate);
 // }
 // inline void line_to_destination3(float mm_m, float fraction_time) {
-//   plan_buffer_line3(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[XX_AXIS], destination[YY_AXIS], destination[ZZ_AXIS], destination[E_AXIS], mm_m/60, active_extruder, fraction_time);
+//   plan_buffer_line_6axes(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[XX_AXIS], destination[YY_AXIS], destination[ZZ_AXIS], destination[E_AXIS], mm_m/60, active_extruder, fraction_time);
 // }
 // inline void line_to_destination3(float fraction_time) {
 //   line_to_destination3(feedrate, fraction_time);
@@ -6340,7 +6340,7 @@ void mesh_plan_buffer_line(float x, float y, float z, const float e, float feed_
         adjust_delta(target);
       #endif
 
-      plan_buffer_line3(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], delta[XX_AXIS], delta[YY_AXIS], delta[ZZ_AXIS], target[E_AXIS], feedrate/60*feedrate_multiplier/100.0, active_extruder, fraction_time);
+      plan_buffer_line_6axes(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], delta[XX_AXIS], delta[YY_AXIS], delta[ZZ_AXIS], target[E_AXIS], feedrate/60*feedrate_multiplier/100.0, active_extruder, fraction_time);
     }
 
     return true;
