@@ -290,7 +290,7 @@ extern bool axis_known_position[6]; // axis[n].is_known
 
 #if defined(DELTA) || defined(SCARA)
   void calculate_delta(float cartesian[3]);
-  void calculate_delta2(float cartesian[NUM_AXIS]);
+  void calculate_delta_6axes(float cartesian[NUM_AXIS]);
   #ifdef DELTA
     // extern float delta[3];
     // extern float endstop_adj[3]; // axis[n].endstop_adj

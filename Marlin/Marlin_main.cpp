@@ -1127,7 +1127,7 @@ static void set_axis_is_at_home(AxisEnum axis) {
   //     // SERIAL_ECHOPGM("homeposition[y]= "); SERIAL_ECHOLN(homeposition[1]);
   //     // Works out real Homeposition angles using inverse kinematics, 
   //     // and calculates homing offset using forward kinematics
-  //     calculate_delta2(homeposition);
+  //     calculate_delta_6axes(homeposition);
      
   //     // SERIAL_ECHOPGM("base Theta= "); SERIAL_ECHO(delta[X_AXIS]);
   //     // SERIAL_ECHOPGM(" base Psi+Theta="); SERIAL_ECHOLN(delta[Y_AXIS]);
@@ -1230,8 +1230,8 @@ inline void sync_plan_position2() {
     plan_set_position(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], current_position[E_AXIS]);
   }
   inline void sync_plan_position_delta2() {
-    // calculate_delta2(current_position_delta);
-    calculate_delta2(destination);
+    // calculate_delta_6axes(current_position_delta);
+    calculate_delta_6axes(destination);
     plan_set_position_6axes(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], delta[XX_AXIS], delta[YY_AXIS], delta[ZZ_AXIS], current_position_delta[E_AXIS]);
   }
 #endif
@@ -1258,7 +1258,7 @@ inline void sync_plan_position2() {
      */
   void prepare_move_raw() {
     refresh_cmd_timeout();
-    calculate_delta2(destination);
+    calculate_delta_6axes(destination);
     plan_buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], destination[E_AXIS], (feedrate/60)*(feedrate_multiplier/100.0), active_extruder);
     set_current_to_destination();
   }
@@ -2148,7 +2148,7 @@ inline void gcode_G28() {
 
     // Move all carriages up together until the first endstop is hit.
     destination[Z_AXIS] = 3 * Z_MAX_LENGTH;
-    calculate_delta2(destination);
+    calculate_delta_6axes(destination);
     feedrate = 1.732 * homing_feedrate[X_AXIS];
     float fraction_time = fabs(delta[X_AXIS]) / (feedrate / 60.0);
     line_to_destination_6axes(feedrate,fraction_time);
@@ -2169,12 +2169,12 @@ inline void gcode_G28() {
 
     current_position[Z_AXIS] = max_pos[Z_AXIS];
     destination[Z_AXIS] = current_position[Z_AXIS];
-    calculate_delta2(destination);
+    calculate_delta_6axes(destination);
     for(int i=X_AXIS;i<=ZZ_AXIS;i++) current_position_delta[i] = delta[i];//delta all zero
     sync_plan_position2();
     current_position[Z_AXIS] = current_position[Z_AXIS] - 2*home_bump_mm(Z_AXIS);
     destination[Z_AXIS] = current_position[Z_AXIS];
-    calculate_delta2(destination);
+    calculate_delta_6axes(destination);
     enable_endstops(false);
     // float main_difference = max(delta[X_AXIS]-current_position_delta[X_AXIS],max(delta[Y_AXIS]-current_position_delta[Y_AXIS],max(delta[Z_AXIS]-current_position_delta[Z_AXIS],max(delta[XX_AXIS]-current_position_delta[XX_AXIS],max(delta[YY_AXIS]-current_position_delte[YY_AXIS],delta[ZZ_AXIS]-current_position[ZZ_AXIS])))));
     feedrate = homing_feedrate[X_AXIS];
@@ -5032,7 +5032,7 @@ inline void gcode_M503() {
       lastpos[i] = destination[i] = current_position[i];
 
     #ifdef DELTA
-      #define RUNPLAN calculate_delta2(destination); \
+      #define RUNPLAN calculate_delta_6axes(destination); \
                       plan_buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], destination[E_AXIS], fr60, active_extruder);
     #else
       #define RUNPLAN line_to_destination();
@@ -5123,7 +5123,7 @@ inline void gcode_M503() {
 
     #ifdef DELTA
       // Move XYZ to starting position, then E
-      calculate_delta2(lastpos);
+      calculate_delta_6axes(lastpos);
       plan_buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], destination[E_AXIS], fr60, active_extruder);
       plan_buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], lastpos[E_AXIS], fr60, active_extruder);
     #else
@@ -5950,11 +5950,11 @@ void process_next_command() {
         dumpCurrent();
         dumpDestination();
         dumpDelta();
-        calculate_delta2(destination);
+        calculate_delta_6axes(destination);
         dumpDelta();
 
         destination[Z_AXIS] = 10;
-        calculate_delta2(destination);
+        calculate_delta_6axes(destination);
         dumpDelta();
 
         break; 
@@ -6144,7 +6144,7 @@ void clamp_to_software_endstops2(float target[NUM_AXIS]) {
     */
   }
 
-  void calculate_delta2(float cartesian[3]) {
+  void calculate_delta_6axes(float cartesian[3]) {
     // cartesian[4] => X,Y,Z,E
      
     delta[X_AXIS] = sqrt(delta_diagonal_rod_2
@@ -6334,7 +6334,7 @@ void mesh_plan_buffer_line(float x, float y, float z, const float e, float feed_
       for (int8_t i = 0; i < 4; i++)
         target[i] = current_position[i] + difference[i] * fraction;
 
-      calculate_delta2(target);
+      calculate_delta_6axes(target);
 
       #ifdef ENABLE_AUTO_BED_LEVELING
         adjust_delta(target);
@@ -6560,7 +6560,7 @@ void plan_arc(
     clamp_to_software_endstops2(arc_target);
 
     #if defined(DELTA) || defined(SCARA)
-      calculate_delta2(arc_target);
+      calculate_delta_6axes(arc_target);
       #ifdef ENABLE_AUTO_BED_LEVELING
         adjust_delta(arc_target);
       #endif
@@ -6572,7 +6572,7 @@ void plan_arc(
 
   // Ensure last segment arrives at target location.
   #if defined(DELTA) || defined(SCARA)
-    calculate_delta2(target);
+    calculate_delta_6axes(target);
     #ifdef ENABLE_AUTO_BED_LEVELING
       adjust_delta(target);
     #endif
