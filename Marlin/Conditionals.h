@@ -237,11 +237,17 @@
       #define ENDSTOPPULLUP_XMAX
       #define ENDSTOPPULLUP_YMAX
       #define ENDSTOPPULLUP_ZMAX
+      #define ENDSTOPPULLUP_XXMAX
+      #define ENDSTOPPULLUP_YYMAX
+      #define ENDSTOPPULLUP_ZZMAX
     #endif
     #ifndef DISABLE_MIN_ENDSTOPS
       #define ENDSTOPPULLUP_XMIN
       #define ENDSTOPPULLUP_YMIN
       #define ENDSTOPPULLUP_ZMIN
+      #define ENDSTOPPULLUP_XXMIN
+      #define ENDSTOPPULLUP_YYMIN
+      #define ENDSTOPPULLUP_ZZMIN
     #endif
     #ifndef DISABLE_Z_PROBE_ENDSTOP
       #define ENDSTOPPULLUP_ZPROBE
@@ -254,6 +260,9 @@
   #define X_MAX_LENGTH (X_MAX_POS - X_MIN_POS)
   #define Y_MAX_LENGTH (Y_MAX_POS - Y_MIN_POS)
   #define Z_MAX_LENGTH (Z_MAX_POS - Z_MIN_POS)
+  #define XX_MAX_LENGTH X_MAX_LENGTH
+  #define YY_MAX_LENGTH Y_MAX_LENGTH
+  #define ZZ_MAX_LENGTH Z_MAX_LENGTH
 
   /**
    * SCARA
@@ -270,6 +279,9 @@
     #define X_HOME_POS MANUAL_X_HOME_POS
     #define Y_HOME_POS MANUAL_Y_HOME_POS
     #define Z_HOME_POS MANUAL_Z_HOME_POS
+    #define XX_HOME_POS MANUAL_XX_HOME_POS
+    #define YY_HOME_POS MANUAL_YY_HOME_POS
+    #define ZZ_HOME_POS MANUAL_ZZ_HOME_POS
   #else //!MANUAL_HOME_POSITIONS – Use home switch positions based on homing direction and travel limits
     #ifdef BED_CENTER_AT_0_0
       #define X_HOME_POS X_MAX_LENGTH * X_HOME_DIR * 0.5
@@ -277,8 +289,11 @@
     #else
       #define X_HOME_POS (X_HOME_DIR < 0 ? X_MIN_POS : X_MAX_POS)
       #define Y_HOME_POS (Y_HOME_DIR < 0 ? Y_MIN_POS : Y_MAX_POS)
+      #define XX_HOME_POS (XX_HOME_DIR < 0 ? XX_MIN_POS : XX_MAX_POS)
+      #define YY_HOME_POS (YY_HOME_DIR < 0 ? YY_MIN_POS : YY_MAX_POS)
     #endif
     #define Z_HOME_POS (Z_HOME_DIR < 0 ? Z_MIN_POS : Z_MAX_POS)
+    #define ZZ_HOME_POS (ZZ_HOME_DIR < 0 ? ZZ_MIN_POS : ZZ_MAX_POS)
   #endif //!MANUAL_HOME_POSITIONS
 
   /**
@@ -403,17 +418,17 @@
   /**
    * ARRAY_BY_EXTRUDERS based on EXTRUDERS
    */
-  #if EXTRUDERS > 3
-    #define ARRAY_BY_EXTRUDERS(v1, v2, v3, v4) { v1, v2, v3, v4 }
-  #elif EXTRUDERS > 2
-    #define ARRAY_BY_EXTRUDERS(v1, v2, v3, v4) { v1, v2, v3 }
-  #elif EXTRUDERS > 1
-    #define ARRAY_BY_EXTRUDERS(v1, v2, v3, v4) { v1, v2 }
-  #else
-    #define ARRAY_BY_EXTRUDERS(v1, v2, v3, v4) { v1 }
-  #endif
+  // #if EXTRUDERS > 3
+  //   #define ARRAY_BY_EXTRUDERS(v1, v2, v3, v4) { v1, v2, v3, v4 }
+  // #elif EXTRUDERS > 2
+  //   #define ARRAY_BY_EXTRUDERS(v1, v2, v3, v4) { v1, v2, v3 }
+  // #elif EXTRUDERS > 1
+  //   #define ARRAY_BY_EXTRUDERS(v1, v2, v3, v4) { v1, v2 }
+  // #else
+  //   #define ARRAY_BY_EXTRUDERS(v1, v2, v3, v4) { v1 }
+  // #endif
 
-  #define ARRAY_BY_EXTRUDERS1(v1) ARRAY_BY_EXTRUDERS(v1, v1, v1, v1)
+  // #define ARRAY_BY_EXTRUDERS1(v1) ARRAY_BY_EXTRUDERS(v1, v1, v1, v1)
 
   /**
    * Shorthand for pin tests, used wherever needed
@@ -447,51 +462,63 @@
   #define HAS_PHOTOGRAPH (PIN_EXISTS(PHOTOGRAPH))
   #define HAS_X_MIN (PIN_EXISTS(X_MIN))
   #define HAS_X_MAX (PIN_EXISTS(X_MAX))
+  #define HAS_XX_MAX (PIN_EXISTS(XX_MAX))
   #define HAS_Y_MIN (PIN_EXISTS(Y_MIN))
   #define HAS_Y_MAX (PIN_EXISTS(Y_MAX))
+  #define HAS_YY_MAX (PIN_EXISTS(YY_MAX))
   #define HAS_Z_MIN (PIN_EXISTS(Z_MIN))
   #define HAS_Z_MAX (PIN_EXISTS(Z_MAX))
+  #define HAS_ZZ_MAX (PIN_EXISTS(ZZ_MAX))
   #define HAS_Z2_MIN (PIN_EXISTS(Z2_MIN))
   #define HAS_Z2_MAX (PIN_EXISTS(Z2_MAX))
   #define HAS_Z_PROBE (PIN_EXISTS(Z_PROBE))
   #define HAS_SOLENOID_1 (PIN_EXISTS(SOL1))
   #define HAS_SOLENOID_2 (PIN_EXISTS(SOL2))
   #define HAS_SOLENOID_3 (PIN_EXISTS(SOL3))
-  #define HAS_MICROSTEPS (PIN_EXISTS(X_MS1))
-  #define HAS_MICROSTEPS_E0 (PIN_EXISTS(E0_MS1))
-  #define HAS_MICROSTEPS_E1 (PIN_EXISTS(E1_MS1))
-  #define HAS_MICROSTEPS_E2 (PIN_EXISTS(E2_MS1))
+  // #define HAS_MICROSTEPS (PIN_EXISTS(X_MS1))
+  // #define HAS_MICROSTEPS_E0 (PIN_EXISTS(E0_MS1))
+  // #define HAS_MICROSTEPS_E1 (PIN_EXISTS(E1_MS1))
+  // #define HAS_MICROSTEPS_E2 (PIN_EXISTS(E2_MS1))
   #define HAS_STEPPER_RESET (PIN_EXISTS(STEPPER_RESET))
   #define HAS_X_ENABLE (PIN_EXISTS(X_ENABLE))
+  #define HAS_XX_ENABLE (PIN_EXISTS(XX_ENABLE))
   #define HAS_X2_ENABLE (PIN_EXISTS(X2_ENABLE))
   #define HAS_Y_ENABLE (PIN_EXISTS(Y_ENABLE))
+  #define HAS_YY_ENABLE (PIN_EXISTS(YY_ENABLE))
   #define HAS_Y2_ENABLE (PIN_EXISTS(Y2_ENABLE))
   #define HAS_Z_ENABLE (PIN_EXISTS(Z_ENABLE))
+  #define HAS_ZZ_ENABLE (PIN_EXISTS(ZZ_ENABLE))
   #define HAS_Z2_ENABLE (PIN_EXISTS(Z2_ENABLE))
-  #define HAS_E0_ENABLE (PIN_EXISTS(E0_ENABLE))
-  #define HAS_E1_ENABLE (PIN_EXISTS(E1_ENABLE))
-  #define HAS_E2_ENABLE (PIN_EXISTS(E2_ENABLE))
-  #define HAS_E3_ENABLE (PIN_EXISTS(E3_ENABLE))
+  // #define HAS_E0_ENABLE (PIN_EXISTS(E0_ENABLE))
+  // #define HAS_E1_ENABLE (PIN_EXISTS(E1_ENABLE))
+  // #define HAS_E2_ENABLE (PIN_EXISTS(E2_ENABLE))
+  // #define HAS_E3_ENABLE (PIN_EXISTS(E3_ENABLE))
   #define HAS_X_DIR (PIN_EXISTS(X_DIR))
+  #define HAS_XX_DIR (PIN_EXISTS(XX_DIR))
   #define HAS_X2_DIR (PIN_EXISTS(X2_DIR))
   #define HAS_Y_DIR (PIN_EXISTS(Y_DIR))
+  #define HAS_YY_DIR (PIN_EXISTS(YY_DIR))
   #define HAS_Y2_DIR (PIN_EXISTS(Y2_DIR))
   #define HAS_Z_DIR (PIN_EXISTS(Z_DIR))
+  #define HAS_ZZ_DIR (PIN_EXISTS(ZZ_DIR))
   #define HAS_Z2_DIR (PIN_EXISTS(Z2_DIR))
-  #define HAS_E0_DIR (PIN_EXISTS(E0_DIR))
-  #define HAS_E1_DIR (PIN_EXISTS(E1_DIR))
-  #define HAS_E2_DIR (PIN_EXISTS(E2_DIR))
-  #define HAS_E3_DIR (PIN_EXISTS(E3_DIR))
+  // #define HAS_E0_DIR (PIN_EXISTS(E0_DIR))
+  // #define HAS_E1_DIR (PIN_EXISTS(E1_DIR))
+  // #define HAS_E2_DIR (PIN_EXISTS(E2_DIR))
+  // #define HAS_E3_DIR (PIN_EXISTS(E3_DIR))
   #define HAS_X_STEP (PIN_EXISTS(X_STEP))
+  #define HAS_XX_STEP (PIN_EXISTS(XX_STEP))
   #define HAS_X2_STEP (PIN_EXISTS(X2_STEP))
   #define HAS_Y_STEP (PIN_EXISTS(Y_STEP))
+  #define HAS_YY_STEP (PIN_EXISTS(YY_STEP))
   #define HAS_Y2_STEP (PIN_EXISTS(Y2_STEP))
   #define HAS_Z_STEP (PIN_EXISTS(Z_STEP))
+  #define HAS_ZZ_STEP (PIN_EXISTS(ZZ_STEP))
   #define HAS_Z2_STEP (PIN_EXISTS(Z2_STEP))
-  #define HAS_E0_STEP (PIN_EXISTS(E0_STEP))
-  #define HAS_E1_STEP (PIN_EXISTS(E1_STEP))
-  #define HAS_E2_STEP (PIN_EXISTS(E2_STEP))
-  #define HAS_E3_STEP (PIN_EXISTS(E3_STEP))
+  // #define HAS_E0_STEP (PIN_EXISTS(E0_STEP))
+  // #define HAS_E1_STEP (PIN_EXISTS(E1_STEP))
+  // #define HAS_E2_STEP (PIN_EXISTS(E2_STEP))
+  // #define HAS_E3_STEP (PIN_EXISTS(E3_STEP))
 
   /**
    * Helper Macros for heaters and extruder fan

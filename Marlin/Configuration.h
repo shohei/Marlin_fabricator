@@ -57,7 +57,8 @@ Here are some standard links for getting your machine calibrated:
 
 // This determines the communication speed of the printer
 // :[2400,9600,19200,38400,57600,115200,250000]
-#define BAUDRATE 250000
+// #define BAUDRATE 250000
+#define BAUDRATE 115200
 
 // This enables the serial port associated to the Bluetooth interface
 //#define BTENABLED              // Enable BT interface on AT90USB devices
@@ -79,7 +80,7 @@ Here are some standard links for getting your machine calibrated:
 
 // This defines the number of extruders
 // :[1,2,3,4]
-#define EXTRUDERS 1
+// #define EXTRUDERS 1
 
 //// The following define selects which power supply you have. Please choose the one that matches your setup
 // 1 = ATX
@@ -98,6 +99,12 @@ Here are some standard links for getting your machine calibrated:
 // Enable DELTA kinematics and most of the default configuration for Deltas
 #define DELTA
 
+<<<<<<< HEAD
+=======
+#define ARDUINO_IDE_158 // required for compile Eigen
+
+#define MARGIN_PAIR_ROD 68
+>>>>>>> 3axis-inverse-delta
 // Make delta curves from many straight lines (linear interpolation).
 // This is a trade-off between visible corners (not enough segments)
 // and processor overload (too many expensive sqrt calls).
@@ -112,16 +119,27 @@ Here are some standard links for getting your machine calibrated:
 #define DELTA_SMOOTH_ROD_OFFSET 231 // mm
 
 // Horizontal offset of the universal joints on the end effector.
+<<<<<<< HEAD
 #define DELTA_EFFECTOR_OFFSET 52 // mm
 
 // Horizontal offset of the universal joints on the carriages.
 #define DELTA_CARRIAGE_OFFSET 69.3 // mm
+=======
+#define DELTA_EFFECTOR_OFFSET 52// mm
+
+// Horizontal offset of the universal joints on the carriages.
+#define DELTA_CARRIAGE_OFFSET 50.89 // mm
+>>>>>>> 3axis-inverse-delta
 
 // Horizontal distance bridged by diagonal push rods when effector is centered.
 #define DELTA_RADIUS (DELTA_SMOOTH_ROD_OFFSET-DELTA_EFFECTOR_OFFSET-DELTA_CARRIAGE_OFFSET)
 
 // Print surface diameter/2 minus unreachable space (avoid collisions with vertical towers).
+<<<<<<< HEAD
 #define DELTA_PRINTABLE_RADIUS 150
+=======
+#define DELTA_PRINTABLE_RADIUS 120
+>>>>>>> 3axis-inverse-delta
 
 
 //===========================================================================
@@ -184,11 +202,11 @@ Here are some standard links for getting your machine calibrated:
 // The minimal temperature defines the temperature below which the heater will not be enabled It is used
 // to check that the wiring to the thermistor is not broken.
 // Otherwise this would lead to the heater being powered on all the time.
-#define HEATER_0_MINTEMP 5
-#define HEATER_1_MINTEMP 5
-#define HEATER_2_MINTEMP 5
-#define HEATER_3_MINTEMP 5
-#define BED_MINTEMP 5
+#define HEATER_0_MINTEMP 0
+#define HEATER_1_MINTEMP 0
+#define HEATER_2_MINTEMP 0
+#define HEATER_3_MINTEMP 0
+#define BED_MINTEMP 0
 
 // When temperature exceeds max temp, your heater will be switched off.
 // This feature exists to protect your hotend from overheating accidentally, but *NOT* from thermistor short/failure!
@@ -289,7 +307,7 @@ Here are some standard links for getting your machine calibrated:
 
 //this prevents dangerous Extruder moves, i.e. if the temperature is under the limit
 //can be software-disabled for whatever purposes by
-#define PREVENT_DANGEROUS_EXTRUDE
+// #define PREVENT_DANGEROUS_EXTRUDE
 //if PREVENT_DANGEROUS_EXTRUDE is on, you can still disable (uncomment) very long bits of extrusion separately.
 #define PREVENT_LENGTHY_EXTRUDE
 
@@ -368,6 +386,7 @@ your extruder heater takes 2 minutes to hit the target on heating.
 #endif
 
 // Mechanical endstop with COM to ground and NC to Signal uses "false" here (most common setup).
+<<<<<<< HEAD
 const bool X_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
 const bool Y_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
 const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
@@ -375,6 +394,32 @@ const bool X_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 const bool Y_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
 const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
 const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+=======
+// const bool X_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+// const bool Y_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+// const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+// const bool X_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+// const bool Y_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+// const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+const bool X_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+const bool Y_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+const bool XX_MAX_ENDSTOP_INVERTING =true; // set to true to invert the logic of the endstop.
+const bool YY_MAX_ENDSTOP_INVERTING =true; // set to true to invert the logic of the endstop.
+const bool ZZ_MAX_ENDSTOP_INVERTING =true; // set to true to invert the logic of the endstop.
+
+// const bool X_MIN_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+// const bool Y_MIN_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+// const bool Z_MIN_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+// const bool X_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+// const bool Y_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+// const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+// const bool XX_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+// const bool YY_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+// const bool ZZ_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+
+>>>>>>> 3axis-inverse-delta
 //#define DISABLE_MAX_ENDSTOPS
 //#define DISABLE_MIN_ENDSTOPS
 
@@ -390,33 +435,56 @@ const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic 
 #define X_ENABLE_ON 0
 #define Y_ENABLE_ON 0
 #define Z_ENABLE_ON 0
-#define E_ENABLE_ON 0 // For all extruders
+#define XX_ENABLE_ON 0
+#define YY_ENABLE_ON 0
+#define ZZ_ENABLE_ON 0
+
+// #define E_ENABLE_ON 0 // For all extruders
 
 // Disables axis when it's not being used.
 // WARNING: When motors turn off there is a chance of losing position accuracy!
 #define DISABLE_X false
 #define DISABLE_Y false
 #define DISABLE_Z false
+#define DISABLE_XX false
+#define DISABLE_YY false
+#define DISABLE_ZZ false
 
 // @section extruder
 
-#define DISABLE_E false // For all extruders
-#define DISABLE_INACTIVE_EXTRUDER true //disable only inactive extruders and keep active extruder enabled
+// #define DISABLE_E false // For all extruders
+// #define DISABLE_INACTIVE_EXTRUDER true //disable only inactive extruders and keep active extruder enabled
 
 // @section machine
 
 // Invert the stepper direction. Change (or reverse the motor connector) if an axis goes the wrong way.
+<<<<<<< HEAD
 #define INVERT_X_DIR false // DELTA does not invert
 #define INVERT_Y_DIR false
 #define INVERT_Z_DIR false
+=======
+#define INVERT_X_DIR true// DELTA does not invert
+#define INVERT_Y_DIR true
+#define INVERT_Z_DIR true
+#define INVERT_XX_DIR true // DELTA does not invert
+#define INVERT_YY_DIR true
+#define INVERT_ZZ_DIR true
+
+// #define INVERT_X_DIR false// DELTA does not invert
+// #define INVERT_Y_DIR false
+// #define INVERT_Z_DIR false
+// #define INVERT_XX_DIR false// DELTA does not invert
+// #define INVERT_YY_DIR false
+// #define INVERT_ZZ_DIR false
+>>>>>>> 3axis-inverse-delta
 
 // @section extruder
 
 // For direct drive extruder v9 set to true, for geared extruder set to false.
-#define INVERT_E0_DIR false
-#define INVERT_E1_DIR false
-#define INVERT_E2_DIR false
-#define INVERT_E3_DIR false
+// #define INVERT_E0_DIR false
+// #define INVERT_E1_DIR false
+// #define INVERT_E2_DIR false
+// #define INVERT_E3_DIR false
 
 // @section homing
 
@@ -425,6 +493,12 @@ const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic 
 #define X_HOME_DIR 1 // deltas always home to max
 #define Y_HOME_DIR 1
 #define Z_HOME_DIR 1
+<<<<<<< HEAD
+=======
+#define XX_HOME_DIR 1 // deltas always home to max
+#define YY_HOME_DIR 1
+#define ZZ_HOME_DIR 1
+>>>>>>> 3axis-inverse-delta
 
 #define min_software_endstops true // If true, axis won't move to coordinates less than HOME_POS.
 #define max_software_endstops true  // If true, axis won't move to coordinates greater than the defined lengths below.
@@ -433,11 +507,26 @@ const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic 
 
 // Travel limits after homing (units are in mm)
 #define X_MIN_POS -DELTA_PRINTABLE_RADIUS
+<<<<<<< HEAD
 #define Y_MIN_POS -DELTA_PRINTABLE_RADIUS
 #define Z_MIN_POS 0
 #define X_MAX_POS DELTA_PRINTABLE_RADIUS
 #define Y_MAX_POS DELTA_PRINTABLE_RADIUS
 #define Z_MAX_POS MANUAL_Z_HOME_POS
+=======
+#define XX_MIN_POS -DELTA_PRINTABLE_RADIUS
+#define Y_MIN_POS -DELTA_PRINTABLE_RADIUS
+#define YY_MIN_POS -DELTA_PRINTABLE_RADIUS
+#define Z_MIN_POS 0
+#define ZZ_MIN_POS 0
+
+#define X_MAX_POS DELTA_PRINTABLE_RADIUS
+#define XX_MAX_POS DELTA_PRINTABLE_RADIUS
+#define Y_MAX_POS DELTA_PRINTABLE_RADIUS
+#define YY_MAX_POS DELTA_PRINTABLE_RADIUS
+#define Z_MAX_POS MANUAL_Z_HOME_POS
+#define ZZ_MAX_POS MANUAL_Z_HOME_POS
+>>>>>>> 3axis-inverse-delta
 
 //===========================================================================
 //============================= Filament Runout Sensor ======================
@@ -599,7 +688,19 @@ const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic 
 #ifdef MANUAL_HOME_POSITIONS
   #define MANUAL_X_HOME_POS 0
   #define MANUAL_Y_HOME_POS 0
+<<<<<<< HEAD
   #define MANUAL_Z_HOME_POS 250 // For delta: Distance between nozzle and print surface after homing.
+=======
+  #define MANUAL_XX_HOME_POS 0
+  #define MANUAL_YY_HOME_POS 0
+  // #define MANUAL_Z_HOME_POS 250 // For delta: Distance between nozzle and print surface after homing.
+  // #define MANUAL_Z_HOME_POS 372.3//// For delta: Distance between nozzle and print surface after homing.
+  // #define MANUAL_Z_HOME_POS 200//// For delta: Distance between nozzle and print surface after homing.
+  // #define MANUAL_Z_HOME_POS 53//// For delta: Distance between nozzle and print surface after homing.
+  // #define MANUAL_ZZ_HOME_POS 53//// For delta: Distance between nozzle and print surface after homing.
+  #define MANUAL_Z_HOME_POS 200//// For delta: Distance between nozzle and print surface after homing.
+  #define MANUAL_ZZ_HOME_POS MANUAL_Z_HOME_POS//// For delta: Distance between nozzle and print surface after homing.
+>>>>>>> 3axis-inverse-delta
 #endif
 
 // @section movement
@@ -608,23 +709,57 @@ const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic 
  * MOVEMENT SETTINGS
  */
 
-#define HOMING_FEEDRATE {50*60, 50*60, 4*60, 0}  // set the homing speeds (mm/min)
+// #define HOMING_FEEDRATE {50*60, 50*60, 40*60, 0}  // set the homing speeds (mm/min)
+// #define HOMING_FEEDRATE {50*60, 50*60, 100*60, 0}  // set the homing speeds (mm/min)
+// #define HOMING_FEEDRATE {50*60, 50*60, 50*60, 50*60, 50*60, 50*60, 0}  // set the homing speeds (mm/min)
+#define HOMING_FEEDRATE {20*60, 20*60, 20*60, 20*60, 20*60, 20*60, 0}  // set the homing speeds (mm/min)
 
 // default settings
 
+<<<<<<< HEAD
 // default settings
 // delta speeds must be the same on xyz
 #define DEFAULT_AXIS_STEPS_PER_UNIT   {80, 80, 80, 760*1.1}  // default steps per unit for Kossel (GT2, 20 tooth)
 #define DEFAULT_MAX_FEEDRATE          {500, 500, 500, 25}    // (mm/sec)
 #define DEFAULT_MAX_ACCELERATION      {9000,9000,9000,10000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
+=======
+#define XYZ_FULL_STEPS_PER_ROTATION 200
+// #define XYZ_MICROSTEPS 8 
+#define XYZ_MICROSTEPS 16
+#define XYZ_BELT_PITCH 1
+// #define XYZ_PULLEY_TEETH 12
+#define XYZ_PULLEY_TEETH 6
+#define XYZ_STEPS ((XYZ_FULL_STEPS_PER_ROTATION) * (XYZ_MICROSTEPS) / double(XYZ_BELT_PITCH) / double(XYZ_PULLEY_TEETH))
+>>>>>>> 3axis-inverse-delta
 
+// default settings
+// delta speeds must be the same on xyz
+// #define DEFAULT_AXIS_STEPS_PER_UNIT   {XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, 1.1}  // default steps per unit for Kossel (GT2, 20 tooth)
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS}  // default steps per unit for Kossel (GT2, 20 tooth)
+#define DEFAULT_MAX_FEEDRATE          {3000, 3000, 3000, 3000, 3000, 3000, 3000}    // (mm/sec)
+#define DEFAULT_MAX_ACCELERATION      {9000,9000,9000,9000,9000,9000,9000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
+
+// #define DEFAULT_ACCELERATION          300    // X, Y, Z and E acceleration in mm/s^2 for printing moves
+// #define DEFAULT_RETRACT_ACCELERATION  300   // E acceleration in mm/s^2 for retracts
+// #define DEFAULT_TRAVEL_ACCELERATION   300    // X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
+// #define DEFAULT_ACCELERATION          300    // X, Y, Z and E acceleration in mm/s^2 for printing moves
+// #define DEFAULT_RETRACT_ACCELERATION  300   // E acceleration in mm/s^2 for retracts
+// #define DEFAULT_TRAVEL_ACCELERATION   300    // X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
 #define DEFAULT_ACCELERATION          3000    // X, Y, Z and E acceleration in mm/s^2 for printing moves
 #define DEFAULT_RETRACT_ACCELERATION  3000   // E acceleration in mm/s^2 for retracts
 #define DEFAULT_TRAVEL_ACCELERATION   3000    // X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
+// #define DEFAULT_ACCELERATION          6000    // X, Y, Z and E acceleration in mm/s^2 for printing moves
+// #define DEFAULT_RETRACT_ACCELERATION  6000   // E acceleration in mm/s^2 for retracts
+// #define DEFAULT_TRAVEL_ACCELERATION   6000    // X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
 
 // The speed change that does not require acceleration (i.e. the software might assume it can be done instantaneously)
+<<<<<<< HEAD
 #define DEFAULT_XYJERK                20.0    // (mm/sec)
 #define DEFAULT_ZJERK                 20.0    // (mm/sec) Must be same as XY for delta
+=======
+#define DEFAULT_XYJERK                5.0    // (mm/sec)
+#define DEFAULT_ZJERK                 5.0    // (mm/sec) Must be same as XY for delta
+>>>>>>> 3axis-inverse-delta
 #define DEFAULT_EJERK                 5.0    // (mm/sec)
 
 

@@ -205,6 +205,9 @@
 #define INVERT_X_STEP_PIN false
 #define INVERT_Y_STEP_PIN false
 #define INVERT_Z_STEP_PIN false
+#define INVERT_XX_STEP_PIN false
+#define INVERT_YY_STEP_PIN false
+#define INVERT_ZZ_STEP_PIN false
 #define INVERT_E_STEP_PIN false
 
 // Default stepper release if idle. Set to 0 to deactivate.

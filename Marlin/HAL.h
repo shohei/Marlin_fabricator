@@ -47,7 +47,8 @@
 #define     CRITICAL_SECTION_END    if (primask==0) __enable_irq();
 
 // On AVR this is in math.h?
-#define square(x) ((x)*(x))
+// #define square(x) ((x)*(x)) //Confilicted with Eigen
+#define sq(x) ((x)*(x))
 
 #define strncpy_P(dest, src, num) strncpy((dest), (src), (num))
 

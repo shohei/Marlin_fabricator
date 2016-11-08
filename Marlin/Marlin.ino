@@ -33,6 +33,13 @@
 #include "Configuration.h"
 #include "pins.h"
 
+#ifdef ARDUINO_IDE_158
+  #include <Eigen313.h>     // Calls main Eigen matrix class library
+  #include <LU>             // Calls inverse, determinant, LU decomp., etc.
+#else
+  #error "Arduino IDE 1.5.8 not used"  
+#endif
+
 #ifdef ULTRA_LCD
   #if defined(LCD_I2C_TYPE_PCF8575)
     #include <Wire.h>

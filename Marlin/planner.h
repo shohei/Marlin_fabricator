@@ -98,18 +98,23 @@ FORCE_INLINE uint8_t movesplanned() { return BLOCK_MOD(block_buffer_head - block
    * millimeters. Feed rate specifies the (target) speed of the motion.
    */
   void plan_buffer_line(float x, float y, float z, const float &e, float feed_rate, const uint8_t &extruder);
+  void plan_buffer_line3(float x, float y, float z, float xx, float yy, float zz, const float &e, float feed_rate, const uint8_t &extruder, float fraction_time);
 
   /**
    * Set the planner positions. Used for G92 instructions.
    * Multiplies by axis_steps_per_unit[] to set stepper positions.
    * Clears previous speed values.
    */
+  // void plan_set_position(float x, float y, float z, const float &e);
   void plan_set_position(float x, float y, float z, const float &e);
+  void plan_set_position2(float x, float y, float z, float xx, float yy, float zz, const float &e);
 
 #else
 
   void plan_buffer_line(const float &x, const float &y, const float &z, const float &e, float feed_rate, const uint8_t &extruder);
+  void plan_buffer_line3(const float &x, const float &y, const float &z, const float &xx, const float &yy, const float &zz, const float &e, float feed_rate, const uint8_t &extruder, float fraction_time);
   void plan_set_position(const float &x, const float &y, const float &z, const float &e);
+  void plan_set_position2(const float &x, const float &y, const float &z, const float &xx, const float &yy, const float &zz, const float &e);
 
 #endif // ENABLE_AUTO_BED_LEVELING || MESH_BED_LEVELING
 

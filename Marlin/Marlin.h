@@ -18,6 +18,8 @@
 #include "Configuration.h"
 #include "pins.h"
 #include "fsr_sensor.h"
+#include "Preference.h"
+
 
 #ifndef SANITYCHECK_H
   #error Your Configuration.h and Configuration_adv.h files are outdated!
@@ -113,9 +115,13 @@ void manage_inactivity(bool ignore_stepper_queue=false);
 #elif HAS_X_ENABLE
   #define  enable_x() X_ENABLE_WRITE( X_ENABLE_ON)
   #define disable_x() { X_ENABLE_WRITE(!X_ENABLE_ON); axis_known_position[X_AXIS] = false; }
+  #define  enable_xx() XX_ENABLE_WRITE( XX_ENABLE_ON)
+  #define disable_xx() { XX_ENABLE_WRITE(!XX_ENABLE_ON); axis_known_position[XX_AXIS] = false; }
 #else
   #define enable_x() ;
   #define disable_x() ;
+  #define enable_xx() ;
+  #define disable_xx() ;
 #endif
 
 #if HAS_Y_ENABLE
@@ -125,10 +131,14 @@ void manage_inactivity(bool ignore_stepper_queue=false);
   #else
     #define  enable_y() Y_ENABLE_WRITE( Y_ENABLE_ON)
     #define disable_y() { Y_ENABLE_WRITE(!Y_ENABLE_ON); axis_known_position[Y_AXIS] = false; }
+    #define  enable_yy() YY_ENABLE_WRITE( YY_ENABLE_ON)
+    #define disable_yy() { YY_ENABLE_WRITE(!YY_ENABLE_ON); axis_known_position[YY_AXIS] = false; }
   #endif
 #else
   #define enable_y() ;
   #define disable_y() ;
+  #define enable_yy() ;
+  #define disable_yy() ;
 #endif
 
 #if HAS_Z_ENABLE
@@ -138,48 +148,54 @@ void manage_inactivity(bool ignore_stepper_queue=false);
   #else
     #define  enable_z() Z_ENABLE_WRITE( Z_ENABLE_ON)
     #define disable_z() { Z_ENABLE_WRITE(!Z_ENABLE_ON); axis_known_position[Z_AXIS] = false; }
+    #define  enable_zz() ZZ_ENABLE_WRITE( ZZ_ENABLE_ON)
+    #define disable_zz() { ZZ_ENABLE_WRITE(!ZZ_ENABLE_ON); axis_known_position[ZZ_AXIS] = false; }
   #endif
 #else
   #define enable_z() ;
   #define disable_z() ;
+  #define enable_zz() ;
+  #define disable_zz() ;
 #endif
 
-#if HAS_E0_ENABLE
-  #define enable_e0()  E0_ENABLE_WRITE( E_ENABLE_ON)
-  #define disable_e0() E0_ENABLE_WRITE(!E_ENABLE_ON)
-#else
-  #define enable_e0()  /* nothing */
-  #define disable_e0() /* nothing */
-#endif
+// #if HAS_E0_ENABLE
+//   #define enable_e0()  E0_ENABLE_WRITE( E_ENABLE_ON)
+//   #define disable_e0() E0_ENABLE_WRITE(!E_ENABLE_ON)
+// #else
+//   #define enable_e0()  /* nothing */
+//   #define disable_e0() /* nothing */
+// #endif
 
-#if (EXTRUDERS > 1) && HAS_E1_ENABLE
-  #define enable_e1()  E1_ENABLE_WRITE( E_ENABLE_ON)
-  #define disable_e1() E1_ENABLE_WRITE(!E_ENABLE_ON)
-#else
-  #define enable_e1()  /* nothing */
-  #define disable_e1() /* nothing */
-#endif
+// #if (EXTRUDERS > 1) && HAS_E1_ENABLE
+//   #define enable_e1()  E1_ENABLE_WRITE( E_ENABLE_ON)
+//   #define disable_e1() E1_ENABLE_WRITE(!E_ENABLE_ON)
+// #else
+//   #define enable_e1()  /* nothing */
+//   #define disable_e1() /* nothing */
+// #endif
 
-#if (EXTRUDERS > 2) && HAS_E2_ENABLE
-  #define enable_e2()  E2_ENABLE_WRITE( E_ENABLE_ON)
-  #define disable_e2() E2_ENABLE_WRITE(!E_ENABLE_ON)
-#else
-  #define enable_e2()  /* nothing */
-  #define disable_e2() /* nothing */
-#endif
+// #if (EXTRUDERS > 2) && HAS_E2_ENABLE
+//   #define enable_e2()  E2_ENABLE_WRITE( E_ENABLE_ON)
+//   #define disable_e2() E2_ENABLE_WRITE(!E_ENABLE_ON)
+// #else
+//   #define enable_e2()  /* nothing */
+//   #define disable_e2() /* nothing */
+// #endif
 
-#if (EXTRUDERS > 3) && HAS_E3_ENABLE
-  #define enable_e3()  E3_ENABLE_WRITE( E_ENABLE_ON)
-  #define disable_e3() E3_ENABLE_WRITE(!E_ENABLE_ON)
-#else
-  #define enable_e3()  /* nothing */
-  #define disable_e3() /* nothing */
-#endif
+// #if (EXTRUDERS > 3) && HAS_E3_ENABLE
+//   #define enable_e3()  E3_ENABLE_WRITE( E_ENABLE_ON)
+//   #define disable_e3() E3_ENABLE_WRITE(!E_ENABLE_ON)
+// #else
+//   #define enable_e3()  /* nothing */
+//   #define disable_e3() /* nothing */
+// #endif
 
 /**
  * The axis order in all axis related arrays is X, Y, Z, E
  */
-#define NUM_AXIS 4
+//DO NOT CHANGE NUM_AXIS. OTHERWISE IT HANGS IN THE plan_buffer_line.
+// #define NUM_AXIS 4
+#define NUM_AXIS 7
 
 /**
  * Axis indices as enumerated constants
@@ -187,9 +203,14 @@ void manage_inactivity(bool ignore_stepper_queue=false);
  * A_AXIS and B_AXIS are used by COREXY printers
  * X_HEAD and Y_HEAD is used for systems that don't have a 1:1 relationship between X_AXIS and X Head movement, like CoreXY bots.
  */
-enum AxisEnum {X_AXIS=0, A_AXIS=0, Y_AXIS=1, B_AXIS=1, Z_AXIS=2, C_AXIS=2, E_AXIS=3, X_HEAD=4, Y_HEAD=5, Z_HEAD=5};
+// enum AxisEnum {X_AXIS=0, A_AXIS=0, XX_AXIS=0, Y_AXIS=1, B_AXIS=1, YY_AXIS=1, Z_AXIS=2, C_AXIS=2, ZZ_AXIS=2, E_AXIS=3, X_HEAD=4, Y_HEAD=5, Z_HEAD=6};
+// enum AxisEnum {X_AXIS=0, A_AXIS=0, Y_AXIS=1, B_AXIS=1, Z_AXIS=2, C_AXIS=2, E_AXIS=3, XX_AXIS=4, X_HEAD=4, YY_AXIS=5, Y_HEAD=5, ZZ_AXIS=6, Z_HEAD=6};
+enum AxisEnum {X_AXIS=0, A_AXIS=0, Y_AXIS=1, B_AXIS=1, Z_AXIS=2, C_AXIS=2, XX_AXIS=3, X_HEAD=3, YY_AXIS=4, Y_HEAD=4, ZZ_AXIS=5, Z_HEAD=5, E_AXIS=6};
 
-enum EndstopEnum {X_MIN=0, Y_MIN=1, Z_MIN=2, Z_PROBE=3, X_MAX=4, Y_MAX=5, Z_MAX=6, Z2_MIN=7, Z2_MAX=8};
+// enum EndstopEnum {X_MIN=0, Y_MIN=1, Z_MIN=2, Z_PROBE=3, X_MAX=4, Y_MAX=5, Z_MAX=6, Z2_MIN=7, Z2_MAX=8};
+// enum EndstopEnum {XX_MAX=0, YY_MAX=1, ZZ_MAX=2, Z_PROBE=3, X_MAX=4, Y_MAX=5, Z_MAX=6, Z2_MIN=7, Z2_MAX=8};
+enum EndstopEnum {X_MIN=0, Y_MIN=1, Z_MIN=2, XX_MIN=3, YY_MIN=4, ZZ_MIN=5, Z_PROBE=6, X_MAX=7, Y_MAX=8, Z_MAX=9, XX_MAX=10, YY_MAX=11, ZZ_MAX=12, Z2_MIN=12, Z2_MAX=13 };
+// enum EndstopEnum {X_MAX=0, Y_MAX=1, Z_MAX=2, XX_MAX=3, YY_MAX=4, ZZ_MAX=5, Z2_MAX=6, X_MIN=7, Y_MIN=8, Z_MIN=9, XX_MIN=10, YY_MIN=11, ZZ_MIN=12, Z_PROBE=13 };
 
 void enable_all_steppers();
 void disable_all_steppers();
@@ -227,6 +248,7 @@ void enqueuecommands_P(const char *cmd); //put one or many ASCII commands at the
 
 void prepare_arc_move(char isclockwise);
 void clamp_to_software_endstops(float target[3]);
+void clamp_to_software_endstops2(float target[NUM_AXIS]);
 
 extern millis_t previous_cmd_ms;
 inline void refresh_cmd_timeout() { previous_cmd_ms = millis(); }
@@ -243,27 +265,38 @@ inline void refresh_cmd_timeout() { previous_cmd_ms = millis(); }
 extern bool axis_relative_modes[];
 extern int feedrate_multiplier;
 extern bool volumetric_enabled;
-extern int extruder_multiplier[EXTRUDERS]; // sets extrude multiply factor (in percent) for each extruder individually
-extern float filament_size[EXTRUDERS]; // cross-sectional area of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the extruder.
-extern float volumetric_multiplier[EXTRUDERS]; // reciprocal of cross-sectional area of filament (in square millimeters), stored this way to reduce computational burden in planner
-extern float current_position[NUM_AXIS];
-extern float home_offset[3]; // axis[n].home_offset
-extern float min_pos[3]; // axis[n].min_pos
-extern float max_pos[3]; // axis[n].max_pos
-extern bool axis_known_position[3]; // axis[n].is_known
+// extern int extruder_multiplier[EXTRUDERS]; // sets extrude multiply factor (in percent) for each extruder individually
+// extern float filament_size[EXTRUDERS]; // cross-sectional area of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the extruder.
+// extern float volumetric_multiplier[EXTRUDERS]; // reciprocal of cross-sectional area of filament (in square millimeters), stored this way to reduce computational burden in planner
+// extern float current_position[NUM_AXIS];
+extern float current_position[4]; //X,Y,Z,E
+// extern float home_offset[3]; // axis[n].home_offset
+// extern float min_pos[3]; // axis[n].min_pos
+// extern float max_pos[3]; // axis[n].max_pos
+// extern bool axis_known_position[3]; // axis[n].is_known
+extern float home_offset[6]; // axis[n].home_offset
+extern float min_pos[6]; // axis[n].min_pos
+extern float max_pos[6]; // axis[n].max_pos
+extern bool axis_known_position[6]; // axis[n].is_known
 
 #if defined(DELTA) || defined(SCARA)
   void calculate_delta(float cartesian[3]);
+  void calculate_delta2(float cartesian[3]);
+  void calculate_delta3(float cartesian[3], float phi, float theta, float psi);
   #ifdef DELTA
-    extern float delta[3];
-    extern float endstop_adj[3]; // axis[n].endstop_adj
+    // extern float delta[3];
+    // extern float endstop_adj[3]; // axis[n].endstop_adj
+    extern float delta[6];
+    extern float endstop_adj[6]; // axis[n].endstop_adj
     extern float delta_radius;
     extern float delta_diagonal_rod;
     extern float delta_segments_per_second;
     void recalc_delta_settings(float radius, float diagonal_rod);
     #ifdef ENABLE_AUTO_BED_LEVELING
       extern int delta_grid_spacing[2];
-      void adjust_delta(float cartesian[3]);
+      // void adjust_delta(float cartesian[3]);
+      // void adjust_delta(float cartesian[6]);
+      void adjust_delta(float cartesian[NUM_AXIS]);
     #endif
   #elif defined(SCARA)
     extern float axis_scaling[3];  // Build size scaling
@@ -323,5 +356,6 @@ extern uint8_t active_extruder;
 #endif
 
 extern void calculate_volumetric_multipliers();
+
 
 #endif //MARLIN_H

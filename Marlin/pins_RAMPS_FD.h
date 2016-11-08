@@ -20,32 +20,47 @@
 #define X_STEP_PIN         63
 #define X_DIR_PIN          62
 #define X_ENABLE_PIN       48
-#define X_MIN_PIN          22
+// #define X_MIN_PIN          22
 #define X_MAX_PIN          30
 
 #define Y_STEP_PIN         65
 #define Y_DIR_PIN          64
 #define Y_ENABLE_PIN       46
-#define Y_MIN_PIN          24
+// #define Y_MIN_PIN          24
 #define Y_MAX_PIN          38
 
 #define Z_STEP_PIN         67
 #define Z_DIR_PIN          66
 #define Z_ENABLE_PIN       44
-#define Z_MIN_PIN          26
+// #define Z_MIN_PIN          26
 #define Z_MAX_PIN          34
 
-#define E0_STEP_PIN        36
-#define E0_DIR_PIN         28
-#define E0_ENABLE_PIN      42
+// #define E0_STEP_PIN        36
+// #define E0_DIR_PIN         28
+// #define E0_ENABLE_PIN      42
 
-#define E1_STEP_PIN        43
-#define E1_DIR_PIN         41
-#define E1_ENABLE_PIN      39
+// #define E1_STEP_PIN        43
+// #define E1_DIR_PIN         41
+// #define E1_ENABLE_PIN      39
 
-#define E2_STEP_PIN        32
-#define E2_DIR_PIN         47
-#define E2_ENABLE_PIN      45
+// #define E2_STEP_PIN        32
+// #define E2_DIR_PIN         47
+// #define E2_ENABLE_PIN      45
+
+#define XX_STEP_PIN        36
+#define XX_DIR_PIN         28
+#define XX_ENABLE_PIN      42
+#define XX_MAX_PIN          22
+
+#define YY_STEP_PIN        43
+#define YY_DIR_PIN         41
+#define YY_ENABLE_PIN      39
+#define YY_MAX_PIN          24
+
+#define ZZ_STEP_PIN        32
+#define ZZ_DIR_PIN         47
+#define ZZ_ENABLE_PIN      45
+#define ZZ_MAX_PIN          26
 
 #define SDPOWER            -1
 #define SDSS               4
