@@ -1222,7 +1222,7 @@ inline void sync_plan_position() {
   plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
 }
 inline void sync_plan_position2() {
-  plan_set_position2(current_position_delta[X_AXIS], current_position_delta[Y_AXIS], current_position_delta[Z_AXIS], current_position_delta[XX_AXIS], current_position_delta[YY_AXIS], current_position_delta[ZZ_AXIS], current_position[E_AXIS]);
+  plan_set_position_6axes(current_position_delta[X_AXIS], current_position_delta[Y_AXIS], current_position_delta[Z_AXIS], current_position_delta[XX_AXIS], current_position_delta[YY_AXIS], current_position_delta[ZZ_AXIS], current_position[E_AXIS]);
 }
 #if defined(DELTA) || defined(SCARA)
   inline void sync_plan_position_delta() {
@@ -1232,7 +1232,7 @@ inline void sync_plan_position2() {
   inline void sync_plan_position_delta2() {
     // calculate_delta2(current_position_delta);
     calculate_delta2(destination);
-    plan_set_position2(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], delta[XX_AXIS], delta[YY_AXIS], delta[ZZ_AXIS], current_position_delta[E_AXIS]);
+    plan_set_position_6axes(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], delta[XX_AXIS], delta[YY_AXIS], delta[ZZ_AXIS], current_position_delta[E_AXIS]);
   }
 #endif
   inline void set_current_to_destination() { memcpy(current_position, destination, sizeof(current_position)); }

@@ -1629,9 +1629,9 @@ float junction_deviation = 0.1;
   }
 
 #if defined(ENABLE_AUTO_BED_LEVELING) || defined(MESH_BED_LEVELING)
-  void plan_set_position2(float x, float y, float z, float xx, float yy, float zz, const float &e)
+  void plan_set_position_6axes(float x, float y, float z, float xx, float yy, float zz, const float &e)
 #else
-  void plan_set_position2(const float &x, const float &y, const float &z, const float &xx, const float &yy, const float &zz, const float &e)
+  void plan_set_position_6axes(const float &x, const float &y, const float &z, const float &xx, const float &yy, const float &zz, const float &e)
 #endif // ENABLE_AUTO_BED_LEVELING || MESH_BED_LEVELING
   {
     #ifdef MESH_BED_LEVELING
