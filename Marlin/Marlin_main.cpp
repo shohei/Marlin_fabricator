@@ -2074,6 +2074,27 @@ inline void gcode_G4() {
   while (millis() < codenum) idle();
 }
 
+/**
+ * G5: Rotation of tool wheel 
+ */
+inline void gcode_G5() {
+  if (IsRunning()) {
+    toolwheel_get_destination(); // For C1 C2 C3 
+    prepare_move_toolwheel();
+  }
+}
+
+/**
+ * G6: Coordinated rotation of C1 C2 C3 axes (chip mounter)
+ */
+inline void gcode_G6() {
+  if (IsRunning()) {
+    mounter_get_destination(); // For C1 C2 C3 
+    prepare_move_mounter();
+  }
+}
+
+
 #ifdef FWRETRACT
 
   /**
