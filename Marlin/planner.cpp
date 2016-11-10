@@ -98,8 +98,11 @@ unsigned long axis_steps_per_sqr_second[NUM_AXIS];
 //===========================================================================
 
 block_t block_buffer[BLOCK_BUFFER_SIZE];            // A ring buffer for motion instfructions
+block_t block_buffer_mounter[BLOCK_BUFFER_SIZE];            // A ring buffer for motion instfructions
 volatile unsigned char block_buffer_head;           // Index of the next block to be pushed
 volatile unsigned char block_buffer_tail;           // Index of the block to process now
+volatile unsigned char block_buffer_head_mounter;           // Index of the next block to be pushed
+volatile unsigned char block_buffer_tail_mounter;           // Index of the block to process now
 
 //===========================================================================
 //============================ private variables ============================
@@ -107,8 +110,11 @@ volatile unsigned char block_buffer_tail;           // Index of the block to pro
 
 // The current position of the tool in absolute steps
 long position[NUM_AXIS];               // Rescaled from extern when axis_steps_per_unit are changed by gcode
+long position_mounter[3];               
 static float previous_speed[NUM_AXIS]; // Speed of previous path line segment
+static float previous_speed_mounter[3]; // Speed of previous path line segment
 static float previous_nominal_speed;   // Nominal speed of previous path line segment
+static float previous_nominal_speed_mounter;   // Nominal speed of previous path line segment
 
 unsigned char g_uc_extruder_last_move[4] = {0,0,0,0};
 
@@ -1024,6 +1030,193 @@ float junction_deviation = 0.1;
 } // plan_buffer_line()
 
 
+void plan_buffer_line_mounter(const float &c1, const float &c2, const float &c3, float feed_rate, float c1_seconds, float c2_seconds, float c3_seconds)
+{
+  // Calculate the buffer head after we push this byte
+  int next_buffer_head_mounter = next_block_index(block_buffer_head_mounter);
+
+  // If the buffer is full: good! That means we are well ahead of the robot. 
+  // Rest here until there is room in the buffer.
+  while (block_buffer_tail_mounter == next_buffer_head_mounter) idle();
+
+  // The target position of the tool in absolute steps
+  // Calculate target position in absolute steps
+  //this should be done after the wait, because otherwise a M92 code within the gcode disrupts this calculation somehow
+  long target[3];
+  target[C1_AXIS] = lround(c1 * axis_steps_per_unit[C1_AXIS]);
+  target[C2_AXIS] = lround(c2 * axis_steps_per_unit[C2_AXIS]);
+  target[C3_AXIS] = lround(c3 * axis_steps_per_unit[C3_AXIS]);     
+
+  float dc1 = target[C1_AXIS] - position[C1_AXIS],
+        dc2 = target[C2_AXIS] - position[C2_AXIS],
+        dc3 = target[C3_AXIS] - position[C3_AXIS];
+
+  // Prepare to set up new block
+  block_t *block = &block_buffer_mounter[block_buffer_head_mounter];
+
+  // Mark block as not busy (Not executed by the stepper interrupt)
+  block->busy = false;
+
+  block->steps[C1_AXIS] = labs(dc1);
+  block->steps[C2_AXIS] = labs(dc2);
+  block->steps[C3_AXIS] = labs(dc3);
+
+  block->step_event_count = max(block->steps[C1_AXIS], max(block->steps[C2_AXIS], block->steps[C3_AXIS]));
+
+  // Bail if this is a zero-length block
+  if (block->step_event_count <= dropsegments) return;
+
+  // Compute direction bits for this block 
+  uint8_t db = 0;
+  if (dc1 < 0) db |= BIT(X_AXIS);
+  if (dc2 < 0) db |= BIT(Y_AXIS); 
+  if (dc3 < 0) db |= BIT(Z_AXIS);
+  block->direction_bits = db;
+
+  if (block->steps[C1_AXIS]) {
+    enable_c1();
+  }
+  if (block->steps[C2_AXIS]) {
+    enable_c2();
+  }
+  if (block->steps[C3_AXIS]) {
+    enable_c3();
+  }
+
+  NOLESS(feed_rate, mintravelfeedrate);
+
+  float delta_mm[3];
+  delta_mm[C1_AXIS] = dc1 / axis_steps_per_unit[X_AXIS];
+  delta_mm[C2_AXIS] = dc2 / axis_steps_per_unit[Y_AXIS];
+  delta_mm[C3_AXIS] = dc3 / axis_steps_per_unit[Z_AXIS];
+
+  if (block->steps[X_AXIS] <= dropsegments && block->steps[Y_AXIS] <= dropsegments && block->steps[Z_AXIS] <= dropsegments && block->steps[XX_AXIS] <= dropsegments && block->steps[YY_AXIS] <= dropsegments && block->steps[ZZ_AXIS] <= dropsegments) {
+    block->millimeters = fabs(delta_mm[E_AXIS]);
+  } 
+  else {
+    block->millimeters = sqrt(
+        square(delta_mm[C1_AXIS]) + square(delta_mm[C2_AXIS]) + square(delta_mm[C3_AXIS]) 
+    );
+  }
+  float inverse_millimeters = 1.0 / block->millimeters;  // Inverse millimeters to remove multiple divides 
+
+  // Calculate speed in mm/second for each axis. No divide by zero due to previous checks.
+  // float inverse_second = feed_rate * inverse_millimeters;
+  float inverse_second = 1.0 / c1_seconds;
+
+  int moves_queued = movesplanned();
+
+  // Slow down when the buffer starts to empty, rather than wait at the corner for a buffer refill
+  #if defined(OLD_SLOWDOWN) || defined(SLOWDOWN)
+    bool mq = moves_queued > 1 && moves_queued < BLOCK_BUFFER_SIZE / 2;
+    #ifdef OLD_SLOWDOWN
+      if (mq) feed_rate *= 2.0 * moves_queued / BLOCK_BUFFER_SIZE;
+    #endif
+    #ifdef SLOWDOWN
+      //  segment time im micro seconds
+      unsigned long segment_time = lround(1000000.0/inverse_second);
+      if (mq) {
+        if (segment_time < minsegmenttime) {
+          // buffer is draining, add extra time.  The amount of time added increases if the buffer is still emptied more.
+          inverse_second = 1000000.0 / (segment_time + lround(2 * (minsegmenttime - segment_time) / moves_queued));
+        }
+      }
+    #endif
+  #endif
+
+  block->nominal_speed = block->millimeters * inverse_second; // (mm/sec) Always > 0
+  block->nominal_rate = ceil(block->step_event_count * inverse_second); // (step/sec) Always > 0
+  // block->nominal_rate = ceil(block->step_event_count / fraction_time); // (step/sec) Always > 0
+
+  // Calculate and limit speed in mm/sec for each axis
+  float current_speed[3];
+  float speed_factor = 1.0; //factor <=1 do decrease speed
+  for (int i = 0; i < 3; i++) {
+    current_speed[i] = delta_mm[i] * inverse_second;
+    float cs = fabs(current_speed[i]), mf = max_feedrate[i];
+    if (cs > mf) speed_factor = min(speed_factor, mf / cs);
+  }
+
+  // Correct the speed  
+  if (speed_factor < 1.0) {
+    for (unsigned char i = 0; i < 3; i++) current_speed[i] *= speed_factor;
+    block->nominal_speed *= speed_factor;
+    block->nominal_rate *= speed_factor;
+  }
+
+  // Compute and limit the acceleration rate for the trapezoid generator.  
+  float steps_per_mm = block->step_event_count / block->millimeters;
+  long bsc1 = block->steps[C1_AXIS], bsc2 = block->steps[C2_AXIS], bsc3 = block->steps[C3_AXIS];
+  if (bsc1 == 0 && bsc2 == 0 && bsc3 == 0) {
+    block->acceleration_st = ceil(retract_acceleration * steps_per_mm); // convert to: acceleration steps/sec^2
+  }
+  else {
+    block->acceleration_st = ceil(acceleration * steps_per_mm); // convert to: acceleration steps/sec^2
+  }
+  // Limit acceleration per axis
+  unsigned long acc_st = block->acceleration_st,
+                c1steps = axis_steps_per_sqr_second[C1_AXIS],
+                c2steps = axis_steps_per_sqr_second[C2_AXIS],
+                c3steps = axis_steps_per_sqr_second[C3_AXIS];
+  if ((float)acc_st * bsc1 / block->step_event_count > c1steps) acc_st = c1steps;
+  if ((float)acc_st * bsc2 / block->step_event_count > c2steps) acc_st = c2steps;
+  if ((float)acc_st * bsc3 / block->step_event_count > c3steps) acc_st = c3steps;
+ 
+  block->acceleration_st = acc_st;
+  block->acceleration = acc_st / steps_per_mm;
+  block->acceleration_rate = (long)(acc_st * ( 4294967296.0 / HAL_TIMER_RATE));
+  
+  // Start with a safe speed
+  float vmax_junction = max_xy_jerk / 2;
+  float vmax_junction_factor = 1.0; 
+  float mz2 = max_z_jerk / 2, me2 = max_e_jerk / 2;
+  float csz = current_speed[Z_AXIS], cse = current_speed[E_AXIS];
+  if (fabs(csz) > mz2) vmax_junction = min(vmax_junction, mz2);
+  if (fabs(cse) > me2) vmax_junction = min(vmax_junction, me2);
+  vmax_junction = min(vmax_junction, block->nominal_speed);
+  float safe_speed = vmax_junction;
+
+  if ((moves_queued > 1) && (previous_nominal_speed > 0.0001)) {
+    float dc1 = current_speed[C1_AXIS] - previous_speed[C1_AXIS],
+          dc2 = current_speed[C2_AXIS] - previous_speed[C2_AXIS],
+          dc3 = current_speed[C3_AXIS] - previous_speed[C3_AXIS],
+          jerk = sqrt(dc1*dc1 + dc2*dc2 + dc3*dc3); //??????????
+
+    //    if ((fabs(previous_speed[X_AXIS]) > 0.0001) || (fabs(previous_speed[Y_AXIS]) > 0.0001)) {
+    vmax_junction = block->nominal_speed;
+    //    }
+    if (jerk > max_xy_jerk) vmax_junction_factor = max_xy_jerk / jerk;
+
+    vmax_junction = min(previous_nominal_speed, vmax_junction * vmax_junction_factor); // Limit speed to max previous speed
+  }
+  block->max_entry_speed = vmax_junction;
+
+  // Initialize block entry speed. Compute based on deceleration to user-defined MINIMUM_PLANNER_SPEED.
+  double v_allowable = max_allowable_speed(-block->acceleration, MINIMUM_PLANNER_SPEED, block->millimeters);
+  block->entry_speed = min(vmax_junction, v_allowable);
+
+  block->nominal_length_flag = (block->nominal_speed <= v_allowable); 
+  block->recalculate_flag = true; // Always calculate trapezoid for new block
+
+  // Update previous path unit_vector and nominal speed
+  for (int i = 0; i < 3; i++) previous_speed_mounter[i] = current_speed[i];
+  previous_nominal_speed_mounter = block->nominal_speed;
+
+  calculate_trapezoid_for_block(block, block->entry_speed / block->nominal_speed, safe_speed / block->nominal_speed);
+
+  // Move buffer head
+  block_buffer_head_mounter = next_buffer_head_mounter;
+
+  // Update position
+  for (int i = 0; i < 3; i++) position_mounter[i] = target[i];
+
+  planner_recalculate();
+
+  st_wake_up();
+
+} // plan_buffer_line_mounter() 
+
+
 #if defined(ENABLE_AUTO_BED_LEVELING) || defined(MESH_BED_LEVELING)
   void plan_buffer_line_6axes(float x, float y, float z, float xx, float yy, float zz, const float &e, float feed_rate, const uint8_t &extruder, float fraction_time)
 #else
@@ -1589,7 +1782,6 @@ float junction_deviation = 0.1;
   st_wake_up();
 
 } // plan_buffer_line_6axes() 
-
 
 #if defined(ENABLE_AUTO_BED_LEVELING) && !defined(DELTA)
   vector_3 plan_get_position() {

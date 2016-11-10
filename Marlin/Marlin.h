@@ -215,6 +215,7 @@ void manage_inactivity(bool ignore_stepper_queue=false);
 // enum AxisEnum {X_AXIS=0, A_AXIS=0, XX_AXIS=0, Y_AXIS=1, B_AXIS=1, YY_AXIS=1, Z_AXIS=2, C_AXIS=2, ZZ_AXIS=2, E_AXIS=3, X_HEAD=4, Y_HEAD=5, Z_HEAD=6};
 // enum AxisEnum {X_AXIS=0, A_AXIS=0, Y_AXIS=1, B_AXIS=1, Z_AXIS=2, C_AXIS=2, E_AXIS=3, XX_AXIS=4, X_HEAD=4, YY_AXIS=5, Y_HEAD=5, ZZ_AXIS=6, Z_HEAD=6};
 enum AxisEnum {X_AXIS=0, A_AXIS=0, Y_AXIS=1, B_AXIS=1, Z_AXIS=2, C_AXIS=2, XX_AXIS=3, X_HEAD=3, YY_AXIS=4, Y_HEAD=4, ZZ_AXIS=5, Z_HEAD=5, E_AXIS=6};
+enum AuxiliaryAxisEnum {C1_AXIS=0, C2_AXIS=1, C3_AXIS=2, W_AXIS=3};
 
 // enum EndstopEnum {X_MIN=0, Y_MIN=1, Z_MIN=2, Z_PROBE=3, X_MAX=4, Y_MAX=5, Z_MAX=6, Z2_MIN=7, Z2_MAX=8};
 // enum EndstopEnum {XX_MAX=0, YY_MAX=1, ZZ_MAX=2, Z_PROBE=3, X_MAX=4, Y_MAX=5, Z_MAX=6, Z2_MIN=7, Z2_MAX=8};
@@ -229,6 +230,8 @@ void ok_to_send();
 
 void reset_bed_level();
 void prepare_move();
+void prepare_move_mounter(float target[3]);
+void prepare_move_toolwheel();
 void kill(const char *);
 void Stop();
 
