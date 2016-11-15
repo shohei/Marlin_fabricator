@@ -45,7 +45,8 @@ block_t *current_block;  // A pointer to the block currently being traced
 //static makes it impossible to be called from outside of this file by extern.!
 
 // Variables used by The Stepper Driver Interrupt
-static unsigned char out_bits = 0;        // The next stepping-bits to be output
+// static unsigned char out_bits = 0;        // The next stepping-bits to be output
+static uint16_t out_bits = 0;        // The next stepping-bits to be output
 static unsigned int cleaning_buffer_counter;
 
 #ifdef Z_DUAL_ENDSTOPS
@@ -55,7 +56,7 @@ static unsigned int cleaning_buffer_counter;
 #endif
 
 // Counter variables for the Bresenham line tracer
-static long counter_x, counter_y, counter_z, counter_xx, counter_yy, counter_zz, counter_e;
+static long counter_x, counter_y, counter_z, counter_xx, counter_yy, counter_zz, counter_e, counter_t, counter_u, counter_v, counter_w;
 volatile static unsigned long step_events_completed; // The number of step events executed in the current block
 
 #ifdef ADVANCE
@@ -163,6 +164,14 @@ volatile signed char count_direction[NUM_AXIS] = { 1, 1, 1, 1, 1, 1, 1 };
   #define ZZ_APPLY_STEP(v,Q) ZZ_STEP_WRITE(v)
 // #endif
 
+  #define T_APPLY_DIR(v,Q) T_DIR_WRITE(v)
+  #define T_APPLY_STEP(v,Q) T_STEP_WRITE(v)
+  #define U_APPLY_DIR(v,Q) U_DIR_WRITE(v)
+  #define U_APPLY_STEP(v,Q) U_STEP_WRITE(v)
+  #define V_APPLY_DIR(v,Q) V_DIR_WRITE(v)
+  #define V_APPLY_STEP(v,Q) V_STEP_WRITE(v)
+  #define W_APPLY_DIR(v,Q) W_DIR_WRITE(v)
+  #define W_APPLY_STEP(v,Q) W_STEP_WRITE(v)
 // #define E_APPLY_STEP(v,Q) E_STEP_WRITE(v)
 
 // intRes = intIn1 * intIn2 >> 16
@@ -580,6 +589,42 @@ void set_stepper_direction() {
       count_direction[E_AXIS] = 1;
     }
   #endif //!ADVANCE
+
+  if (TEST(out_bits, T_AXIS)) { 
+    T_APPLY_DIR(INVERT_T_DIR, 0);
+    count_direction[T_AXIS] = -1;
+  }
+  else {
+    T_APPLY_DIR(!INVERT_T_DIR, 0);
+    count_direction[T_AXIS] = 1;
+  }
+
+  if (TEST(out_bits, U_AXIS)) { 
+    U_APPLY_DIR(INVERT_U_DIR, 0);
+    count_direction[U_AXIS] = -1;
+  }
+  else {
+    U_APPLY_DIR(!INVERT_U_DIR, 0);
+    count_direction[U_AXIS] = 1;
+  }
+
+  if (TEST(out_bits, V_AXIS)) { 
+    V_APPLY_DIR(INVERT_V_DIR, 0);
+    count_direction[V_AXIS] = -1;
+  }
+  else {
+    V_APPLY_DIR(!INVERT_V_DIR, 0);
+    count_direction[V_AXIS] = 1;
+  }
+
+  if (TEST(out_bits, W_AXIS)) { 
+    W_APPLY_DIR(INVERT_W_DIR, 0);
+    count_direction[W_AXIS] = -1;
+  }
+  else {
+    W_APPLY_DIR(!INVERT_W_DIR, 0);
+    count_direction[W_AXIS] = 1;
+  }
 }
 
 // Initializes the trapezoid generator from the current block. Called whenever a new
@@ -658,7 +703,7 @@ HAL_STEP_TIMER_ISR {
       current_block->busy = true;
       trapezoid_generator_reset();//call set_stepper_direction() 
       counter_x = -(current_block->step_event_count >> 1);
-      counter_xx = counter_y = counter_z = counter_yy = counter_zz = counter_e = counter_x;
+      counter_xx = counter_y = counter_z = counter_yy = counter_zz = counter_e = counter_t = counter_u = counter_v = counter_w = counter_x;
       step_events_completed = 0;
 
       #ifdef Z_LATE_ENABLE
@@ -739,6 +784,10 @@ HAL_STEP_TIMER_ISR {
       STEP_START(xx,XX);
       STEP_START(yy,YY);
       STEP_START(zz,ZZ);
+      STEP_START(t,T);
+      STEP_START(u,U);
+      STEP_START(v,V);
+      STEP_START(w,W);
       // #ifndef ADVANCE
       //   STEP_START(e,E);
       // #endif
@@ -810,6 +859,10 @@ HAL_STEP_TIMER_ISR {
       STEP_END(xx, XX);
       STEP_END(yy, YY);
       STEP_END(zz, ZZ);
+      STEP_END(t, T);
+      STEP_END(u, U);
+      STEP_END(v, V);
+      STEP_END(w, W);
     //   #ifndef ADVANCE
     //     STEP_END(e, E);
     //   #endif
@@ -951,14 +1004,14 @@ void st_init() {
   #if HAS_E3_DIR
     E3_DIR_INIT;
   #endif
-  #if HAS_C1_DIR
-    C1_DIR_INIT;
+  #if HAS_T_DIR
+    T_DIR_INIT;
   #endif
-  #if HAS_C2_DIR
-    C2_DIR_INIT;
+  #if HAS_U_DIR
+    U_DIR_INIT;
   #endif
-  #if HAS_C3_DIR
-    C3_DIR_INIT;
+  #if HAS_V_DIR
+    V_DIR_INIT;
   #endif
   #if HAS_W_DIR
     W_DIR_INIT;
@@ -1124,14 +1177,14 @@ void st_init() {
   #if HAS_ZZ_STEP
     AXIS_INIT(zz, ZZ, ZZ);
   #endif
-  #if HAS_C1_STEP
-    AXIS_INIT(c1, C1, C1);
+  #if HAS_T_STEP
+    AXIS_INIT(t, T, T);
   #endif
-  #if HAS_C2_STEP
-    AXIS_INIT(c2, C2, C2);
+  #if HAS_U_STEP
+    AXIS_INIT(u, U, U);
   #endif
-  #if HAS_C3_STEP
-    AXIS_INlT(c3, C3, C3);
+  #if HAS_V_STEP
+    AXIS_INlT(v, V, V);
   #endif
   #if HAS_W_STEP
     AXIS_INlT(w, W, W);

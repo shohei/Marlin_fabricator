@@ -242,14 +242,9 @@ uint8_t marlin_debug_flags = DEBUG_INFO|DEBUG_ERRORS;
 static float feedrate = 1500.0, saved_feedrate;
 static float feedrate_mounter = 1000.0;
 static float feedrate_toolwheel = 1000.0;
-float current_position[4] = { 0.0 };//X,Y,Z,E
+float current_position[NUM_AXIS] = { 0.0 };//X,Y,Z,E,T,U,V,W,I,J,K
 float current_position_delta[6] = { 0.0 };//X,XX,Y,YY,Z,ZZ
-float mounter_current_position[3] = { 0.0 };//C1,C2,C3
-float toolwheel_current_position = 0.0;//W
-static float destination[4] = { 0.0 };//X,Y,Z,E
-static float mounter_destination[3] = { 0.0 };//C1,C2,C3
-static float toolwheel_destination = 0.0;//W
-// bool axis_known_position[3] = { false };
+static float destination[NUM_AXIS] = { 0.0 };//X,Y,Z,E,T,U,V,W,I,J,K
 bool axis_known_position[6] = { false };
 
 static long gcode_N, gcode_LastN, Stopped_gcode_LastN = 0;
@@ -282,8 +277,7 @@ bool cancel_heatup = false;
 const char errormagic[] PROGMEM = "Error:";
 const char echomagic[] PROGMEM = "echo:";
 // const char axis_codes[NUM_AXIS] = {'X', 'Y', 'Z', 'E'};
-const char axis_codes[NUM_AXIS] = {'X', 'Y', 'Z', 'E', 'A', 'B', 'C'};
-const char mounter_axis_codes[3] = {'C1', 'C2', 'C3'};
+const char axis_codes[NUM_AXIS] = {'X', 'Y', 'Z', 'E', 'T', 'I', 'J', 'K', 'U', 'V', 'W'};
 
 static bool relative_mode = false;  //Determines Absolute or Relative Coordinates
 static char serial_char;
@@ -1198,7 +1192,7 @@ inline void line_to_destination() {
   line_to_destination(feedrate);
 }
 inline void line_to_destination_6axes(float mm_m, float fraction_time) {
-  plan_buffer_line_6axes(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], delta[XX_AXIS], delta[YY_AXIS], delta[ZZ_AXIS], destination[E_AXIS], feedrate/60*feedrate_multiplier/100.0, active_extruder, fraction_time);
+  plan_buffer_line_6axes(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], delta[XX_AXIS], delta[YY_AXIS], delta[ZZ_AXIS], destination[E_AXIS], destination[T_AXIS], destination[U_AXIS], destination[V_AXIS], destination[W_AXIS], feedrate/60*feedrate_multiplier/100.0, active_extruder, fraction_time);
 }
 void upAxis(){
   endstops_hit_on_purpose();
@@ -1229,7 +1223,7 @@ inline void sync_plan_position() {
   plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
 }
 inline void sync_plan_position2() {
-  plan_set_position_6axes(current_position_delta[X_AXIS], current_position_delta[Y_AXIS], current_position_delta[Z_AXIS], current_position_delta[XX_AXIS], current_position_delta[YY_AXIS], current_position_delta[ZZ_AXIS], current_position[E_AXIS]);
+  plan_set_position_6axes(current_position_delta[X_AXIS], current_position_delta[Y_AXIS], current_position_delta[Z_AXIS], current_position_delta[XX_AXIS], current_position_delta[YY_AXIS], current_position_delta[ZZ_AXIS], current_position[E_AXIS], current_position[T_AXIS], current_position[U_AXIS], current_position[V_AXIS], current_position[W_AXIS]);
 }
 #if defined(DELTA) || defined(SCARA)
   inline void sync_plan_position_delta() {
@@ -1239,7 +1233,7 @@ inline void sync_plan_position2() {
   inline void sync_plan_position_delta2() {
     // calculate_delta_6axes(current_position_delta);
     calculate_delta_6axes(destination);
-    plan_set_position_6axes(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], delta[XX_AXIS], delta[YY_AXIS], delta[ZZ_AXIS], current_position_delta[E_AXIS]);
+    plan_set_position_6axes(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], delta[XX_AXIS], delta[YY_AXIS], delta[ZZ_AXIS], current_position_delta[E_AXIS], current_position[T_AXIS], current_position[U_AXIS], current_position[V_AXIS], current_position[W_AXIS]);
   }
 #endif
   inline void set_current_to_destination() { memcpy(current_position, destination, sizeof(current_position)); }
@@ -1986,8 +1980,8 @@ inline void sync_plan_position2() {
  *  - Set the feedrate, if included
  */
 void gcode_get_destination() {
-  // const char axis_codes[NUM_AXIS] = {'X', 'Y', 'Z', 'E', 'A', 'B', 'C'};
-  for (int i = 0; i < 7; i++) {
+// const char axis_codes[11] = {'X', 'Y', 'Z', 'E', 'T', 'U', 'V', 'W', 'I', 'J', 'K'};
+  for (int i = 0; i < NUM_AXIS; i++) {
     if (code_seen(axis_codes[i]))
       destination[i] = code_value() + (axis_relative_modes[i] || relative_mode ? current_position[i] : 0);
     else
@@ -1996,39 +1990,6 @@ void gcode_get_destination() {
   if (code_seen('F')) {
     float next_feedrate = code_value();
     if (next_feedrate > 0.0) feedrate = next_feedrate;
-  }
-}
-
-/**
- * Set C1,C2,C3 destination and feedrate from the current GCode command
-**/
-void mounter_get_destination() {
-  // const char mounter_axis_codes[3] = {'C1', 'C2', 'C3'};
-  for (int i = 0; i < 3; i++) {
-    if (code_seen(mounter_axis_codes[i]))
-      mounter_destination[i] = code_value(); //chip mounter drive coordinate is always relative 
-    else
-      mounter_destination[i] = mounter_current_position[i];
-  }
-  if (code_seen('F')) {
-    float next_feedrate_mounter = code_value();
-    if (next_feedrate_mounter > 0.0) feedrate_mounter = next_feedrate_mounter;
-  }
-}
-
-/**
- * Set destination and feedrate for tool wheel (ATC wheel)
-**/
-void toolwheel_get_destination() {
-  // const char mounter_axis_codes[3] = {'C1', 'C2', 'C3'};
-  if (code_seen('W')){
-    toolwheel_destination = code_value(); 
-  } else {
-    toolwheel_destination = toolwheel_current_position;
-  }
-  if (code_seen('F')) {
-    float next_feedrate_toolwheel = code_value();
-    if (next_feedrate_toolwheel > 0.0) feedrate_toolwheel = next_feedrate_toolwheel;
   }
 }
 
@@ -2112,26 +2073,6 @@ inline void gcode_G4() {
   if (!lcd_hasstatus()) LCD_MESSAGEPGM(MSG_DWELL);
 
   while (millis() < codenum) idle();
-}
-
-/**
- * G5: Rotation of tool wheel 
- */
-inline void gcode_G5() {
-  if (IsRunning()) {
-    toolwheel_get_destination(); // For C1 C2 C3 
-    prepare_move_toolwheel();
-  }
-}
-
-/**
- * G6: Coordinated rotation of C1 C2 C3 axes (chip mounter)
- */
-inline void gcode_G6() {
-  if (IsRunning()) {
-    mounter_get_destination(); // For C1 C2 C3 
-    prepare_move_mounter(mounter_destination);
-  }
 }
 
 
@@ -6007,53 +5948,6 @@ void process_next_command() {
         dumpCurrentDelta();
         break;
 
-      case 732:
-        dumpCurrent();
-        dumpDestination();
-        dumpDelta();
-        calculate_delta_6axes(destination);
-        dumpDelta();
-
-        destination[Z_AXIS] = 10;
-        calculate_delta_6axes(destination);
-        dumpDelta();
-
-        break; 
-
-      case 733:
-        current_position_delta[X_AXIS] = 0;
-        sync_plan_position2();
-        delta[X_AXIS] = current_position_delta[X_AXIS]+max_length(X_AXIS);
-        feedrate = homing_feedrate[X_AXIS];
-        line_to_destination_6axes(feedrate,fabs(delta[X_AXIS]) / (feedrate / 60.0)); 
-        st_synchronize();
-
-        current_position_delta[X_AXIS] = 0;
-        sync_plan_position2();
-        enable_endstops(false); // Disable endstops while moving away
-
-        current_position_delta[X_AXIS] = 0;
-        sync_plan_position2();
-        enable_endstops(false); // Disable endstops while moving away
-        // Move away from the endstop by the axis HOME_BUMP_MM
-        delta[X_AXIS] = current_position_delta[X_AXIS] - max_length(X_AXIS);
-        dumpCurrentDelta();
-        dumpDelta();
-        line_to_destination_6axes(feedrate,fabs(delta[X_AXIS]) / (feedrate / 60.0)); 
-        st_synchronize();
-        break;
-
-      case 734:
-        current_position_delta[X_AXIS] = 0;
-        sync_plan_position2();
-        enable_endstops(false); // Disable endstops while moving away
-        // Move away from the endstop by the axis HOME_BUMP_MM
-        delta[X_AXIS] = current_position_delta[X_AXIS] + home_bump_mm(X_AXIS);
-        dumpCurrentDelta();
-        dumpDelta();
-        line_to_destination_6axes(feedrate,fabs(delta[X_AXIS]) / (feedrate / 60.0)); 
-        st_synchronize();
-        break;
 
       case 907: // M907 Set digital trimpot motor current using axis codes.
         gcode_M907();
@@ -6371,11 +6265,10 @@ void mesh_plan_buffer_line(float x, float y, float z, const float e, float feed_
 
 #if defined(DELTA) || defined(SCARA)
 
-  // inline bool prepare_move_delta(float target[NUM_AXIS]) {
-  inline bool prepare_move_delta(float target[4]) {
-    //target is destination, actually
-    float difference[4];
-    for (int8_t i=0; i < 3; i++) difference[i] = target[i] - current_position[i];
+  inline bool prepare_move_delta(float target[NUM_AXIS]) {
+    // target[NUM_AXIS] : {'X', 'Y', 'Z', 'E', 'T', 'U', 'V', 'W', 'I', 'J', 'K'};
+    float difference[8];
+    for (int8_t i=0; i < 8; i++) difference[i] = target[i] - current_position[i];
 
     float cartesian_mm = sqrt(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
     // if (cartesian_mm < 0.000001) cartesian_mm = abs(difference[E_AXIS]);
@@ -6392,7 +6285,7 @@ void mesh_plan_buffer_line(float x, float y, float z, const float e, float feed_
 
       float fraction = float(s) / float(steps);
 
-      for (int8_t i = 0; i < 4; i++)
+      for (int8_t i = 0; i < 8; i++)
         target[i] = current_position[i] + difference[i] * fraction;
 
       calculate_delta_6axes(target);
@@ -6401,24 +6294,11 @@ void mesh_plan_buffer_line(float x, float y, float z, const float e, float feed_
         adjust_delta(target);
       #endif
 
-      plan_buffer_line_6axes(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], delta[XX_AXIS], delta[YY_AXIS], delta[ZZ_AXIS], target[E_AXIS], feedrate/60*feedrate_multiplier/100.0, active_extruder, fraction_time);
+      plan_buffer_line_6axes(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], delta[XX_AXIS], delta[YY_AXIS], delta[ZZ_AXIS], target[E_AXIS], target[T_AXIS], target[U_AXIS], target[V_AXIS], target[W_AXIS], feedrate/60*feedrate_multiplier/100.0, active_extruder, fraction_time);
     }
 
     return true;
   }
-
-void prepare_move_mounter(float target[3]) {
-  //target is mounter_destination
-  float c1_seconds = target[0]/ (feedrate_mounter/60.0);
-  float c2_seconds = target[1]/ (feedrate_mounter/60.0);
-  float c3_seconds = target[2]/ (feedrate_mounter/60.0);
-
-  // SERIAL_ECHOPGM("mm="); SERIAL_ECHO(cartesian_mm);
-  // SERIAL_ECHOPGM(" seconds="); SERIAL_ECHO(seconds);
-  // SERIAL_ECHOPGM(" steps="); SERIAL_ECHOLN(steps);
-
-  plan_buffer_line_mounter(target[C1_AXIS], target[C2_AXIS], target[C3_AXIS], feedrate_mounter/60.0, c1_seconds, c2_seconds, c3_seconds);
-}
 
 #endif // DELTA || SCARA
 
