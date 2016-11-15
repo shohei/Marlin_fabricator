@@ -1177,6 +1177,7 @@ void st_init() {
   #if HAS_ZZ_STEP
     AXIS_INIT(zz, ZZ, ZZ);
   #endif
+    
   #if HAS_T_STEP
     AXIS_INIT(t, T, T);
   #endif
@@ -1184,10 +1185,10 @@ void st_init() {
     AXIS_INIT(u, U, U);
   #endif
   #if HAS_V_STEP
-    AXIS_INlT(v, V, V);
+    AXIS_INIT(v, V, V);
   #endif
   #if HAS_W_STEP
-    AXIS_INlT(w, W, W);
+    AXIS_INIT(w, W, W);
   #endif
   // #if HAS_E0_STEP
     // E_AXIS_INIT(0);
@@ -1260,7 +1261,7 @@ void st_set_position(const long &x, const long &y, const long &z, const long &e)
   CRITICAL_SECTION_END;
 }
 
-void st_set_position2(const long &x, const long &y, const long &z, const long &xx, const long &yy, const long &zz, const long &e) {
+void st_set_position2(const long &x, const long &y, const long &z, const long &xx, const long &yy, const long &zz, const long &e, const long &t, const long &u, const long &v, const long &w) {
   CRITICAL_SECTION_START;
   count_position[X_AXIS] = x;
   count_position[Y_AXIS] = y;
@@ -1269,6 +1270,10 @@ void st_set_position2(const long &x, const long &y, const long &z, const long &x
   count_position[YY_AXIS] = yy;
   count_position[ZZ_AXIS] = zz;
   count_position[E_AXIS] = e;
+  count_position[T_AXIS] = t;
+  count_position[U_AXIS] = u;
+  count_position[V_AXIS] = v;
+  count_position[W_AXIS] = w;
   CRITICAL_SECTION_END;
 }
 

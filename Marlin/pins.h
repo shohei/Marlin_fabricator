@@ -138,6 +138,10 @@
                         XX_STEP_PIN, XX_DIR_PIN, XX_ENABLE_PIN, XX_MAX_PIN, \
                         YY_STEP_PIN, YY_DIR_PIN, YY_ENABLE_PIN, YY_MAX_PIN, \
                         ZZ_STEP_PIN, ZZ_DIR_PIN, ZZ_ENABLE_PIN, ZZ_MAX_PIN, \
+                        T_STEP_PIN, T_DIR_PIN, \
+                        U_STEP_PIN, U_DIR_PIN, \
+                        V_STEP_PIN, V_DIR_PIN, \
+                        W_STEP_PIN, W_DIR_PIN, \
                         PS_ON_PIN, HEATER_BED_PIN, FAN_PIN, \
                         analogInputToDigitalPin(TEMP_BED_PIN) \
                        }

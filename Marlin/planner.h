@@ -108,14 +108,14 @@ FORCE_INLINE uint8_t movesplanned() { return BLOCK_MOD(block_buffer_head - block
    */
   // void plan_set_position(float x, float y, float z, const float &e);
   void plan_set_position(float x, float y, float z, const float &e);
-  void plan_set_position_6axes(float x, float y, float z, float xx, float yy, float zz, const float &e);
+  void plan_set_position_6axes(float x, float y, float z, float xx, float yy, float zz, const float &e, const float &t, const float &u, const float &v, const float &w);
 
 #else
 
   void plan_buffer_line(const float &x, const float &y, const float &z, const float &e, float feed_rate, const uint8_t &extruder);
   void plan_buffer_line_6axes(const float &x, const float &y, const float &z, const float &xx, const float &yy, const float &zz, const float &e, const float &t, const float &u, const float &v, const float &w, float feed_rate, const uint8_t &extruder, float fraction_time);
   void plan_set_position(const float &x, const float &y, const float &z, const float &e);
-  void plan_set_position_6axes(const float &x, const float &y, const float &z,const float &xx, const float &yy, const float &zz, const float &e);
+  void plan_set_position_6axes(const float &x, const float &y, const float &z,const float &xx, const float &yy, const float &zz, const float &e, const float &t, const float &u, const float &v, const float &w);
   void plan_set_position_mounter(const float &c1, const float &c2, const float &c3);
 
 #endif // ENABLE_AUTO_BED_LEVELING || MESH_BED_LEVELING
