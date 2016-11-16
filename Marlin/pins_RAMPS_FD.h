@@ -66,8 +66,8 @@
 #define T_DIR_PIN         58
 #define U_STEP_PIN        61
 #define U_DIR_PIN         60
-#define V_STEP_PIN        68
-#define V_DIR_PIN         69
+#define V_STEP_PIN        69
+#define V_DIR_PIN         68
 #define W_STEP_PIN        15
 #define W_DIR_PIN         14
 
