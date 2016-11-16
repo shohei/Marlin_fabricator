@@ -6275,11 +6275,18 @@ void mesh_plan_buffer_line(float x, float y, float z, const float e, float feed_
   inline bool prepare_move_delta(float target[NUM_AXIS]) {
 // axis_codes[NUM_AXIS] = {'X', 'Y', 'Z', 'E', 'I', 'J', 'K', 'T', 'U', 'V', 'W'};
 
+    SERIAL_ECHOPGM("target[W_AXIS]: "); SERIAL_ECHOLN(target[W_AXIS]);
+    SERIAL_ECHOPGM("current_position[W_AXIS]: "); SERIAL_ECHOLN(current_position[W_AXIS]);
+
     float difference[NUM_AXIS];
     for (int8_t i=0; i < NUM_AXIS; i++) difference[i] = target[i] - current_position[i];
+    SERIAL_ECHOPGM("target[W_AXIS]: "); SERIAL_ECHOLN(target[W_AXIS]);
+    SERIAL_ECHOPGM("current_position[W_AXIS]: "); SERIAL_ECHOLN(current_position[W_AXIS]);
+    SERIAL_ECHOPGM("difference[W_AXIS]: "); SERIAL_ECHOLN(difference[W_AXIS]);
 
-    float mounter_average_mm = sqrt(sq(difference[T_AXIS]) + sq(difference[U_AXIS]) + sq(difference[V_AXIS] + sq(difference[W_AXIS])));
+    float mounter_average_mm = sqrt(sq(difference[T_AXIS]) + sq(difference[U_AXIS]) + sq(difference[V_AXIS]) + sq(difference[W_AXIS]));
     float mounter_seconds = mounter_average_mm / (feedrate_mounter/60.0);
+    SERIAL_ECHOPGM("mounter_average_mm: "); SERIAL_ECHOLN(mounter_average_mm);
     SERIAL_ECHOPGM("mounter seconds="); SERIAL_ECHOLN(mounter_seconds);
     plan_buffer_line_6axes(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], delta[XX_AXIS], delta[YY_AXIS], delta[ZZ_AXIS], current_position[E_AXIS], target[T_AXIS], target[U_AXIS], target[V_AXIS], target[W_AXIS], feedrate_mounter/60.0, active_extruder, mounter_seconds);
 
