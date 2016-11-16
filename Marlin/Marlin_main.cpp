@@ -241,7 +241,6 @@ uint8_t marlin_debug_flags = DEBUG_INFO|DEBUG_ERRORS;
 
 static float feedrate = 1500.0, saved_feedrate;
 static float feedrate_mounter = 1000.0;
-static float feedrate_toolwheel = 1000.0;
 float current_position[NUM_AXIS] = { 0.0 };//X,Y,Z,E,T,U,V,W,I,J,K
 float current_position_delta[6] = { 0.0 };//X,XX,Y,YY,Z,ZZ
 static float destination[NUM_AXIS] = { 0.0 };//X,Y,Z,E,T,U,V,W,I,J,K
@@ -277,7 +276,7 @@ bool cancel_heatup = false;
 const char errormagic[] PROGMEM = "Error:";
 const char echomagic[] PROGMEM = "echo:";
 // const char axis_codes[NUM_AXIS] = {'X', 'Y', 'Z', 'E'};
-const char axis_codes[NUM_AXIS] = {'X', 'Y', 'Z', 'E', 'T', 'I', 'J', 'K', 'U', 'V', 'W'};
+const char axis_codes[NUM_AXIS] = {'X', 'Y', 'Z', 'E', 'I', 'J', 'K', 'T', 'U', 'V', 'W'};
 
 static bool relative_mode = false;  //Determines Absolute or Relative Coordinates
 static char serial_char;
@@ -442,13 +441,21 @@ void dumpDestination(){
     SERIAL_ECHOPGM("destination[X_AXIS]: ");SERIAL_ECHOLN(destination[X_AXIS]);
     SERIAL_ECHOPGM("destination[Y_AXIS]: ");SERIAL_ECHOLN(destination[Y_AXIS]);
     SERIAL_ECHOPGM("destination[Z_AXIS]: ");SERIAL_ECHOLN(destination[Z_AXIS]);
-    SERIAL_ECHOPGM("destination[E_AXIS]: ");SERIAL_ECHOLN(destination[ZZ_AXIS]);
+    SERIAL_ECHOPGM("destination[E_AXIS]: ");SERIAL_ECHOLN(destination[E_AXIS]);
+    SERIAL_ECHOPGM("destination[T_AXIS]: ");SERIAL_ECHOLN(destination[T_AXIS]);
+    SERIAL_ECHOPGM("destination[U_AXIS]: ");SERIAL_ECHOLN(destination[U_AXIS]);
+    SERIAL_ECHOPGM("destination[V_AXIS]: ");SERIAL_ECHOLN(destination[V_AXIS]);
+    SERIAL_ECHOPGM("destination[W_AXIS]: ");SERIAL_ECHOLN(destination[W_AXIS]);
 }
 void dumpCurrent(){
     SERIAL_ECHOPGM("current_position[X_AXIS]: "); SERIAL_ECHOLN(current_position[X_AXIS]);
     SERIAL_ECHOPGM("current_position[Y_AXIS]: "); SERIAL_ECHOLN(current_position[Y_AXIS]);
     SERIAL_ECHOPGM("current_position[Z_AXIS]: "); SERIAL_ECHOLN(current_position[Z_AXIS]);
     SERIAL_ECHOPGM("current_position[E_AXIS]: "); SERIAL_ECHOLN(current_position[E_AXIS]);
+    SERIAL_ECHOPGM("current_position[T_AXIS]: "); SERIAL_ECHOLN(current_position[T_AXIS]);
+    SERIAL_ECHOPGM("current_position[U_AXIS]: "); SERIAL_ECHOLN(current_position[U_AXIS]);
+    SERIAL_ECHOPGM("current_position[V_AXIS]: "); SERIAL_ECHOLN(current_position[V_AXIS]);
+    SERIAL_ECHOPGM("current_position[W_AXIS]: "); SERIAL_ECHOLN(current_position[W_AXIS]);
 }
 void dumpCurrentDelta(){
     SERIAL_ECHOPGM("current_position_delta[X_AXIS]: "); SERIAL_ECHOLN(current_position_delta[X_AXIS]);
@@ -1980,11 +1987,11 @@ inline void sync_plan_position2() {
  *  - Set the feedrate, if included
  */
 void gcode_get_destination() {
-// const char axis_codes[11] = {'X', 'Y', 'Z', 'E', 'T', 'U', 'V', 'W', 'I', 'J', 'K'};
+// axis_codes[NUM_AXIS] = {'X', 'Y', 'Z', 'E', 'I', 'J', 'K', 'T', 'U', 'V', 'W'};
   for (int i = 0; i < NUM_AXIS; i++) {
-    if (code_seen(axis_codes[i]))
+    if (code_seen(axis_codes[i])){
       destination[i] = code_value() + (axis_relative_modes[i] || relative_mode ? current_position[i] : 0);
-    else
+    } else
       destination[i] = current_position[i];
   }
   if (code_seen('F')) {
@@ -6266,13 +6273,20 @@ void mesh_plan_buffer_line(float x, float y, float z, const float e, float feed_
 #if defined(DELTA) || defined(SCARA)
 
   inline bool prepare_move_delta(float target[NUM_AXIS]) {
-    // target[NUM_AXIS] : {'X', 'Y', 'Z', 'E', 'T', 'U', 'V', 'W', 'I', 'J', 'K'};
+// axis_codes[NUM_AXIS] = {'X', 'Y', 'Z', 'E', 'I', 'J', 'K', 'T', 'U', 'V', 'W'};
+
     float difference[8];
     for (int8_t i=0; i < 8; i++) difference[i] = target[i] - current_position[i];
 
+    float mounter_average_mm = sqrt(sq(difference[T_AXIS]) + sq(difference[U_AXIS]) + sq(difference[V_AXIS] + sq(difference[W_AXIS])));
+    float mounter_seconds = mounter_average_mm / (feedrate_mounter/60.0);
+    SERIAL_ECHOPGM("mounter seconds="); SERIAL_ECHO(mounter_seconds);
+    plan_buffer_line_6axes(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], delta[XX_AXIS], delta[YY_AXIS], delta[ZZ_AXIS], current_position[E_AXIS], target[T_AXIS], target[U_AXIS], target[V_AXIS], target[W_AXIS], feedrate_mounter/60.0, active_extruder, mounter_seconds);
+
     float cartesian_mm = sqrt(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
     // if (cartesian_mm < 0.000001) cartesian_mm = abs(difference[E_AXIS]);
-    // if (cartesian_mm < 0.000001) return false;
+    if (cartesian_mm < 0.000001 && mounter_average_mm < 0.01) return false;
+    if (cartesian_mm < 0.000001) return true;
     float seconds = cartesian_mm / (feedrate/60.0) / (feedrate_multiplier / 100.0);
     int steps = max(1, int(delta_segments_per_second * seconds));
 

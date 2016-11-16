@@ -1058,11 +1058,10 @@ float junction_deviation = 0.1;
   target[XX_AXIS] = lround(xx * axis_steps_per_unit[XX_AXIS]);
   target[YY_AXIS] = lround(yy * axis_steps_per_unit[YY_AXIS]);
   target[ZZ_AXIS] = lround(zz * axis_steps_per_unit[ZZ_AXIS]);     
-  target[T_AXIS] = lround(t * axis_steps_per_unit[ZZ_AXIS]);;
-  target[U_AXIS] = lround(u * axis_steps_per_unit[ZZ_AXIS]);;
-  target[V_AXIS] = lround(v * axis_steps_per_unit[ZZ_AXIS]);;
-  target[W_AXIS] = lround(w * axis_steps_per_unit[ZZ_AXIS]);;
-
+  target[T_AXIS] = lround(t * axis_steps_per_unit[T_AXIS]);;
+  target[U_AXIS] = lround(u * axis_steps_per_unit[U_AXIS]);;
+  target[V_AXIS] = lround(v * axis_steps_per_unit[V_AXIS]);;
+  target[W_AXIS] = lround(w * axis_steps_per_unit[W_AXIS]);;
 
   float dx = target[X_AXIS] - position[X_AXIS],
         dy = target[Y_AXIS] - position[Y_AXIS],
@@ -1138,6 +1137,11 @@ float junction_deviation = 0.1;
   block->steps[E_AXIS] /= 100;
   // block->step_event_count = max(block->steps[X_AXIS], max(block->steps[Y_AXIS], max(block->steps[Z_AXIS], block->steps[E_AXIS])));
   block->step_event_count = max(block->steps[X_AXIS], max(block->steps[Y_AXIS], max(block->steps[Z_AXIS], max(block->steps[XX_AXIS], max(block->steps[YY_AXIS], max(block->steps[ZZ_AXIS], block->steps[E_AXIS]))))));
+  bool is_mounter_move = false;
+  if(block->step_event_count==0){
+    block->step_event_count = max(block->steps[T_AXIS], max(block->steps[U_AXIS], max(block->steps[V_AXIS], block->steps[W_AXIS])));
+    is_mounter_move = true;
+  }
 
   // Bail if this is a zero-length block
   if (block->step_event_count <= dropsegments) return;
@@ -1170,8 +1174,8 @@ float junction_deviation = 0.1;
     if (dxx < 0) db |= BIT(XX_AXIS);//??: TODO
     if (dyy < 0) db |= BIT(YY_AXIS); 
     if (dzz < 0) db |= BIT(ZZ_AXIS);
-    if (du < 0) db |= BIT(T_AXIS); 
-    if (dt < 0) db |= BIT(U_AXIS);
+    if (dt < 0) db |= BIT(T_AXIS); 
+    if (du < 0) db |= BIT(U_AXIS);
     if (dv < 0) db |= BIT(V_AXIS); 
     if (dw < 0) db |= BIT(W_AXIS);
   // #endif
@@ -1341,10 +1345,10 @@ float junction_deviation = 0.1;
   // delta_mm[E_AXIS] = (de / axis_steps_per_unit[E_AXIS]); * volumetric_multiplier[extruder] * extruder_multiplier[extruder] / 100.0;
   delta_mm[E_AXIS] = (de / axis_steps_per_unit[E_AXIS]);// this is dummy and irrelevant
 
-  if (block->steps[X_AXIS] <= dropsegments && block->steps[Y_AXIS] <= dropsegments && block->steps[Z_AXIS] <= dropsegments && block->steps[XX_AXIS] <= dropsegments && block->steps[YY_AXIS] <= dropsegments && block->steps[ZZ_AXIS] <= dropsegments) {
+  if (block->steps[X_AXIS] <= dropsegments && block->steps[Y_AXIS] <= dropsegments && block->steps[Z_AXIS] <= dropsegments && block->steps[XX_AXIS] <= dropsegments && block->steps[YY_AXIS] <= dropsegments && block->steps[ZZ_AXIS] <= dropsegments  && block->steps[T_AXIS] <= dropsegments && block->steps[U_AXIS] <= dropsegments && block->steps[V_AXIS] <= dropsegments && block->steps[W_AXIS] <= dropsegments) {
     block->millimeters = fabs(delta_mm[E_AXIS]);
   } 
-  else {
+  else if (!is_mounter_move) {
     block->millimeters = sqrt(
       #ifdef COREXY
         square(delta_mm[X_HEAD]) + square(delta_mm[Y_HEAD]) + square(delta_mm[Z_AXIS])
@@ -1355,6 +1359,10 @@ float junction_deviation = 0.1;
          + square(delta_mm[XX_AXIS]) + square(delta_mm[YY_AXIS]) + square(delta_mm[Z_AXIS]))*0.5
       #endif
     );
+  } else if(is_mounter_move){
+    block->millimeters = sqrt(
+        square(delta_mm[T_AXIS]) + square(delta_mm[U_AXIS]) + square(delta_mm[V_AXIS]) + square(delta_mm[W_AXIS])
+   );
   }
   float inverse_millimeters = 1.0 / block->millimeters;  // Inverse millimeters to remove multiple divides 
 
@@ -1472,8 +1480,8 @@ float junction_deviation = 0.1;
 
   // Compute and limit the acceleration rate for the trapezoid generator.  
   float steps_per_mm = block->step_event_count / block->millimeters;
-  long bsx = block->steps[X_AXIS], bsy = block->steps[Y_AXIS], bsz = block->steps[Z_AXIS], bse = block->steps[E_AXIS], bsxx = block->steps[XX_AXIS], bsyy = block->steps[YY_AXIS], bszz = block->steps[ZZ_AXIS];
-  if (bsx == 0 && bsy == 0 && bsz == 0 && bsxx == 0 && bsyy == 0 && bszz == 0) {
+  long bsx = block->steps[X_AXIS], bsy = block->steps[Y_AXIS], bsz = block->steps[Z_AXIS], bse = block->steps[E_AXIS], bsxx = block->steps[XX_AXIS], bsyy = block->steps[YY_AXIS], bszz = block->steps[ZZ_AXIS], bst = block->steps[T_AXIS], bsu = block->steps[U_AXIS], bsv = block->steps[V_AXIS], bsw = block->steps[W_AXIS];
+  if (bsx == 0 && bsy == 0 && bsz == 0 && bsxx == 0 && bsyy == 0 && bszz == 0 && bst == 0 && bsu == 0 && bsv == 0 && bsw == 0) {
     block->acceleration_st = ceil(retract_acceleration * steps_per_mm); // convert to: acceleration steps/sec^2
   }
   else if (bse == 0) {
@@ -1490,7 +1498,12 @@ float junction_deviation = 0.1;
                 xxsteps = axis_steps_per_sqr_second[XX_AXIS],
                 yysteps = axis_steps_per_sqr_second[YY_AXIS],
                 zzsteps = axis_steps_per_sqr_second[ZZ_AXIS],
-                esteps = axis_steps_per_sqr_second[E_AXIS];
+                esteps = axis_steps_per_sqr_second[E_AXIS],
+                tsteps = axis_steps_per_sqr_second[T_AXIS],
+                usteps = axis_steps_per_sqr_second[U_AXIS],
+                vsteps = axis_steps_per_sqr_second[V_AXIS],
+                wsteps = axis_steps_per_sqr_second[W_AXIS];
+
   if ((float)acc_st * bsx / block->step_event_count > xsteps) acc_st = xsteps;
   if ((float)acc_st * bsy / block->step_event_count > ysteps) acc_st = ysteps;
   if ((float)acc_st * bsz / block->step_event_count > zsteps) acc_st = zsteps;
@@ -1498,6 +1511,10 @@ float junction_deviation = 0.1;
   if ((float)acc_st * bsyy / block->step_event_count > yysteps) acc_st = yysteps;
   if ((float)acc_st * bszz / block->step_event_count > zzsteps) acc_st = zzsteps;
   if ((float)acc_st * bse / block->step_event_count > esteps) acc_st = esteps;
+  if ((float)acc_st * bst / block->step_event_count > tsteps) acc_st = tsteps;
+  if ((float)acc_st * bsu / block->step_event_count > usteps) acc_st = usteps;
+  if ((float)acc_st * bsv / block->step_event_count > vsteps) acc_st = vsteps;
+  if ((float)acc_st * bsw / block->step_event_count > wsteps) acc_st = wsteps;
  
   block->acceleration_st = acc_st;
   block->acceleration = acc_st / steps_per_mm;

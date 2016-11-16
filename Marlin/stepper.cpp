@@ -578,17 +578,6 @@ void set_stepper_direction() {
     ZZ_APPLY_DIR(!INVERT_ZZ_DIR, 0);
     count_direction[ZZ_AXIS] = 1;
   }
-  
-  #ifndef ADVANCE
-    if (TEST(out_bits, E_AXIS)) {
-      // REV_E_DIR();
-      count_direction[E_AXIS] = -1;
-    }
-    else {
-      // NORM_E_DIR();
-      count_direction[E_AXIS] = 1;
-    }
-  #endif //!ADVANCE
 
   if (TEST(out_bits, T_AXIS)) { 
     T_APPLY_DIR(INVERT_T_DIR, 0);
@@ -625,6 +614,18 @@ void set_stepper_direction() {
     W_APPLY_DIR(!INVERT_W_DIR, 0);
     count_direction[W_AXIS] = 1;
   }
+  
+  #ifndef ADVANCE
+    if (TEST(out_bits, E_AXIS)) {
+      // REV_E_DIR();
+      count_direction[E_AXIS] = -1;
+    }
+    else {
+      // NORM_E_DIR();
+      count_direction[E_AXIS] = 1;
+    }
+  #endif //!ADVANCE
+
 }
 
 // Initializes the trapezoid generator from the current block. Called whenever a new
