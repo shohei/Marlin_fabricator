@@ -240,7 +240,8 @@ bool Running = true;
 uint8_t marlin_debug_flags = DEBUG_INFO|DEBUG_ERRORS;
 
 static float feedrate = 1500.0, saved_feedrate;
-static float feedrate_mounter = 1000.0;
+static float feedrate_mounter = 30.0;
+// static float feedrate_mounter = 5000.0;
 float current_position[NUM_AXIS] = { 0.0 };//X,Y,Z,E,T,U,V,W,I,J,K
 float current_position_delta[6] = { 0.0 };//X,XX,Y,YY,Z,ZZ
 static float destination[NUM_AXIS] = { 0.0 };//X,Y,Z,E,T,U,V,W,I,J,K
@@ -6431,7 +6432,6 @@ void prepare_move() {
   #endif
 
   set_current_to_destination();
-  dumpCurrent();
 }
 
 /**

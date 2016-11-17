@@ -68,8 +68,10 @@
 #define U_DIR_PIN         60
 #define V_STEP_PIN        69
 #define V_DIR_PIN         68
-#define W_STEP_PIN        51 
-#define W_DIR_PIN         50 
+// #define W_STEP_PIN        51 
+// #define W_DIR_PIN         50 
+#define W_STEP_PIN        7 
+#define W_DIR_PIN         6 
 
 #define SDPOWER            -1
 #define SDSS               4
@@ -102,21 +104,21 @@
 
 
 
-  #ifdef NUM_SERVOS
-    #define SERVO0_PIN         7
+  // #ifdef NUM_SERVOS
+  //   #define SERVO0_PIN         7
 
-    #if NUM_SERVOS > 1
-      #define SERVO1_PIN         6
-    #endif
+  //   #if NUM_SERVOS > 1
+  //     #define SERVO1_PIN         6
+  //   #endif
 
-    #if NUM_SERVOS > 2
-      #define SERVO2_PIN         5
-    #endif
+  //   #if NUM_SERVOS > 2
+  //     #define SERVO2_PIN         5
+  //   #endif
 
-    #if NUM_SERVOS > 3
-      #define SERVO3_PIN         4
-    #endif
-  #endif
+  //   #if NUM_SERVOS > 3
+  //     #define SERVO3_PIN         4
+  //   #endif
+  // #endif
 
   #define GND_T 37
   #define GND_U 35
