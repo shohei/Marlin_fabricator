@@ -216,6 +216,43 @@
 #define E3_ENABLE_WRITE(STATE) WRITE(E3_ENABLE_PIN,STATE)
 #define E3_ENABLE_READ READ(E3_ENABLE_PIN)
 
+//Chip mounter No.1 axis
+#define T_STEP_INIT SET_OUTPUT(T_STEP_PIN)
+#define T_STEP_WRITE(STATE) WRITE(T_STEP_PIN,STATE)
+#define T_STEP_READ READ(T_STEP_PIN)
+
+#define T_DIR_INIT SET_OUTPUT(T_DIR_PIN)
+#define T_DIR_WRITE(STATE) WRITE(T_DIR_PIN,STATE)
+#define T_DIR_READ READ(T_DIR_PIN)
+
+//Chip mounter No.2 axis
+#define U_STEP_INIT SET_OUTPUT(U_STEP_PIN)
+#define U_STEP_WRITE(STATE) WRITE(U_STEP_PIN,STATE)
+#define U_STEP_READ READ(U_STEP_PIN)
+
+#define U_DIR_INIT SET_OUTPUT(U_DIR_PIN)
+#define U_DIR_WRITE(STATE) WRITE(U_DIR_PIN,STATE)
+#define U_DIR_READ READ(U_DIR_PIN)
+
+//Chip mounter No.3 axis
+#define V_STEP_INIT SET_OUTPUT(V_STEP_PIN)
+#define V_STEP_WRITE(STATE) WRITE(V_STEP_PIN,STATE)
+#define V_STEP_READ READ(V_STEP_PIN)
+
+#define V_DIR_INIT SET_OUTPUT(V_DIR_PIN)
+#define V_DIR_WRITE(STATE) WRITE(V_DIR_PIN,STATE)
+#define V_DIR_READ READ(V_DIR_PIN)
+
+//Tool wheel rotation axis
+#define W_STEP_INIT SET_OUTPUT(W_STEP_PIN)
+#define W_STEP_WRITE(STATE) WRITE(W_STEP_PIN,STATE)
+#define W_STEP_READ READ(W_STEP_PIN)
+
+#define W_DIR_INIT SET_OUTPUT(W_DIR_PIN)
+#define W_DIR_WRITE(STATE) WRITE(W_DIR_PIN,STATE)
+#define W_DIR_READ READ(W_DIR_PIN)
+
+
 //////////////////////////////////
 // Pin redefines for TMC drivers. 
 // TMC26X drivers have step and dir on normal pins, but everything else via SPI

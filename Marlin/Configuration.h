@@ -411,6 +411,11 @@ const bool ZZ_MAX_ENDSTOP_INVERTING =true; // set to true to invert the logic of
 #define YY_ENABLE_ON 0
 #define ZZ_ENABLE_ON 0
 
+#define T_ENABLE_ON 0
+#define U_ENABLE_ON 0
+#define V_ENABLE_ON 0
+#define W_ENABLE_ON 0
+
 // #define E_ENABLE_ON 0 // For all extruders
 
 // Disables axis when it's not being used.
@@ -421,6 +426,11 @@ const bool ZZ_MAX_ENDSTOP_INVERTING =true; // set to true to invert the logic of
 #define DISABLE_XX false
 #define DISABLE_YY false
 #define DISABLE_ZZ false
+
+#define DISABLE_T false
+#define DISABLE_U false
+#define DISABLE_V false
+#define DISABLE_W false
 
 // @section extruder
 
@@ -436,6 +446,11 @@ const bool ZZ_MAX_ENDSTOP_INVERTING =true; // set to true to invert the logic of
 #define INVERT_XX_DIR true // DELTA does not invert
 #define INVERT_YY_DIR true
 #define INVERT_ZZ_DIR true
+
+#define INVERT_T_DIR true 
+#define INVERT_U_DIR true
+#define INVERT_V_DIR true
+#define INVERT_W_DIR true
 
 // #define INVERT_X_DIR false// DELTA does not invert
 // #define INVERT_Y_DIR false
@@ -663,7 +678,7 @@ const bool ZZ_MAX_ENDSTOP_INVERTING =true; // set to true to invert the logic of
 // #define HOMING_FEEDRATE {50*60, 50*60, 40*60, 0}  // set the homing speeds (mm/min)
 // #define HOMING_FEEDRATE {50*60, 50*60, 100*60, 0}  // set the homing speeds (mm/min)
 // #define HOMING_FEEDRATE {50*60, 50*60, 50*60, 50*60, 50*60, 50*60, 0}  // set the homing speeds (mm/min)
-#define HOMING_FEEDRATE {20*60, 20*60, 20*60, 20*60, 20*60, 20*60, 0}  // set the homing speeds (mm/min)
+#define HOMING_FEEDRATE {20*60, 20*60, 20*60, 20*60, 20*60, 20*60, 0, 20*60, 20*60, 20*60, 20*60}  // set the homing speeds (mm/min)
 
 // default settings
 
@@ -678,9 +693,9 @@ const bool ZZ_MAX_ENDSTOP_INVERTING =true; // set to true to invert the logic of
 // default settings
 // delta speeds must be the same on xyz
 // #define DEFAULT_AXIS_STEPS_PER_UNIT   {XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, 1.1}  // default steps per unit for Kossel (GT2, 20 tooth)
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS}  // default steps per unit for Kossel (GT2, 20 tooth)
-#define DEFAULT_MAX_FEEDRATE          {30000, 30000, 30000, 30000, 30000, 30000, 30000}    // (mm/sec)
-#define DEFAULT_MAX_ACCELERATION      {9000,9000,9000,9000,9000,9000,9000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, XYZ_STEPS/10, XYZ_STEPS/10, XYZ_STEPS/10, XYZ_STEPS/10}  // default steps per unit for Kossel (GT2, 20 tooth)
+#define DEFAULT_MAX_FEEDRATE          {30000, 30000, 30000, 30000, 30000, 30000, 30000, 3000, 3000, 3000, 3000}    // (mm/sec)
+#define DEFAULT_MAX_ACCELERATION      {9000,9000,9000,9000,9000,9000,9000,3000,3000,3000,3000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
 
 // #define DEFAULT_ACCELERATION          300    // X, Y, Z and E acceleration in mm/s^2 for printing moves
 // #define DEFAULT_RETRACT_ACCELERATION  300   // E acceleration in mm/s^2 for retracts

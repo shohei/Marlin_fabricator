@@ -35,7 +35,8 @@ typedef struct {
   long accelerate_until;                    // The index of the step event on which to stop acceleration
   long decelerate_after;                    // The index of the step event on which to start decelerating
   long acceleration_rate;                   // The acceleration rate used for acceleration calculation
-  unsigned char direction_bits;             // The direction bit set for this block (refers to *_DIRECTION_BIT in config.h)
+  // unsigned char direction_bits;             // The direction bit set for this block (refers to *_DIRECTION_BIT in config.h)
+  uint16_t direction_bits;             // The direction bit set for this block (refers to *_DIRECTION_BIT in config.h)
   unsigned char active_extruder;            // Selects the active extruder
   #ifdef ADVANCE
     long advance_rate;
@@ -98,7 +99,7 @@ FORCE_INLINE uint8_t movesplanned() { return BLOCK_MOD(block_buffer_head - block
    * millimeters. Feed rate specifies the (target) speed of the motion.
    */
   void plan_buffer_line(float x, float y, float z, const float &e, float feed_rate, const uint8_t &extruder);
-  void plan_buffer_line3(float x, float y, float z, float xx, float yy, float zz, const float &e, float feed_rate, const uint8_t &extruder, float fraction_time);
+  void plan_buffer_line_6axes(float x, float y, float z, float xx, float yy, float zz, const float &e, const float &t, const float &u, const float &v, const float &w, float feed_rate, const uint8_t &extruder, float fraction_time);
 
   /**
    * Set the planner positions. Used for G92 instructions.
@@ -107,14 +108,15 @@ FORCE_INLINE uint8_t movesplanned() { return BLOCK_MOD(block_buffer_head - block
    */
   // void plan_set_position(float x, float y, float z, const float &e);
   void plan_set_position(float x, float y, float z, const float &e);
-  void plan_set_position2(float x, float y, float z, float xx, float yy, float zz, const float &e);
+  void plan_set_position_6axes(float x, float y, float z, float xx, float yy, float zz, const float &e, const float &t, const float &u, const float &v, const float &w);
 
 #else
 
   void plan_buffer_line(const float &x, const float &y, const float &z, const float &e, float feed_rate, const uint8_t &extruder);
-  void plan_buffer_line3(const float &x, const float &y, const float &z, const float &xx, const float &yy, const float &zz, const float &e, float feed_rate, const uint8_t &extruder, float fraction_time);
+  void plan_buffer_line_6axes(const float &x, const float &y, const float &z, const float &xx, const float &yy, const float &zz, const float &e, const float &t, const float &u, const float &v, const float &w, float feed_rate, const uint8_t &extruder, float fraction_time);
   void plan_set_position(const float &x, const float &y, const float &z, const float &e);
-  void plan_set_position2(const float &x, const float &y, const float &z, const float &xx, const float &yy, const float &zz, const float &e);
+  void plan_set_position_6axes(const float &x, const float &y, const float &z,const float &xx, const float &yy, const float &zz, const float &e, const float &t, const float &u, const float &v, const float &w);
+  void plan_set_position_mounter(const float &c1, const float &c2, const float &c3);
 
 #endif // ENABLE_AUTO_BED_LEVELING || MESH_BED_LEVELING
 

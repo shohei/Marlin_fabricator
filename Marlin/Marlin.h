@@ -157,6 +157,16 @@ void manage_inactivity(bool ignore_stepper_queue=false);
   #define disable_zz() ;
 #endif
 
+#define enable_t() ;
+#define disable_t() ;
+#define enable_u() ;
+#define disable_u() ;
+#define enable_v() ;
+#define disable_v() ;
+#define enable_w() ;
+#define disable_w() ;
+
+
 // #if HAS_E0_ENABLE
 //   #define enable_e0()  E0_ENABLE_WRITE( E_ENABLE_ON)
 //   #define disable_e0() E0_ENABLE_WRITE(!E_ENABLE_ON)
@@ -194,7 +204,8 @@ void manage_inactivity(bool ignore_stepper_queue=false);
  */
 //DO NOT CHANGE NUM_AXIS. OTHERWISE IT HANGS IN THE plan_buffer_line.
 // #define NUM_AXIS 4
-#define NUM_AXIS 7
+// #define NUM_AXIS 7
+#define NUM_AXIS 11 
 
 /**
  * Axis indices as enumerated constants
@@ -203,8 +214,7 @@ void manage_inactivity(bool ignore_stepper_queue=false);
  * X_HEAD and Y_HEAD is used for systems that don't have a 1:1 relationship between X_AXIS and X Head movement, like CoreXY bots.
  */
 // enum AxisEnum {X_AXIS=0, A_AXIS=0, XX_AXIS=0, Y_AXIS=1, B_AXIS=1, YY_AXIS=1, Z_AXIS=2, C_AXIS=2, ZZ_AXIS=2, E_AXIS=3, X_HEAD=4, Y_HEAD=5, Z_HEAD=6};
-// enum AxisEnum {X_AXIS=0, A_AXIS=0, Y_AXIS=1, B_AXIS=1, Z_AXIS=2, C_AXIS=2, E_AXIS=3, XX_AXIS=4, X_HEAD=4, YY_AXIS=5, Y_HEAD=5, ZZ_AXIS=6, Z_HEAD=6};
-enum AxisEnum {X_AXIS=0, A_AXIS=0, Y_AXIS=1, B_AXIS=1, Z_AXIS=2, C_AXIS=2, XX_AXIS=3, X_HEAD=3, YY_AXIS=4, Y_HEAD=4, ZZ_AXIS=5, Z_HEAD=5, E_AXIS=6};
+enum AxisEnum {X_AXIS=0, Y_AXIS=1, Z_AXIS=2, E_AXIS=3, XX_AXIS=4, I_AXIS=4, YY_AXIS=5, J_AXIS=5, ZZ_AXIS=6, K_AXIS=6, T_AXIS=7, U_AXIS=8, V_AXIS=9, W_AXIS=10};
 
 // enum EndstopEnum {X_MIN=0, Y_MIN=1, Z_MIN=2, Z_PROBE=3, X_MAX=4, Y_MAX=5, Z_MAX=6, Z2_MIN=7, Z2_MAX=8};
 // enum EndstopEnum {XX_MAX=0, YY_MAX=1, ZZ_MAX=2, Z_PROBE=3, X_MAX=4, Y_MAX=5, Z_MAX=6, Z2_MIN=7, Z2_MAX=8};
@@ -267,8 +277,7 @@ extern bool volumetric_enabled;
 // extern int extruder_multiplier[EXTRUDERS]; // sets extrude multiply factor (in percent) for each extruder individually
 // extern float filament_size[EXTRUDERS]; // cross-sectional area of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the extruder.
 // extern float volumetric_multiplier[EXTRUDERS]; // reciprocal of cross-sectional area of filament (in square millimeters), stored this way to reduce computational burden in planner
-// extern float current_position[NUM_AXIS];
-extern float current_position[4]; //X,Y,Z,E
+extern float current_position[NUM_AXIS];
 // extern float home_offset[3]; // axis[n].home_offset
 // extern float min_pos[3]; // axis[n].min_pos
 // extern float max_pos[3]; // axis[n].max_pos
@@ -280,7 +289,7 @@ extern bool axis_known_position[6]; // axis[n].is_known
 
 #if defined(DELTA) || defined(SCARA)
   void calculate_delta(float cartesian[3]);
-  void calculate_delta2(float cartesian[NUM_AXIS]);
+  void calculate_delta_6axes(float cartesian[NUM_AXIS]);
   #ifdef DELTA
     // extern float delta[3];
     // extern float endstop_adj[3]; // axis[n].endstop_adj

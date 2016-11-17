@@ -204,7 +204,7 @@
 
 // @section machine
 
-#define AXIS_RELATIVE_MODES {false, false, false, false, false, false, false}
+#define AXIS_RELATIVE_MODES {false, false, false, false, false, false, false, false, false, false, false}
 
 // @section machine
 
@@ -216,6 +216,10 @@
 #define INVERT_YY_STEP_PIN false
 #define INVERT_ZZ_STEP_PIN false
 #define INVERT_E_STEP_PIN false
+#define INVERT_T_STEP_PIN false
+#define INVERT_U_STEP_PIN false
+#define INVERT_V_STEP_PIN false
+#define INVERT_W_STEP_PIN false
 
 // Default stepper release if idle. Set to 0 to deactivate.
 #define DEFAULT_STEPPER_DEACTIVE_TIME 60

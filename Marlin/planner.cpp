@@ -100,6 +100,8 @@ unsigned long axis_steps_per_sqr_second[NUM_AXIS];
 block_t block_buffer[BLOCK_BUFFER_SIZE];            // A ring buffer for motion instfructions
 volatile unsigned char block_buffer_head;           // Index of the next block to be pushed
 volatile unsigned char block_buffer_tail;           // Index of the block to process now
+volatile unsigned char block_buffer_head_mounter;           // Index of the next block to be pushed
+volatile unsigned char block_buffer_tail_mounter;           // Index of the block to process now
 
 //===========================================================================
 //============================ private variables ============================
@@ -1024,10 +1026,11 @@ float junction_deviation = 0.1;
 } // plan_buffer_line()
 
 
+
 #if defined(ENABLE_AUTO_BED_LEVELING) || defined(MESH_BED_LEVELING)
-  void plan_buffer_line3(float x, float y, float z, float xx, float yy, float zz, const float &e, float feed_rate, const uint8_t &extruder, float fraction_time)
+  void plan_buffer_line_6axes(float x, float y, float z, float xx, float yy, float zz, const float &e, const float &t, const float &u, const float &v, const float &w, float feed_rate, const uint8_t &extruder, float fraction_time)
 #else
-  void plan_buffer_line3(const float &x, const float &y, const float &z, const float &xx, const float &yy, const float &zz, const float &e, float feed_rate, const uint8_t &extruder, float fraction_time)
+  void plan_buffer_line_6axes(const float &x, const float &y, const float &z, const float &xx, const float &yy, const float &zz, const float &e, const float &t, const float &u, const float &v, const float &w, float feed_rate, const uint8_t &extruder, float fraction_time)
 #endif  // ENABLE_AUTO_BED_LEVELING
 {
 
@@ -1051,17 +1054,25 @@ float junction_deviation = 0.1;
   target[X_AXIS] = lround(x * axis_steps_per_unit[X_AXIS]);
   target[Y_AXIS] = lround(y * axis_steps_per_unit[Y_AXIS]);
   target[Z_AXIS] = lround(z * axis_steps_per_unit[Z_AXIS]);     
+  target[E_AXIS] = lround(e * axis_steps_per_unit[E_AXIS]);
   target[XX_AXIS] = lround(xx * axis_steps_per_unit[XX_AXIS]);
   target[YY_AXIS] = lround(yy * axis_steps_per_unit[YY_AXIS]);
   target[ZZ_AXIS] = lround(zz * axis_steps_per_unit[ZZ_AXIS]);     
-  target[E_AXIS] = lround(e * axis_steps_per_unit[E_AXIS]);
+  target[T_AXIS] = lround(t * axis_steps_per_unit[T_AXIS]);;
+  target[U_AXIS] = lround(u * axis_steps_per_unit[U_AXIS]);;
+  target[V_AXIS] = lround(v * axis_steps_per_unit[V_AXIS]);;
+  target[W_AXIS] = lround(w * axis_steps_per_unit[W_AXIS]);;
 
   float dx = target[X_AXIS] - position[X_AXIS],
         dy = target[Y_AXIS] - position[Y_AXIS],
         dz = target[Z_AXIS] - position[Z_AXIS],
         dxx = target[XX_AXIS] - position[XX_AXIS],
         dyy = target[YY_AXIS] - position[YY_AXIS],
-        dzz = target[ZZ_AXIS] - position[ZZ_AXIS];
+        dzz = target[ZZ_AXIS] - position[ZZ_AXIS],
+        dt = target[T_AXIS] - position[T_AXIS],
+        du = target[U_AXIS] - position[U_AXIS],
+        dv = target[V_AXIS] - position[V_AXIS],
+        dw = target[W_AXIS] - position[W_AXIS];
 
   // DRYRUN ignores all temperature constraints and assures that the extruder is instantly satisfied
   if (marlin_debug_flags & DEBUG_DRYRUN)
@@ -1114,6 +1125,10 @@ float junction_deviation = 0.1;
     block->steps[XX_AXIS] = labs(dxx);
     block->steps[YY_AXIS] = labs(dyy);
     block->steps[ZZ_AXIS] = labs(dzz);
+    block->steps[T_AXIS] = labs(dt);
+    block->steps[U_AXIS] = labs(du);
+    block->steps[V_AXIS] = labs(dv);
+    block->steps[W_AXIS] = labs(dw);
   // #endif
 
   block->steps[E_AXIS] = labs(de);
@@ -1122,6 +1137,11 @@ float junction_deviation = 0.1;
   block->steps[E_AXIS] /= 100;
   // block->step_event_count = max(block->steps[X_AXIS], max(block->steps[Y_AXIS], max(block->steps[Z_AXIS], block->steps[E_AXIS])));
   block->step_event_count = max(block->steps[X_AXIS], max(block->steps[Y_AXIS], max(block->steps[Z_AXIS], max(block->steps[XX_AXIS], max(block->steps[YY_AXIS], max(block->steps[ZZ_AXIS], block->steps[E_AXIS]))))));
+  bool is_mounter_move = false;
+  if(block->step_event_count==0){
+    block->step_event_count = max(block->steps[T_AXIS], max(block->steps[U_AXIS], max(block->steps[V_AXIS], block->steps[W_AXIS])));
+    is_mounter_move = true;
+  }
 
   // Bail if this is a zero-length block
   if (block->step_event_count <= dropsegments) return;
@@ -1133,7 +1153,8 @@ float junction_deviation = 0.1;
   #endif
 
   // Compute direction bits for this block 
-  uint8_t db = 0;
+  // uint8_t db = 0;
+  uint16_t db = 0;
   // #ifdef COREXY
   //   if (dx < 0) db |= BIT(X_HEAD); // Save the real Extruder (head) direction in X Axis
   //   if (dy < 0) db |= BIT(Y_HEAD); // ...and Y
@@ -1153,6 +1174,10 @@ float junction_deviation = 0.1;
     if (dxx < 0) db |= BIT(XX_AXIS);//??: TODO
     if (dyy < 0) db |= BIT(YY_AXIS); 
     if (dzz < 0) db |= BIT(ZZ_AXIS);
+    if (dt < 0) db |= BIT(T_AXIS); 
+    if (du < 0) db |= BIT(U_AXIS);
+    if (dv < 0) db |= BIT(V_AXIS); 
+    if (dw < 0) db |= BIT(W_AXIS);
   // #endif
   if (de < 0) db |= BIT(E_AXIS); 
   block->direction_bits = db;
@@ -1194,7 +1219,22 @@ float junction_deviation = 0.1;
       if (block->steps[ZZ_AXIS]) {
         enable_zz();
       }
+    if (block->steps[YY_AXIS]) {
+      enable_yy();
+    }
     #endif
+    if (block->steps[T_AXIS]) {
+      enable_t();
+    }
+    if (block->steps[U_AXIS]) {
+      enable_u();
+    }
+    if (block->steps[V_AXIS]) {
+      enable_v();
+    }
+    if (block->steps[W_AXIS]) {
+      enable_w();
+    }
   // #endif
 
   // Enable extruder(s)
@@ -1290,21 +1330,25 @@ float junction_deviation = 0.1;
   //   delta_mm[C_AXIS] = (dx - dz) / axis_steps_per_unit[C_AXIS];
   // #else
     // float delta_mm[4];
-    float delta_mm[7];
+    float delta_mm[NUM_AXIS];
     delta_mm[X_AXIS] = dx / axis_steps_per_unit[X_AXIS];
     delta_mm[Y_AXIS] = dy / axis_steps_per_unit[Y_AXIS];
     delta_mm[Z_AXIS] = dz / axis_steps_per_unit[Z_AXIS];
     delta_mm[XX_AXIS] = dxx / axis_steps_per_unit[XX_AXIS];
     delta_mm[YY_AXIS] = dyy / axis_steps_per_unit[YY_AXIS];
     delta_mm[ZZ_AXIS] = dzz / axis_steps_per_unit[ZZ_AXIS];
+    delta_mm[T_AXIS] = dt / axis_steps_per_unit[T_AXIS];
+    delta_mm[U_AXIS] = du / axis_steps_per_unit[U_AXIS];
+    delta_mm[V_AXIS] = dv / axis_steps_per_unit[V_AXIS];
+    delta_mm[W_AXIS] = dw / axis_steps_per_unit[W_AXIS];
   // #endif
   // delta_mm[E_AXIS] = (de / axis_steps_per_unit[E_AXIS]); * volumetric_multiplier[extruder] * extruder_multiplier[extruder] / 100.0;
   delta_mm[E_AXIS] = (de / axis_steps_per_unit[E_AXIS]);// this is dummy and irrelevant
 
-  if (block->steps[X_AXIS] <= dropsegments && block->steps[Y_AXIS] <= dropsegments && block->steps[Z_AXIS] <= dropsegments && block->steps[XX_AXIS] <= dropsegments && block->steps[YY_AXIS] <= dropsegments && block->steps[ZZ_AXIS] <= dropsegments) {
+  if (block->steps[X_AXIS] <= dropsegments && block->steps[Y_AXIS] <= dropsegments && block->steps[Z_AXIS] <= dropsegments && block->steps[XX_AXIS] <= dropsegments && block->steps[YY_AXIS] <= dropsegments && block->steps[ZZ_AXIS] <= dropsegments  && block->steps[T_AXIS] <= dropsegments && block->steps[U_AXIS] <= dropsegments && block->steps[V_AXIS] <= dropsegments && block->steps[W_AXIS] <= dropsegments) {
     block->millimeters = fabs(delta_mm[E_AXIS]);
   } 
-  else {
+  else if (!is_mounter_move) {
     block->millimeters = sqrt(
       #ifdef COREXY
         square(delta_mm[X_HEAD]) + square(delta_mm[Y_HEAD]) + square(delta_mm[Z_AXIS])
@@ -1315,6 +1359,10 @@ float junction_deviation = 0.1;
          + square(delta_mm[XX_AXIS]) + square(delta_mm[YY_AXIS]) + square(delta_mm[Z_AXIS]))*0.5
       #endif
     );
+  } else if(is_mounter_move){
+    block->millimeters = sqrt(
+        square(delta_mm[T_AXIS]) + square(delta_mm[U_AXIS]) + square(delta_mm[V_AXIS]) + square(delta_mm[W_AXIS])
+   );
   }
   float inverse_millimeters = 1.0 / block->millimeters;  // Inverse millimeters to remove multiple divides 
 
@@ -1432,8 +1480,8 @@ float junction_deviation = 0.1;
 
   // Compute and limit the acceleration rate for the trapezoid generator.  
   float steps_per_mm = block->step_event_count / block->millimeters;
-  long bsx = block->steps[X_AXIS], bsy = block->steps[Y_AXIS], bsz = block->steps[Z_AXIS], bse = block->steps[E_AXIS], bsxx = block->steps[XX_AXIS], bsyy = block->steps[YY_AXIS], bszz = block->steps[ZZ_AXIS];
-  if (bsx == 0 && bsy == 0 && bsz == 0 && bsxx == 0 && bsyy == 0 && bszz == 0) {
+  long bsx = block->steps[X_AXIS], bsy = block->steps[Y_AXIS], bsz = block->steps[Z_AXIS], bse = block->steps[E_AXIS], bsxx = block->steps[XX_AXIS], bsyy = block->steps[YY_AXIS], bszz = block->steps[ZZ_AXIS], bst = block->steps[T_AXIS], bsu = block->steps[U_AXIS], bsv = block->steps[V_AXIS], bsw = block->steps[W_AXIS];
+  if (bsx == 0 && bsy == 0 && bsz == 0 && bsxx == 0 && bsyy == 0 && bszz == 0 && bst == 0 && bsu == 0 && bsv == 0 && bsw == 0) {
     block->acceleration_st = ceil(retract_acceleration * steps_per_mm); // convert to: acceleration steps/sec^2
   }
   else if (bse == 0) {
@@ -1450,7 +1498,12 @@ float junction_deviation = 0.1;
                 xxsteps = axis_steps_per_sqr_second[XX_AXIS],
                 yysteps = axis_steps_per_sqr_second[YY_AXIS],
                 zzsteps = axis_steps_per_sqr_second[ZZ_AXIS],
-                esteps = axis_steps_per_sqr_second[E_AXIS];
+                esteps = axis_steps_per_sqr_second[E_AXIS],
+                tsteps = axis_steps_per_sqr_second[T_AXIS],
+                usteps = axis_steps_per_sqr_second[U_AXIS],
+                vsteps = axis_steps_per_sqr_second[V_AXIS],
+                wsteps = axis_steps_per_sqr_second[W_AXIS];
+
   if ((float)acc_st * bsx / block->step_event_count > xsteps) acc_st = xsteps;
   if ((float)acc_st * bsy / block->step_event_count > ysteps) acc_st = ysteps;
   if ((float)acc_st * bsz / block->step_event_count > zsteps) acc_st = zsteps;
@@ -1458,6 +1511,10 @@ float junction_deviation = 0.1;
   if ((float)acc_st * bsyy / block->step_event_count > yysteps) acc_st = yysteps;
   if ((float)acc_st * bszz / block->step_event_count > zzsteps) acc_st = zzsteps;
   if ((float)acc_st * bse / block->step_event_count > esteps) acc_st = esteps;
+  if ((float)acc_st * bst / block->step_event_count > tsteps) acc_st = tsteps;
+  if ((float)acc_st * bsu / block->step_event_count > usteps) acc_st = usteps;
+  if ((float)acc_st * bsv / block->step_event_count > vsteps) acc_st = vsteps;
+  if ((float)acc_st * bsw / block->step_event_count > wsteps) acc_st = wsteps;
  
   block->acceleration_st = acc_st;
   block->acceleration = acc_st / steps_per_mm;
@@ -1588,8 +1645,7 @@ float junction_deviation = 0.1;
 
   st_wake_up();
 
-} // plan_buffer_line3() 
-
+} // plan_buffer_line_6axes() 
 
 #if defined(ENABLE_AUTO_BED_LEVELING) && !defined(DELTA)
   vector_3 plan_get_position() {
@@ -1629,9 +1685,9 @@ float junction_deviation = 0.1;
   }
 
 #if defined(ENABLE_AUTO_BED_LEVELING) || defined(MESH_BED_LEVELING)
-  void plan_set_position2(float x, float y, float z, float xx, float yy, float zz, const float &e)
+  void plan_set_position_6axes(float x, float y, float z, float xx, float yy, float zz, const float &e, const float &t, const float &u, const float &v, const float &w)
 #else
-  void plan_set_position2(const float &x, const float &y, const float &z, const float &xx, const float &yy, const float &zz, const float &e)
+  void plan_set_position_6axes(const float &x, const float &y, const float &z, const float &xx, const float &yy, const float &zz, const float &e, const float &t, const float &u, const float &v, const float &w)
 #endif // ENABLE_AUTO_BED_LEVELING || MESH_BED_LEVELING
   {
     #ifdef MESH_BED_LEVELING
@@ -1646,9 +1702,13 @@ float junction_deviation = 0.1;
           nxx = position[XX_AXIS] = lround(xx * axis_steps_per_unit[XX_AXIS]),
           nyy = position[YY_AXIS] = lround(yy * axis_steps_per_unit[YY_AXIS]),
           nzz = position[ZZ_AXIS] = lround(zz * axis_steps_per_unit[ZZ_AXIS]),
-          ne = position[E_AXIS] = lround(e * axis_steps_per_unit[E_AXIS]);
+          ne = position[E_AXIS] = lround(e * axis_steps_per_unit[E_AXIS]),
+          nt = position[T_AXIS] = lround(t * axis_steps_per_unit[T_AXIS]),
+          nu = position[U_AXIS] = lround(u * axis_steps_per_unit[U_AXIS]),
+          nv = position[V_AXIS] = lround(v * axis_steps_per_unit[V_AXIS]),
+          nw = position[W_AXIS] = lround(w * axis_steps_per_unit[W_AXIS]);
     // st_set_position(nx, ny, nz, ne);
-    st_set_position2(nx, ny, nz, nxx, nyy, nzz, ne);
+    st_set_position2(nx, ny, nz, nxx, nyy, nzz, ne, nt, nu, nv, nw);
     previous_nominal_speed = 0.0; // Resets planner junction speeds. Assumes start from rest.
 
     for (int i=0; i<NUM_AXIS; i++) previous_speed[i] = 0.0;
