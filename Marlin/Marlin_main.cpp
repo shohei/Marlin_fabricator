@@ -649,6 +649,20 @@ void servo_init() {
   void enableStepperDrivers() { pinMode(STEPPER_RESET_PIN, INPUT); }  // set to input, which allows it to be pulled high by pullups
 #endif
 
+ void setup_gnd_pins(){
+    pinMode(GND_T,OUTPUT); 
+    pinMode(GND_U,OUTPUT); 
+    pinMode(GND_V,OUTPUT); 
+    pinMode(GND_W,OUTPUT); 
+    pinMode(REF_3V3,OUTPUT);
+
+    digitalWrite(GND_T,LOW);
+    digitalWrite(GND_U,LOW);
+    digitalWrite(GND_V,LOW);
+    digitalWrite(GND_W,LOW);
+    digitalWrite(REF_3V3,HIGH);
+ } 
+
 /**
  * Marlin entry-point: Set up before the program loop
  *  - Set up the kill pin, filament runout, power hold
@@ -671,6 +685,7 @@ void setup() {
   setup_killpin();
   setup_filrunoutpin();
   setup_powerhold();
+  setup_gnd_pins();
 
   #if HAS_STEPPER_RESET
     disableStepperDrivers();

@@ -118,39 +118,45 @@
     #endif
   #endif
 
-  #ifdef ULTRA_LCD
+  #define GND_T 37
+  #define GND_U 35
+  #define GND_V 33
+  #define GND_W 31
+  #define REF_3V3 29 
 
-    #ifdef NEWPANEL
-      // ramps-fd lcd adaptor
-      #define LCD_PINS_RS 16
-      #define LCD_PINS_ENABLE 17
-      #define LCD_PINS_D4 23
-      #define LCD_PINS_D5 25
-      #define LCD_PINS_D6 27
-      #define LCD_PINS_D7 29
+  // #ifdef ULTRA_LCD
 
-      #ifdef REPRAP_DISCOUNT_SMART_CONTROLLER
-        #define BEEPER 37
+  //   #ifdef NEWPANEL
+  //     // ramps-fd lcd adaptor
+  //     #define LCD_PINS_RS 16
+  //     #define LCD_PINS_ENABLE 17
+  //     #define LCD_PINS_D4 23
+  //     #define LCD_PINS_D5 25
+  //     #define LCD_PINS_D6 27
+  //     #define LCD_PINS_D7 29
 
-        #define BTN_EN1 33
-        #define BTN_EN2 31
-        #define BTN_ENC 35
+  //     #ifdef REPRAP_DISCOUNT_SMART_CONTROLLER
+  //       #define BEEPER 37
 
-        #define SDCARDDETECT 49
+  //       #define BTN_EN1 33
+  //       #define BTN_EN2 31
+  //       #define BTN_ENC 35
+
+  //       #define SDCARDDETECT 49
      
-      #elif defined(SSD1306_OLED_I2C_CONTROLLER)
-        #define BTN_EN1 31
-        #define BTN_EN2 33
-        #define BTN_ENC 35
-        #define BEEPER -1
-        #define LCD_SDSS 49
-        #define SDCARDDETECT 37
-        #define KILL_PIN 39
-      #endif
+  //     #elif defined(SSD1306_OLED_I2C_CONTROLLER)
+  //       #define BTN_EN1 31
+  //       #define BTN_EN2 33
+  //       #define BTN_ENC 35
+  //       #define BEEPER -1
+  //       #define LCD_SDSS 49
+  //       #define SDCARDDETECT 37
+  //       #define KILL_PIN 39
+  //     #endif
 
-      #endif
+  //     #endif
 
-  #endif //ULTRA_LCD
+  // #endif //ULTRA_LCD
 
 
 // SPI for Max6675 Thermocouple
